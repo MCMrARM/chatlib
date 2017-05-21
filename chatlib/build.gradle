@@ -1,0 +1,12 @@
+apply plugin: "maven"
+
+group 'io.mrarm'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+
+sourceCompatibility = 1.8
+
+dependencies {
+    testCompile 'junit:junit:4.12'
+}
