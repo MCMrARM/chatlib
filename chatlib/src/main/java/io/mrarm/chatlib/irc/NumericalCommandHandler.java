@@ -1,12 +1,14 @@
 package io.mrarm.chatlib.irc;
 
+import java.util.List;
+
 public abstract class NumericalCommandHandler implements CommandHandler {
 
     public abstract void handle(ServerConnectionData connection, MessagePrefix sender, int command,
-                                String params) throws InvalidMessageException;
+                                List<String> params) throws InvalidMessageException;
 
     public void handle(ServerConnectionData connection, MessagePrefix sender, String command,
-                       String params)
+                       List<String> params)
             throws InvalidMessageException {
         int cmdId;
         try {

@@ -1,5 +1,8 @@
 package io.mrarm.chatlib.irc;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MessageHandler {
 
     private ServerConnectionData connection;
@@ -29,8 +32,29 @@ public class MessageHandler {
         if (commandEndI == -1)
             throw new InvalidMessageException();
         String command = line.substring(prefixEndI + 1, commandEndI);
-        String params = line.substring(commandEndI + 1);
+        String paramsRaw = line.substring(commandEndI + 1);
+        List<String> params = parseParams(paramsRaw);
         commandHandlerList.getHandlerFor(command).handle(connection, prefix, command, params);
+    }
+
+    private List<String> parseParams(String paramsRaw) {
+        List<String> params = new ArrayList<>();
+        int i = 0;
+        while (true) {
+            if (paramsRaw.charAt(i) == ':') {
+                params.add(paramsRaw.substring(i + 1));
+                break;
+            }
+            int j = paramsRaw.indexOf(' ', i);
+            if (j == -1) {
+                params.add(paramsRaw.substring(i));
+                break;
+            } else {
+                params.add(paramsRaw.substring(i, j));
+            }
+            i = j + 1;
+        }
+        return params;
     }
 
 }
