@@ -35,11 +35,10 @@ public class MessagePrefix {
         int iof = prefix.indexOf('!');
         if (iof == -1)
             return null;
-        String ret = prefix.substring(iof + 1);
-        iof = prefix.indexOf('@');
-        if (iof != -1)
-            return ret.substring(0, iof);
-        return ret;
+        int iof2 = prefix.indexOf('@');
+        if (iof2 != -1)
+            return prefix.substring(iof + 1, iof2);
+        return prefix.substring(iof + 1);
     }
 
     public String getHost() {

@@ -3,6 +3,7 @@ package io.mrarm.chatlib.irc;
 import java.util.HashMap;
 
 import io.mrarm.chatlib.irc.handlers.JoinCommandHandler;
+import io.mrarm.chatlib.irc.handlers.NickCommandHandler;
 import io.mrarm.chatlib.irc.handlers.PrivMsgCommandHandler;
 
 public class CommandHandlerList {
@@ -15,6 +16,7 @@ public class CommandHandlerList {
             defaultHandlers = new HashMap<>();
             defaultHandlers.put("JOIN", new JoinCommandHandler());
             defaultHandlers.put("PRIVMSG", new PrivMsgCommandHandler());
+            defaultHandlers.put("NICK", new NickCommandHandler());
         }
         handlers.putAll(defaultHandlers);
     }

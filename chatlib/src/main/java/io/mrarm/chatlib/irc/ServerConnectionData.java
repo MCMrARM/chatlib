@@ -5,11 +5,13 @@ import java.util.HashMap;
 import java.util.List;
 
 import io.mrarm.chatlib.NoSuchChannelException;
+import io.mrarm.chatlib.user.UserInfoApi;
 
 public class ServerConnectionData {
 
     private String userNick;
     private HashMap<String, ChannelData> joinedChannels = new HashMap<>();
+    private UserInfoApi userInfoApi;
 
     public void setUserNick(String nick) {
         userNick = nick;
@@ -17,6 +19,14 @@ public class ServerConnectionData {
 
     public String getUserNick() {
         return userNick;
+    }
+
+    public UserInfoApi getUserInfoApi() {
+        return userInfoApi;
+    }
+
+    public void setUserInfoProvider(UserInfoApi api) {
+        this.userInfoApi = api;
     }
 
     public ChannelData getJoinedChannelData(String channelName) throws NoSuchChannelException {

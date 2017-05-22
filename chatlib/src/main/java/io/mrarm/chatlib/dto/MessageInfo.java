@@ -6,18 +6,18 @@ public class MessageInfo {
         NORMAL, NOTICE, ME, JOIN, PART
     }
 
-    private String senderNick;
+    private MessageSenderInfo sender;
     private String message;
     private MessageType type;
 
-    public MessageInfo(String senderNick, String message, MessageType type) {
-        this.senderNick = senderNick;
+    public MessageInfo(MessageSenderInfo sender, String message, MessageType type) {
+        this.sender = sender;
         this.message = message;
         this.type = type;
     }
 
-    public String getSenderNick() {
-        return senderNick;
+    public MessageSenderInfo getSender() {
+        return sender;
     }
 
     public String getMessage() {

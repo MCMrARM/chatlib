@@ -3,6 +3,7 @@ package io.mrarm.chatlib.test;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.Future;
 
 import io.mrarm.chatlib.NoSuchChannelException;
 import io.mrarm.chatlib.ResponseCallback;
@@ -14,6 +15,7 @@ import io.mrarm.chatlib.irc.ChannelData;
 import io.mrarm.chatlib.irc.CommandHandlerList;
 import io.mrarm.chatlib.irc.MessageHandler;
 import io.mrarm.chatlib.irc.ServerConnectionData;
+import io.mrarm.chatlib.user.SimpleUserInfoApi;
 
 public class TestApiImpl extends SimpleAsyncChatApi {
 
@@ -21,6 +23,7 @@ public class TestApiImpl extends SimpleAsyncChatApi {
 
     public TestApiImpl(String nick) {
         serverConnectionData.setUserNick(nick);
+        serverConnectionData.setUserInfoProvider(new SimpleUserInfoApi());
     }
 
     public void readTestChatLog(BufferedReader reader) throws IOException {
@@ -43,27 +46,27 @@ public class TestApiImpl extends SimpleAsyncChatApi {
     }
 
     @Override
-    public void getJoinedChannelList(ResponseCallback<List<String>> callback,
-                                     ResponseErrorCallback errorCallback) {
-        queue(() -> {
+    public Future<List<String>> getJoinedChannelList(ResponseCallback<List<String>> callback,
+                                                     ResponseErrorCallback errorCallback) {
+        return queue(() -> {
             return serverConnectionData.getJoinedChannelList();
         }, callback, errorCallback);
     }
 
     @Override
-    public void getChannelInfo(String channelName, ResponseCallback<ChannelInfo> callback,
-                               ResponseErrorCallback errorCallback) {
-        queue(() -> {
+    public Future<ChannelInfo> getChannelInfo(String channelName, ResponseCallback<ChannelInfo> callback,
+                                              ResponseErrorCallback errorCallback) {
+        return queue(() -> {
             ChannelData data = getChannelData(channelName);
             return new ChannelInfo(data.getName(), data.getTitle());
         }, callback, errorCallback);
     }
 
     @Override
-    public void getMessages(String channelName, int count, MessageList after,
-                            ResponseCallback<MessageList> callback,
-                            ResponseErrorCallback errorCallback) {
-        queue(() -> {
+    public Future<MessageList> getMessages(String channelName, int count, MessageList after,
+                                           ResponseCallback<MessageList> callback,
+                                           ResponseErrorCallback errorCallback) {
+        return queue(() -> {
             ChannelData data = getChannelData(channelName);
             return new MessageList(data.getMessages());
         }, callback, errorCallback);
