@@ -6,6 +6,7 @@ import io.mrarm.chatlib.dto.NickChangeMessageInfo;
 import io.mrarm.chatlib.irc.*;
 import io.mrarm.chatlib.user.UserInfo;
 
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -27,7 +28,7 @@ public class NickCommandHandler implements CommandHandler {
                     sender.getHost(), null, null).get();
             MessageSenderInfo senderInfo = new MessageSenderInfo(sender.getNick(), sender.getUser(), sender.getHost(),
                     null, userInfo.getUUID());
-            NickChangeMessageInfo nickChangeMessageInfo = new NickChangeMessageInfo(senderInfo, newNick);
+            NickChangeMessageInfo nickChangeMessageInfo = new NickChangeMessageInfo(senderInfo, new Date(), newNick);
             for (String channel : userInfo.getChannels()) {
                 try {
                     connection.getJoinedChannelData(channel).addMessage(nickChangeMessageInfo);

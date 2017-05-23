@@ -1,5 +1,7 @@
 package io.mrarm.chatlib.dto;
 
+import java.util.Date;
+
 public class MessageInfo {
 
     public enum MessageType {
@@ -7,17 +9,23 @@ public class MessageInfo {
     }
 
     private MessageSenderInfo sender;
+    private Date date;
     private String message;
     private MessageType type;
 
-    public MessageInfo(MessageSenderInfo sender, String message, MessageType type) {
+    public MessageInfo(MessageSenderInfo sender, Date date, String message, MessageType type) {
         this.sender = sender;
+        this.date = date;
         this.message = message;
         this.type = type;
     }
 
     public MessageSenderInfo getSender() {
         return sender;
+    }
+
+    public Date getDate() {
+        return date;
     }
 
     public String getMessage() {
@@ -27,5 +35,4 @@ public class MessageInfo {
     public MessageType getType() {
         return type;
     }
-
 }
