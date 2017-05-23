@@ -2,7 +2,7 @@ package io.mrarm.chatlib.irc;
 
 import java.util.List;
 
-public abstract class NumericalCommandHandler implements CommandHandler {
+public abstract class NumericCommandHandler implements CommandHandler {
 
     public abstract void handle(ServerConnectionData connection, MessagePrefix sender, int command,
                                 List<String> params) throws InvalidMessageException;

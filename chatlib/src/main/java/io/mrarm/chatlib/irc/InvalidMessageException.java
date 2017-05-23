@@ -12,4 +12,8 @@ public class InvalidMessageException extends ChatApiException {
         super(message);
     }
 
+    public InvalidMessageException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
 }

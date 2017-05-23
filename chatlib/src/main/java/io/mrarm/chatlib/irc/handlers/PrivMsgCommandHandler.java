@@ -3,10 +3,8 @@ package io.mrarm.chatlib.irc.handlers;
 import io.mrarm.chatlib.NoSuchChannelException;
 import io.mrarm.chatlib.dto.MessageInfo;
 import io.mrarm.chatlib.dto.MessageSenderInfo;
-import io.mrarm.chatlib.irc.CommandHandler;
-import io.mrarm.chatlib.irc.InvalidMessageException;
-import io.mrarm.chatlib.irc.MessagePrefix;
-import io.mrarm.chatlib.irc.ServerConnectionData;
+import io.mrarm.chatlib.dto.NickPrefixList;
+import io.mrarm.chatlib.irc.*;
 import io.mrarm.chatlib.user.UserInfo;
 
 import java.util.List;
@@ -20,13 +18,16 @@ public class PrivMsgCommandHandler implements CommandHandler {
         try {
             UserInfo userInfo = connection.getUserInfoApi().getUser(sender.getNick(), sender.getUser(),
                     sender.getHost(), null, null).get();
-            MessageSenderInfo senderInfo = new MessageSenderInfo(sender.getNick(), sender.getUser(), sender.getHost(),
-                    userInfo.getUUID());
-            MessageInfo message = new MessageInfo(senderInfo, params.get(1), MessageInfo.MessageType.NORMAL);
-            for (String channel : params.get(0).split(","))
-                connection.getJoinedChannelData(channel).addMessage(message);
+            for (String channel : params.get(0).split(",")) {
+                ChannelData channelData = connection.getJoinedChannelData(channel);
+                ChannelData.Member memberInfo = channelData.getMember(userInfo);
+                MessageSenderInfo senderInfo = new MessageSenderInfo(sender.getNick(), sender.getUser(),
+                        sender.getHost(), memberInfo != null ? memberInfo.getNickPrefixes() : null, userInfo.getUUID());
+                MessageInfo message = new MessageInfo(senderInfo, params.get(1), MessageInfo.MessageType.NORMAL);
+                channelData.addMessage(message);
+            }
         } catch (NoSuchChannelException e) {
-            throw new InvalidMessageException("Invalid channel specified in a PRIVMSG message");
+            throw new InvalidMessageException("Invalid channel specified in a PRIVMSG message", e);
         } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException(e);
         }

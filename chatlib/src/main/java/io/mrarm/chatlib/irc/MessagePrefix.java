@@ -2,50 +2,47 @@ package io.mrarm.chatlib.irc;
 
 public class MessagePrefix {
 
-    private String prefix;
+    private String rawPrefix;
+    private String nick;
+    private String user;
+    private String host;
 
     public MessagePrefix(String prefix) {
-        this.prefix = prefix;
+        this.rawPrefix = prefix;
+        this.nick = rawPrefix;
+        int iof = prefix.indexOf('!');
+        int iof2 = prefix.indexOf('@', (iof == -1 ? 0 : iof + 1));
+        if (iof != -1 || iof2 != -1)
+            this.nick = prefix.substring(0, (iof != -1 ? iof : iof2));
+        if (iof != -1)
+            this.user = prefix.substring(iof + 1, (iof2 == -1 ? prefix.length() - iof - 1 : iof2));
+        if (iof2 != -1)
+            this.host = prefix.substring(iof2 + 1);
     }
 
     @Override
     public String toString() {
-        return prefix;
+        return rawPrefix;
     }
 
     // sent by server
 
     public String getServerName() {
-        return prefix;
+        return rawPrefix;
     }
 
     // sent by user
 
     public String getNick() {
-        int iof = prefix.indexOf('!');
-        if (iof != -1)
-            return prefix.substring(0, iof);
-        iof = prefix.indexOf('@');
-        if (iof != -1)
-            return prefix.substring(0, iof);
-        return prefix;
+        return nick;
     }
 
     public String getUser() {
-        int iof = prefix.indexOf('!');
-        if (iof == -1)
-            return null;
-        int iof2 = prefix.indexOf('@');
-        if (iof2 != -1)
-            return prefix.substring(iof + 1, iof2);
-        return prefix.substring(iof + 1);
+        return user;
     }
 
     public String getHost() {
-        int iof = prefix.indexOf('@');
-        if (iof == -1)
-            return null;
-        return prefix.substring(iof + 1);
+        return host;
     }
 
 }

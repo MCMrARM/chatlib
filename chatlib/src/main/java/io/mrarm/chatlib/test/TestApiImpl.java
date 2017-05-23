@@ -62,7 +62,7 @@ public class TestApiImpl implements ChatApi {
                                               ResponseErrorCallback errorCallback) {
         return SimpleRequestExecutor.run(() -> {
             ChannelData data = getChannelData(channelName);
-            return new ChannelInfo(data.getName(), data.getTitle());
+            return new ChannelInfo(data.getName(), data.getTitle(), data.getMembersAsNickPrefixList());
         }, callback, errorCallback);
     }
 

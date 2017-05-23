@@ -23,12 +23,12 @@ public class JoinCommandHandler implements CommandHandler {
             UserInfo userInfo = connection.getUserInfoApi().getUser(sender.getNick(), sender.getUser(),
                     sender.getHost(), null, null).get();
             MessageSenderInfo senderInfo = new MessageSenderInfo(sender.getNick(), sender.getUser(), sender.getHost(),
-                    userInfo.getUUID());
+                    null, userInfo.getUUID());
             for (String channel : params.get(0).split(","))
                 connection.getJoinedChannelData(channel).addMessage(new MessageInfo(senderInfo, null,
                         MessageInfo.MessageType.JOIN));
         } catch (NoSuchChannelException e) {
-            throw new InvalidMessageException("Invalid channel specified in a JOIN message");
+            throw new InvalidMessageException("Invalid channel specified in a JOIN message", e);
         } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException(e);
         }

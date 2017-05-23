@@ -12,6 +12,7 @@ public class ServerConnectionData {
     private String userNick;
     private HashMap<String, ChannelData> joinedChannels = new HashMap<>();
     private WritableUserInfoApi userInfoApi;
+    private NickPrefixParser nickPrefixParser = new OneCharNickPrefixParser();
 
     public void setUserNick(String nick) {
         userNick = nick;
@@ -29,6 +30,10 @@ public class ServerConnectionData {
         this.userInfoApi = api;
     }
 
+    public NickPrefixParser getNickPrefixParser() {
+        return nickPrefixParser;
+    }
+
     public ChannelData getJoinedChannelData(String channelName) throws NoSuchChannelException {
         if (!joinedChannels.containsKey(channelName))
             throw new NoSuchChannelException();
@@ -42,7 +47,7 @@ public class ServerConnectionData {
     }
 
     public void onChannelJoined(String channelName) {
-        joinedChannels.put(channelName, new ChannelData(channelName));
+        joinedChannels.put(channelName, new ChannelData(this, channelName));
     }
 
 }

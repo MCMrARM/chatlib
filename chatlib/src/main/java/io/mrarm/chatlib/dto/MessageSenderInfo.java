@@ -7,17 +7,23 @@ public class MessageSenderInfo {
     private String nick;
     private String user;
     private String host;
+    private NickPrefixList nickPrefixes;
     private UUID userUUID;
 
-    public MessageSenderInfo(String nick, String user, String host, UUID userUUID) {
+    public MessageSenderInfo(String nick, String user, String host, NickPrefixList nickPrefixes, UUID userUUID) {
         this.nick = nick;
         this.user = user;
         this.host = host;
+        this.nickPrefixes = nickPrefixes;
         this.userUUID = userUUID;
     }
 
     public String getNick() {
         return nick;
+    }
+
+    public NickPrefixList getNickPrefixes() {
+        return nickPrefixes;
     }
 
     public String getUser() {
@@ -30,20 +36,6 @@ public class MessageSenderInfo {
 
     public UUID getUserUUID() {
         return userUUID;
-    }
-
-    public void setNick(String nick) {
-        this.nick = nick;
-    }
-
-    public void setUserInfo(String nick, String user, String host) {
-        this.nick = nick;
-        this.user = user;
-        this.host = host;
-    }
-
-    public void setUserUUID(UUID userUUID) {
-        this.userUUID = userUUID;
     }
 
 }

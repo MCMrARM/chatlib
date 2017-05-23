@@ -21,7 +21,7 @@ public class SimpleUserInfoApi implements WritableUserInfoApi {
     public Future<UserInfo> getUser(UUID uuid, ResponseCallback<UserInfo> callback,
                                     ResponseErrorCallback errorCallback) {
         return SimpleRequestExecutor.run(() -> {
-            return uuidToUserInfo.get(uuid);
+            return new UserInfo(uuidToUserInfo.get(uuid));
         }, callback, errorCallback);
     }
 
@@ -30,13 +30,13 @@ public class SimpleUserInfoApi implements WritableUserInfoApi {
                                     ResponseErrorCallback errorCallback) {
         return SimpleRequestExecutor.run(() -> {
             if (nickToUserInfo.containsKey(nick))
-                return nickToUserInfo.get(nick);
+                return new UserInfo(nickToUserInfo.get(nick));
             UserInfo userInfo = new UserInfo(UUID.randomUUID(), nick);
             uuidToUserInfo.put(userInfo.getUUID(), userInfo);
             nickToUserInfo.put(userInfo.getCurrentNick(), userInfo);
             if (callback != null)
                 callback.onResponse(userInfo);
-            return userInfo;
+            return new UserInfo(userInfo);
         }, callback, errorCallback);
     }
 
@@ -74,4 +74,12 @@ public class SimpleUserInfoApi implements WritableUserInfoApi {
         }, callback, errorCallback);
     }
 
+    @Override
+    public Future<Void> setUserChannelPresence(UserInfo userInfo, String channel, boolean present,
+                                               ResponseCallback<Void> callback, ResponseErrorCallback errorCallback) {
+        return SimpleRequestExecutor.run(() -> {
+            userInfo.setChannelPresence(channel, present);
+            return null;
+        }, callback, errorCallback);
+    }
 }

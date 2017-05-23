@@ -10,4 +10,7 @@ public interface WritableUserInfoApi extends UserInfoApi {
     Future<Void> setUserNick(UserInfo userInfo, String newNick, ResponseCallback<Void> callback,
                              ResponseErrorCallback errorCallback);
 
+    Future<Void> setUserChannelPresence(UserInfo userInfo, String channel, boolean present,
+                                        ResponseCallback<Void> callback, ResponseErrorCallback errorCallback);
+
 }
