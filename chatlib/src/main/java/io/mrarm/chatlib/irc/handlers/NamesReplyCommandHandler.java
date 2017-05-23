@@ -36,8 +36,8 @@ public class NamesReplyCommandHandler extends NumericCommandHandler {
                 channelName = params.get(++paramId);
 
             List<ChannelData.Member> list = channelNamesList.computeIfAbsent(channelName, k -> new ArrayList<>());
-            for ( ; paramId < params.size(); paramId++) {
-                NickWithPrefix nickWithPrefix = connection.getNickPrefixParser().parse(params.get(paramId));
+            for (String rawNick : params.get(++paramId).split(" ")) {
+                NickWithPrefix nickWithPrefix = connection.getNickPrefixParser().parse(rawNick);
                 UserInfo userInfo;
                 try {
                     userInfo = connection.getUserInfoApi().getUser(nickWithPrefix.getNick(), null, null,

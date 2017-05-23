@@ -24,4 +24,7 @@ public class ChannelInfo {
         return title;
     }
 
+    public List<NickWithPrefix> getMembers() {
+        return members;
+    }
 }

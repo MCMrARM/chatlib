@@ -3,7 +3,7 @@ package io.mrarm.chatlib.dto;
 public class MessageInfo {
 
     public enum MessageType {
-        NORMAL, NOTICE, ME, JOIN, PART
+        NORMAL, NOTICE, ME, JOIN, PART, NICK_CHANGE
     }
 
     private MessageSenderInfo sender;
