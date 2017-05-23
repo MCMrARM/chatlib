@@ -19,6 +19,11 @@ public class NamesReplyCommandHandler extends NumericCommandHandler {
     private Map<String, List<ChannelData.Member>> channelNamesList = new HashMap<>();
 
     @Override
+    public int[] getNumericHandledCommands() {
+        return new int[] { RPL_NAMREPLY, RPL_ENDOFNAMES };
+    }
+
+    @Override
     public void handle(ServerConnectionData connection, MessagePrefix sender, int command,
                        List<String> params) throws InvalidMessageException {
         if (command == RPL_NAMREPLY) {

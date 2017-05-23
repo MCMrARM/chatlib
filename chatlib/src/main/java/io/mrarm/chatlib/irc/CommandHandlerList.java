@@ -15,16 +15,14 @@ public class CommandHandlerList {
     public void addDefaultHandlers() {
         if (defaultHandlers == null) {
             defaultHandlers = new CommandHandlerList();
-            defaultHandlers.registerHandler("JOIN", new JoinCommandHandler());
-            defaultHandlers.registerHandler("PRIVMSG", new PrivMsgCommandHandler());
-            defaultHandlers.registerHandler("NICK", new NickCommandHandler());
+            defaultHandlers.registerHandler(new JoinCommandHandler());
+            defaultHandlers.registerHandler(new PrivMsgCommandHandler());
+            defaultHandlers.registerHandler(new NickCommandHandler());
         }
         handlers.putAll(defaultHandlers.handlers);
 
         // per-connection handlers
-        NamesReplyCommandHandler namesHandler = new NamesReplyCommandHandler();
-        registerHandler(NamesReplyCommandHandler.RPL_NAMREPLY, namesHandler);
-        registerHandler(NamesReplyCommandHandler.RPL_ENDOFNAMES, namesHandler);
+        registerHandler(new NamesReplyCommandHandler());
     }
 
     public CommandHandler getHandlerFor(String command) throws InvalidMessageException {
@@ -33,12 +31,9 @@ public class CommandHandlerList {
         return handlers.get(command);
     }
 
-    public void registerHandler(String command, CommandHandler handler) {
-        handlers.put(command, handler);
-    }
-
-    public void registerHandler(int command, CommandHandler handler) {
-        handlers.put(Integer.toString(command), handler);
+    public void registerHandler(CommandHandler handler) {
+        for (String command : handler.getHandledCommands())
+            handlers.put(command, handler);
     }
 
 }

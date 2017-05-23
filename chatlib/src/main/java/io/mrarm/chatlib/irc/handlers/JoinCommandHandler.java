@@ -12,6 +12,11 @@ import java.util.concurrent.ExecutionException;
 public class JoinCommandHandler implements CommandHandler {
 
     @Override
+    public String[] getHandledCommands() {
+        return new String[] { "JOIN" };
+    }
+
+    @Override
     public void handle(ServerConnectionData connection, MessagePrefix sender, String command,
                        List<String> params)
             throws InvalidMessageException {
