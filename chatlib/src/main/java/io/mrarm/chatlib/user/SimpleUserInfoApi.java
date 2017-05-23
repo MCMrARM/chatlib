@@ -59,9 +59,10 @@ public class SimpleUserInfoApi implements WritableUserInfoApi {
     }
 
     @Override
-    public Future<Void> setUserNick(UserInfo userInfo, String newNick, ResponseCallback<Void> callback,
+    public Future<Void> setUserNick(UUID user, String newNick, ResponseCallback<Void> callback,
                                     ResponseErrorCallback errorCallback) {
         return SimpleRequestExecutor.run(() -> {
+            UserInfo userInfo = uuidToUserInfo.get(user);
             String oldNick = userInfo.getCurrentNick();
             userInfo.setCurrentNick(newNick);
             if (nickToUserInfo.get(oldNick) == userInfo) {
@@ -75,9 +76,10 @@ public class SimpleUserInfoApi implements WritableUserInfoApi {
     }
 
     @Override
-    public Future<Void> setUserChannelPresence(UserInfo userInfo, String channel, boolean present,
+    public Future<Void> setUserChannelPresence(UUID user, String channel, boolean present,
                                                ResponseCallback<Void> callback, ResponseErrorCallback errorCallback) {
         return SimpleRequestExecutor.run(() -> {
+            UserInfo userInfo = uuidToUserInfo.get(user);
             userInfo.setChannelPresence(channel, present);
             return null;
         }, callback, errorCallback);

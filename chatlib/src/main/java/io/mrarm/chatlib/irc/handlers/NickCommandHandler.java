@@ -21,7 +21,7 @@ public class NickCommandHandler implements CommandHandler {
         try {
             UserInfo info = connection.getUserInfoApi().getUser(sender.getNick(), sender.getUser(), sender.getHost(),
                     null, null).get();
-            connection.getUserInfoApi().setUserNick(info, params.get(0), null, null).get();
+            connection.getUserInfoApi().setUserNick(info.getUUID(), params.get(0), null, null).get();
         } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException(e);
         }

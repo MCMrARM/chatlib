@@ -64,13 +64,13 @@ public class ChannelData {
     }
 
     public void addMember(Member member) {
-        connection.getUserInfoApi().setUserChannelPresence(member.getUserInfo(), name, true, null, null);
+        connection.getUserInfoApi().setUserChannelPresence(member.getUserInfo().getUUID(), name, true, null, null);
         members.add(member);
         membersMap.put(member.getUserInfo(), member);
     }
 
     public void removeMember(Member member) {
-        connection.getUserInfoApi().setUserChannelPresence(member.getUserInfo(), name, false, null, null);
+        connection.getUserInfoApi().setUserChannelPresence(member.getUserInfo().getUUID(), name, false, null, null);
         members.remove(member);
         membersMap.remove(member.getUserInfo());
     }
@@ -82,12 +82,12 @@ public class ChannelData {
     public void setMembers(List<Member> members) {
         for (Member member : this.members) {
             if (!members.contains(member))
-                connection.getUserInfoApi().setUserChannelPresence(member.getUserInfo(), name, false, null, null);
+                connection.getUserInfoApi().setUserChannelPresence(member.getUserInfo().getUUID(), name, false, null, null);
         }
         membersMap.clear();
         for (Member member : members) {
             if (!this.members.contains(member))
-                connection.getUserInfoApi().setUserChannelPresence(member.getUserInfo(), name, true, null, null);
+                connection.getUserInfoApi().setUserChannelPresence(member.getUserInfo().getUUID(), name, true, null, null);
             membersMap.put(member.getUserInfo(), member);
         }
         this.members = members;
