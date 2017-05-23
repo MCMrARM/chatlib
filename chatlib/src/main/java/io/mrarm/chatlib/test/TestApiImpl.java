@@ -5,10 +5,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.Future;
 
-import io.mrarm.chatlib.NoSuchChannelException;
-import io.mrarm.chatlib.ResponseCallback;
-import io.mrarm.chatlib.ResponseErrorCallback;
-import io.mrarm.chatlib.SimpleAsyncChatApi;
+import io.mrarm.chatlib.*;
 import io.mrarm.chatlib.dto.ChannelInfo;
 import io.mrarm.chatlib.dto.MessageList;
 import io.mrarm.chatlib.irc.ChannelData;
@@ -16,14 +13,16 @@ import io.mrarm.chatlib.irc.CommandHandlerList;
 import io.mrarm.chatlib.irc.MessageHandler;
 import io.mrarm.chatlib.irc.ServerConnectionData;
 import io.mrarm.chatlib.user.SimpleUserInfoApi;
+import io.mrarm.chatlib.user.UserInfoApi;
+import io.mrarm.chatlib.util.SimpleRequestExecutor;
 
-public class TestApiImpl extends SimpleAsyncChatApi {
+public class TestApiImpl implements ChatApi {
 
     private ServerConnectionData serverConnectionData = new ServerConnectionData();
 
     public TestApiImpl(String nick) {
         serverConnectionData.setUserNick(nick);
-        serverConnectionData.setUserInfoProvider(new SimpleUserInfoApi());
+        serverConnectionData.setUserInfoApi(new SimpleUserInfoApi());
     }
 
     public void readTestChatLog(BufferedReader reader) throws IOException {
@@ -41,6 +40,11 @@ public class TestApiImpl extends SimpleAsyncChatApi {
         }
     }
 
+    @Override
+    public UserInfoApi getUserInfoApi() {
+        return serverConnectionData.getUserInfoApi();
+    }
+
     public ChannelData getChannelData(String channelName) throws NoSuchChannelException {
         return serverConnectionData.getJoinedChannelData(channelName);
     }
@@ -48,7 +52,7 @@ public class TestApiImpl extends SimpleAsyncChatApi {
     @Override
     public Future<List<String>> getJoinedChannelList(ResponseCallback<List<String>> callback,
                                                      ResponseErrorCallback errorCallback) {
-        return queue(() -> {
+        return SimpleRequestExecutor.run(() -> {
             return serverConnectionData.getJoinedChannelList();
         }, callback, errorCallback);
     }
@@ -56,7 +60,7 @@ public class TestApiImpl extends SimpleAsyncChatApi {
     @Override
     public Future<ChannelInfo> getChannelInfo(String channelName, ResponseCallback<ChannelInfo> callback,
                                               ResponseErrorCallback errorCallback) {
-        return queue(() -> {
+        return SimpleRequestExecutor.run(() -> {
             ChannelData data = getChannelData(channelName);
             return new ChannelInfo(data.getName(), data.getTitle());
         }, callback, errorCallback);
@@ -66,9 +70,27 @@ public class TestApiImpl extends SimpleAsyncChatApi {
     public Future<MessageList> getMessages(String channelName, int count, MessageList after,
                                            ResponseCallback<MessageList> callback,
                                            ResponseErrorCallback errorCallback) {
-        return queue(() -> {
+        return SimpleRequestExecutor.run(() -> {
             ChannelData data = getChannelData(channelName);
             return new MessageList(data.getMessages());
+        }, callback, errorCallback);
+    }
+
+    @Override
+    public Future<Void> subscribeChannelMessages(String channelName, MessageListener listener,
+                                                 ResponseCallback<Void> callback, ResponseErrorCallback errorCallback) {
+        return SimpleRequestExecutor.run(() -> {
+            getChannelData(channelName).subscribeMessages(listener);
+            return null;
+        }, callback, errorCallback);
+    }
+
+    @Override
+    public Future<Void> unsubscribeChannelMessages(String channelName, MessageListener listener,
+                                                   ResponseCallback<Void> callback, ResponseErrorCallback errorCallback) {
+        return SimpleRequestExecutor.run(() -> {
+            getChannelData(channelName).unsubscribeMessages(listener);
+            return null;
         }, callback, errorCallback);
     }
 

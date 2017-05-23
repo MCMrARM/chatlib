@@ -29,8 +29,4 @@ public class UserInfo {
         return connected;
     }
 
-    public void setConnected(boolean connected) {
-        this.connected = connected;
-    }
-
 }

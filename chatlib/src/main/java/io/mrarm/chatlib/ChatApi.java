@@ -5,8 +5,11 @@ import java.util.concurrent.Future;
 
 import io.mrarm.chatlib.dto.ChannelInfo;
 import io.mrarm.chatlib.dto.MessageList;
+import io.mrarm.chatlib.user.UserInfoApi;
 
 public interface ChatApi {
+
+    UserInfoApi getUserInfoApi();
 
     Future<List<String>> getJoinedChannelList(ResponseCallback<List<String>> callback,
                                               ResponseErrorCallback errorCallback);
@@ -16,5 +19,11 @@ public interface ChatApi {
 
     Future<MessageList> getMessages(String channelName, int count, MessageList after,
                                     ResponseCallback<MessageList> callback, ResponseErrorCallback errorCallback);
+
+    Future<Void> subscribeChannelMessages(String channelName, MessageListener listener, ResponseCallback<Void> callback,
+                                          ResponseErrorCallback errorCallback);
+
+    Future<Void> unsubscribeChannelMessages(String channelName, MessageListener listener,
+                                            ResponseCallback<Void> callback, ResponseErrorCallback errorCallback);
 
 }

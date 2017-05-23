@@ -3,34 +3,20 @@ package io.mrarm.chatlib.user;
 import io.mrarm.chatlib.ResponseCallback;
 import io.mrarm.chatlib.ResponseErrorCallback;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Future;
 
-public abstract class UserInfoApi {
+public interface UserInfoApi {
 
-    private List<UserNickChangeListener> listeners = new ArrayList<>();
+    Future<UserInfo> getUser(UUID uuid, ResponseCallback<UserInfo> callback, ResponseErrorCallback errorCallback);
 
-    public void addNickChangeListener(UserNickChangeListener listener) {
-        listeners.add(listener);
-    }
+    Future<UserInfo> getUser(String nick, String user, String host, ResponseCallback<UserInfo> callback,
+                             ResponseErrorCallback errorCallback);
 
-    public void removeNickChangeListener(UserNickChangeListener listener) {
-        listeners.remove(listener);
-    }
+    Future<Void> subscribeNickChanges(UserNickChangeListener listener, ResponseCallback<Void> callback,
+                                      ResponseErrorCallback errorCallback);
 
-    abstract public Future<UserInfo> getUser(UUID uuid, ResponseCallback<UserInfo> callback,
-                                             ResponseErrorCallback errorCallback);
-
-    abstract public Future<UserInfo> getUser(String nick, String user, String host,
-                                             ResponseCallback<UserInfo> callback, ResponseErrorCallback errorCallback);
-
-    public void notifyNickChange(UserInfo userInfo, String newNick) {
-        String oldNick = userInfo.getCurrentNick();
-        userInfo.setCurrentNick(newNick);
-        for (UserNickChangeListener listener : listeners)
-            listener.onNickChanged(userInfo, oldNick, newNick);
-    }
+    Future<Void> unsubscribeNickChanges(UserNickChangeListener listener, ResponseCallback<Void> callback,
+                                        ResponseErrorCallback errorCallback);
 
 }

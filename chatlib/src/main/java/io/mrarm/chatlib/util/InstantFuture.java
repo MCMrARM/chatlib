@@ -7,9 +7,16 @@ import java.util.concurrent.TimeUnit;
 public class InstantFuture<T> implements Future<T> {
 
     private final T value;
+    private final Throwable throwable;
 
     public InstantFuture(T value) {
         this.value = value;
+        this.throwable = null;
+    }
+
+    public InstantFuture(T value, Throwable throwable) {
+        this.value = value;
+        this.throwable = throwable;
     }
 
     public boolean cancel(boolean mayInterruptIfRunning) {
@@ -25,6 +32,8 @@ public class InstantFuture<T> implements Future<T> {
     }
 
     public T get() throws ExecutionException {
+        if (throwable != null)
+            throw new ExecutionException(throwable);
         return value;
     }
 
