@@ -11,6 +11,7 @@ public class ServerConnectionData {
 
     private String userNick;
     private HashMap<String, ChannelData> joinedChannels = new HashMap<>();
+    private ServerStatusData serverStatusData = new ServerStatusData();
     private WritableUserInfoApi userInfoApi;
     private NickPrefixParser nickPrefixParser = new OneCharNickPrefixParser();
 
@@ -50,4 +51,8 @@ public class ServerConnectionData {
         joinedChannels.put(channelName, new ChannelData(this, channelName));
     }
 
+    public ServerStatusData getServerStatusData() {
+        return serverStatusData;
+    }
+    
 }

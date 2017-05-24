@@ -8,6 +8,7 @@ import java.util.concurrent.Future;
 import io.mrarm.chatlib.*;
 import io.mrarm.chatlib.dto.ChannelInfo;
 import io.mrarm.chatlib.dto.MessageList;
+import io.mrarm.chatlib.dto.StatusMessageList;
 import io.mrarm.chatlib.irc.ChannelData;
 import io.mrarm.chatlib.irc.CommandHandlerList;
 import io.mrarm.chatlib.irc.MessageHandler;
@@ -66,6 +67,8 @@ public class TestApiImpl implements ChatApi {
         }, callback, errorCallback);
     }
 
+    // TODO: Return a copy of the MessageList instead of a reference
+
     @Override
     public Future<MessageList> getMessages(String channelName, int count, MessageList after,
                                            ResponseCallback<MessageList> callback,
@@ -73,6 +76,15 @@ public class TestApiImpl implements ChatApi {
         return SimpleRequestExecutor.run(() -> {
             ChannelData data = getChannelData(channelName);
             return new MessageList(data.getMessages());
+        }, callback, errorCallback);
+    }
+
+    @Override
+    public Future<StatusMessageList> getStatusMessages(StatusMessageList after,
+                                                       ResponseCallback<StatusMessageList> callback,
+                                                       ResponseErrorCallback errorCallback) {
+        return SimpleRequestExecutor.run(() -> {
+            return new StatusMessageList(serverConnectionData.getServerStatusData().getMessages());
         }, callback, errorCallback);
     }
 

@@ -2,10 +2,7 @@ package io.mrarm.chatlib.irc;
 
 import java.util.HashMap;
 
-import io.mrarm.chatlib.irc.handlers.JoinCommandHandler;
-import io.mrarm.chatlib.irc.handlers.NamesReplyCommandHandler;
-import io.mrarm.chatlib.irc.handlers.NickCommandHandler;
-import io.mrarm.chatlib.irc.handlers.PrivMsgCommandHandler;
+import io.mrarm.chatlib.irc.handlers.*;
 
 public class CommandHandlerList {
 
@@ -23,6 +20,7 @@ public class CommandHandlerList {
 
         // per-connection handlers
         registerHandler(new NamesReplyCommandHandler());
+        registerHandler(new MotdCommandHandler());
     }
 
     public CommandHandler getHandlerFor(String command) throws InvalidMessageException {

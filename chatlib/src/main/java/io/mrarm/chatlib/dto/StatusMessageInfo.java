@@ -2,25 +2,25 @@ package io.mrarm.chatlib.dto;
 
 import java.util.Date;
 
-public class MessageInfo {
+public class StatusMessageInfo {
 
     public enum MessageType {
-        NORMAL, NOTICE, ME, JOIN, PART, NICK_CHANGE
+        MOTD
     }
 
-    private MessageSenderInfo sender;
+    private String sender;
     private Date date;
-    private String message;
     private MessageType type;
+    private String message;
 
-    public MessageInfo(MessageSenderInfo sender, Date date, String message, MessageType type) {
+    public StatusMessageInfo(String sender, Date date, MessageType type, String message) {
         this.sender = sender;
         this.date = date;
-        this.message = message;
         this.type = type;
+        this.message = message;
     }
 
-    public MessageSenderInfo getSender() {
+    public String getSender() {
         return sender;
     }
 
@@ -28,12 +28,12 @@ public class MessageInfo {
         return date;
     }
 
-    public String getMessage() {
-        return message;
-    }
-
     public MessageType getType() {
         return type;
+    }
+
+    public String getMessage() {
+        return message;
     }
 
 }
