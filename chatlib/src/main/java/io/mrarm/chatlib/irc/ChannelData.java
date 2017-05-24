@@ -1,9 +1,7 @@
 package io.mrarm.chatlib.irc;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
 
 import io.mrarm.chatlib.MessageListener;
 import io.mrarm.chatlib.dto.NickWithPrefix;
@@ -18,7 +16,7 @@ public class ChannelData {
     private String title;
     private List<MessageInfo> messages = new ArrayList<>();
     private List<Member> members = new ArrayList<>();
-    private Map<UserInfo, Member> membersMap = new HashMap<>();
+    private Map<UUID, Member> membersMap = new HashMap<>();
     private List<MessageListener> messageListeners = new ArrayList<>();
 
     public ChannelData(ServerConnectionData connection, String name) {
@@ -58,37 +56,46 @@ public class ChannelData {
 
     public List<NickWithPrefix> getMembersAsNickPrefixList() {
         List<NickWithPrefix> list = new ArrayList<>();
+        List<UUID> nickRequestList = new ArrayList<>();
         for (Member member : members)
-            list.add(new NickWithPrefix(member.getUserInfo().getCurrentNick(), member.getNickPrefixes()));
+            nickRequestList.add(member.getUserUUID());
+        Map<UUID, String> nicks;
+        try {
+            nicks = connection.getUserInfoApi().getUsersNicks(nickRequestList, null, null).get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException("Failed to retrieve channel nick list", e);
+        }
+        for (Member member : members)
+            list.add(new NickWithPrefix(nicks.get(member.getUserUUID()), member.getNickPrefixes()));
         return list;
     }
 
     public void addMember(Member member) {
-        connection.getUserInfoApi().setUserChannelPresence(member.getUserInfo().getUUID(), name, true, null, null);
+        connection.getUserInfoApi().setUserChannelPresence(member.getUserUUID(), name, true, null, null);
         members.add(member);
-        membersMap.put(member.getUserInfo(), member);
+        membersMap.put(member.getUserUUID(), member);
     }
 
     public void removeMember(Member member) {
-        connection.getUserInfoApi().setUserChannelPresence(member.getUserInfo().getUUID(), name, false, null, null);
+        connection.getUserInfoApi().setUserChannelPresence(member.getUserUUID(), name, false, null, null);
         members.remove(member);
-        membersMap.remove(member.getUserInfo());
+        membersMap.remove(member.getUserUUID());
     }
 
-    public Member getMember(UserInfo user) {
-        return membersMap.get(user);
+    public Member getMember(UUID userUUID) {
+        return membersMap.get(userUUID);
     }
 
     public void setMembers(List<Member> members) {
         for (Member member : this.members) {
             if (!members.contains(member))
-                connection.getUserInfoApi().setUserChannelPresence(member.getUserInfo().getUUID(), name, false, null, null);
+                connection.getUserInfoApi().setUserChannelPresence(member.getUserUUID(), name, false, null, null);
         }
         membersMap.clear();
         for (Member member : members) {
             if (!this.members.contains(member))
-                connection.getUserInfoApi().setUserChannelPresence(member.getUserInfo().getUUID(), name, true, null, null);
-            membersMap.put(member.getUserInfo(), member);
+                connection.getUserInfoApi().setUserChannelPresence(member.getUserUUID(), name, true, null, null);
+            membersMap.put(member.getUserUUID(), member);
         }
         this.members = members;
     }
@@ -103,16 +110,16 @@ public class ChannelData {
 
     public static class Member {
 
-        private UserInfo userInfo;
+        private UUID userUUID;
         private NickPrefixList nickPrefixes;
 
-        public Member(UserInfo userInfo, NickPrefixList nickPrefixes) {
-            this.userInfo = userInfo;
+        public Member(UUID userUUID, NickPrefixList nickPrefixes) {
+            this.userUUID = userUUID;
             this.nickPrefixes = nickPrefixes;
         }
 
-        public UserInfo getUserInfo() {
-            return userInfo;
+        public UUID getUserUUID() {
+            return userUUID;
         }
 
         public NickPrefixList getNickPrefixes() {

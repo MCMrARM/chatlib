@@ -5,10 +5,7 @@ import io.mrarm.chatlib.dto.NickWithPrefix;
 import io.mrarm.chatlib.irc.*;
 import io.mrarm.chatlib.user.UserInfo;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 public class NamesReplyCommandHandler extends NumericCommandHandler {
@@ -36,17 +33,24 @@ public class NamesReplyCommandHandler extends NumericCommandHandler {
                 channelName = params.get(++paramId);
 
             List<ChannelData.Member> list = channelNamesList.computeIfAbsent(channelName, k -> new ArrayList<>());
+            List<NickWithPrefix> nicksWithPrefixes = new ArrayList<>();
+            List<String> uuidRequestList = new ArrayList<>();
             for (String rawNick : params.get(++paramId).split(" ")) {
                 NickWithPrefix nickWithPrefix = connection.getNickPrefixParser().parse(rawNick);
-                UserInfo userInfo;
-                try {
-                    userInfo = connection.getUserInfoApi().getUser(nickWithPrefix.getNick(), null, null,
-                            null, null).get();
-                } catch (InterruptedException | ExecutionException e) {
-                    e.printStackTrace();
+                nicksWithPrefixes.add(nickWithPrefix);
+                uuidRequestList.add(nickWithPrefix.getNick());
+            }
+            Map<String, UUID> uuidResponse;
+            try {
+                uuidResponse = connection.getUserInfoApi().resolveUsers(uuidRequestList, null, null).get();
+            } catch (InterruptedException | ExecutionException e) {
+                throw new RuntimeException("Failed to resolve user list", e);
+            }
+            for (NickWithPrefix nickWithPrefix : nicksWithPrefixes) {
+                UUID uuid = uuidResponse.get(nickWithPrefix.getNick());
+                if (uuid == null)
                     continue;
-                }
-                list.add(new ChannelData.Member(userInfo, nickWithPrefix.getNickPrefixes()));
+                list.add(new ChannelData.Member(uuid, nickWithPrefix.getNickPrefixes()));
             }
         } else if (command == RPL_ENDOFNAMES) {
             String channelName = params.get(1);

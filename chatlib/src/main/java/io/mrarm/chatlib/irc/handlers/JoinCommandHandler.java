@@ -8,6 +8,7 @@ import io.mrarm.chatlib.user.UserInfo;
 
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 public class JoinCommandHandler implements CommandHandler {
@@ -26,10 +27,10 @@ public class JoinCommandHandler implements CommandHandler {
                 connection.onChannelJoined(channel);
         }
         try {
-            UserInfo userInfo = connection.getUserInfoApi().getUser(sender.getNick(), sender.getUser(),
+            UUID userUUID = connection.getUserInfoApi().resolveUser(sender.getNick(), sender.getUser(),
                     sender.getHost(), null, null).get();
             MessageSenderInfo senderInfo = new MessageSenderInfo(sender.getNick(), sender.getUser(), sender.getHost(),
-                    null, userInfo.getUUID());
+                    null, userUUID);
             for (String channel : params.get(0).split(","))
                 connection.getJoinedChannelData(channel).addMessage(new MessageInfo(senderInfo, new Date(), null,
                         MessageInfo.MessageType.JOIN));

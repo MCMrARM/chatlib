@@ -9,6 +9,7 @@ import io.mrarm.chatlib.user.UserInfo;
 
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 public class PrivMsgCommandHandler implements CommandHandler {
@@ -22,13 +23,13 @@ public class PrivMsgCommandHandler implements CommandHandler {
     public void handle(ServerConnectionData connection, MessagePrefix sender, String command, List<String> params)
             throws InvalidMessageException {
         try {
-            UserInfo userInfo = connection.getUserInfoApi().getUser(sender.getNick(), sender.getUser(),
+            UUID userUUID = connection.getUserInfoApi().resolveUser(sender.getNick(), sender.getUser(),
                     sender.getHost(), null, null).get();
             for (String channel : params.get(0).split(",")) {
                 ChannelData channelData = connection.getJoinedChannelData(channel);
-                ChannelData.Member memberInfo = channelData.getMember(userInfo);
+                ChannelData.Member memberInfo = channelData.getMember(userUUID);
                 MessageSenderInfo senderInfo = new MessageSenderInfo(sender.getNick(), sender.getUser(),
-                        sender.getHost(), memberInfo != null ? memberInfo.getNickPrefixes() : null, userInfo.getUUID());
+                        sender.getHost(), memberInfo != null ? memberInfo.getNickPrefixes() : null, userUUID);
                 MessageInfo message = new MessageInfo(senderInfo, new Date(), params.get(1),
                         MessageInfo.MessageType.NORMAL);
                 channelData.addMessage(message);
