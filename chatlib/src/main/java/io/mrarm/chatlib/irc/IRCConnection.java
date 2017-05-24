@@ -113,6 +113,7 @@ public class IRCConnection extends ServerConnectionApi {
         socketOutputStream = socket.getOutputStream();
         // TODO: validate those params
         sendCommand("NICK " + request.getNickList().get(0), false);
+        getServerConnectionData().setUserNick(request.getNickList().get(0));
         sendCommand("USER " + request.getUser() + " " + request.getUserMode() + " * " + request.getRealName(), true);
         System.out.println("Sent inital commands");
 
