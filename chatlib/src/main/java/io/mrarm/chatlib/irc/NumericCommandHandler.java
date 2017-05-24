@@ -13,7 +13,7 @@ public abstract class NumericCommandHandler implements CommandHandler {
         int[] numeric = getNumericHandledCommands();
         String[] ret = new String[numeric.length];
         for (int i = 0; i < numeric.length; i++)
-            ret[i] = Integer.toString(numeric[i]);
+            ret[i] = String.format("%03d", numeric[i]);
         return ret;
     }
 

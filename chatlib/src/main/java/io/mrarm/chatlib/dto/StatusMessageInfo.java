@@ -5,7 +5,7 @@ import java.util.Date;
 public class StatusMessageInfo {
 
     public enum MessageType {
-        MOTD
+        NOTICE, MOTD, WELCOME_TEXT, YOUR_HOST_TEXT, SERVER_CREATED_TEXT, HOST_INFO, REDIR_TEXT
     }
 
     private String sender;

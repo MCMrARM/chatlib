@@ -13,8 +13,9 @@ public class CommandHandlerList {
         if (defaultHandlers == null) {
             defaultHandlers = new CommandHandlerList();
             defaultHandlers.registerHandler(new JoinCommandHandler());
-            defaultHandlers.registerHandler(new PrivMsgCommandHandler());
+            defaultHandlers.registerHandler(new MessageCommandHandler());
             defaultHandlers.registerHandler(new NickCommandHandler());
+            defaultHandlers.registerHandler(new WelcomeCommandHandler());
         }
         handlers.putAll(defaultHandlers.handlers);
 
