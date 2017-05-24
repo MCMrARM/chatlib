@@ -80,9 +80,28 @@ public abstract class ServerConnectionApi implements ChatApi {
 
     @Override
     public Future<Void> unsubscribeChannelMessages(String channelName, MessageListener listener,
-                                                   ResponseCallback<Void> callback, ResponseErrorCallback errorCallback) {
+                                                   ResponseCallback<Void> callback,
+                                                   ResponseErrorCallback errorCallback) {
         return SimpleRequestExecutor.run(() -> {
             getChannelData(channelName).unsubscribeMessages(listener);
+            return null;
+        }, callback, errorCallback);
+    }
+
+    @Override
+    public Future<Void> subscribeStatusMessages(StatusMessageListener listener, ResponseCallback<Void> callback,
+                                                ResponseErrorCallback errorCallback) {
+        return SimpleRequestExecutor.run(() -> {
+            getServerConnectionData().getServerStatusData().subscribeMessages(listener);
+            return null;
+        }, callback, errorCallback);
+    }
+
+    @Override
+    public Future<Void> unsubscribeStatusMessages(StatusMessageListener listener, ResponseCallback<Void> callback,
+                                                  ResponseErrorCallback errorCallback) {
+        return SimpleRequestExecutor.run(() -> {
+            getServerConnectionData().getServerStatusData().unsubscribeMessages(listener);
             return null;
         }, callback, errorCallback);
     }

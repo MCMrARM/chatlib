@@ -33,4 +33,10 @@ public interface ChatApi {
     Future<Void> unsubscribeChannelMessages(String channelName, MessageListener listener,
                                             ResponseCallback<Void> callback, ResponseErrorCallback errorCallback);
 
+    Future<Void> subscribeStatusMessages(StatusMessageListener listener, ResponseCallback<Void> callback,
+                                         ResponseErrorCallback errorCallback);
+
+    Future<Void> unsubscribeStatusMessages(StatusMessageListener listener, ResponseCallback<Void> callback,
+                                           ResponseErrorCallback errorCallback);
+
 }
