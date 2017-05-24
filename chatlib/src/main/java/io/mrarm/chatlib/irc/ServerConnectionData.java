@@ -6,7 +6,6 @@ import java.util.List;
 
 import io.mrarm.chatlib.ChannelListListener;
 import io.mrarm.chatlib.NoSuchChannelException;
-import io.mrarm.chatlib.dto.MessageSenderInfo;
 import io.mrarm.chatlib.user.WritableUserInfoApi;
 
 public class ServerConnectionData {

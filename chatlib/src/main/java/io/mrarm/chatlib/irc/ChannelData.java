@@ -3,6 +3,7 @@ package io.mrarm.chatlib.irc;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
+import io.mrarm.chatlib.ChannelInfoListener;
 import io.mrarm.chatlib.MessageListener;
 import io.mrarm.chatlib.dto.NickWithPrefix;
 import io.mrarm.chatlib.dto.MessageInfo;
@@ -18,6 +19,7 @@ public class ChannelData {
     private List<Member> members = new ArrayList<>();
     private Map<UUID, Member> membersMap = new HashMap<>();
     private List<MessageListener> messageListeners = new ArrayList<>();
+    private List<ChannelInfoListener> infoListeners = new ArrayList<>();
 
     public ChannelData(ServerConnectionData connection, String name) {
         this.connection = connection;
@@ -70,16 +72,26 @@ public class ChannelData {
         return list;
     }
 
+    private void callMemberListChanged() {
+        if (infoListeners.size() > 0) {
+            List<NickWithPrefix> nickWithPrefixList = getMembersAsNickPrefixList();
+            for (ChannelInfoListener listener : infoListeners)
+                listener.onMemberListChanged(nickWithPrefixList);
+        }
+    }
+
     public void addMember(Member member) {
         connection.getUserInfoApi().setUserChannelPresence(member.getUserUUID(), name, true, null, null);
         members.add(member);
         membersMap.put(member.getUserUUID(), member);
+        callMemberListChanged();
     }
 
     public void removeMember(Member member) {
         connection.getUserInfoApi().setUserChannelPresence(member.getUserUUID(), name, false, null, null);
         members.remove(member);
         membersMap.remove(member.getUserUUID());
+        callMemberListChanged();
     }
 
     public Member getMember(UUID userUUID) {
@@ -98,6 +110,7 @@ public class ChannelData {
             membersMap.put(member.getUserUUID(), member);
         }
         this.members = members;
+        callMemberListChanged();
     }
 
     public void subscribeMessages(MessageListener listener) {
@@ -106,6 +119,14 @@ public class ChannelData {
 
     public void unsubscribeMessages(MessageListener listener) {
         messageListeners.remove(listener);
+    }
+
+    public void subscribeInfo(ChannelInfoListener listener) {
+        infoListeners.add(listener);
+    }
+
+    public void unsubscribeInfo(ChannelInfoListener listener) {
+        infoListeners.remove(listener);
     }
 
     public static class Member {
