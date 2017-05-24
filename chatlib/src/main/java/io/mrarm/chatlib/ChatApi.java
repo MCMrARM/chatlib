@@ -24,7 +24,8 @@ public interface ChatApi {
     Future<MessageList> getMessages(String channelName, int count, MessageList after,
                                     ResponseCallback<MessageList> callback, ResponseErrorCallback errorCallback);
 
-    Future<StatusMessageList> getStatusMessages(StatusMessageList after, ResponseCallback<StatusMessageList> callback,
+    Future<StatusMessageList> getStatusMessages(int count, StatusMessageList after,
+                                                ResponseCallback<StatusMessageList> callback,
                                                 ResponseErrorCallback errorCallback);
 
     Future<Void> subscribeChannelList(ChannelListListener listener, ResponseCallback<Void> callback,

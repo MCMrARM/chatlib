@@ -1,12 +1,11 @@
 package io.mrarm.chatlib.irc;
 
 import io.mrarm.chatlib.*;
-import io.mrarm.chatlib.dto.ChannelInfo;
-import io.mrarm.chatlib.dto.MessageList;
-import io.mrarm.chatlib.dto.StatusMessageList;
+import io.mrarm.chatlib.dto.*;
 import io.mrarm.chatlib.user.UserInfoApi;
 import io.mrarm.chatlib.util.SimpleRequestExecutor;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
 
@@ -48,7 +47,8 @@ public abstract class ServerConnectionApi implements ChatApi {
         }, callback, errorCallback);
     }
 
-    // TODO: Return a copy of the MessageList instead of a reference
+    // TODO: This still isn't a deep clone of the message list, change it to one
+    // TODO: 'after' parameter is currently disfunctional
 
     @Override
     public Future<MessageList> getMessages(String channelName, int count, MessageList after,
@@ -56,16 +56,24 @@ public abstract class ServerConnectionApi implements ChatApi {
                                            ResponseErrorCallback errorCallback) {
         return SimpleRequestExecutor.run(() -> {
             ChannelData data = getChannelData(channelName);
-            return new MessageList(data.getMessages());
+            List<MessageInfo> messages = data.getMessages();
+            List<MessageInfo> ret = new ArrayList<>();
+            for (int i = Math.max(messages.size() - count, 0); i < messages.size(); i++)
+                ret.add(messages.get(i));
+            return new MessageList(ret);
         }, callback, errorCallback);
     }
 
     @Override
-    public Future<StatusMessageList> getStatusMessages(StatusMessageList after,
+    public Future<StatusMessageList> getStatusMessages(int count, StatusMessageList after,
                                                        ResponseCallback<StatusMessageList> callback,
                                                        ResponseErrorCallback errorCallback) {
         return SimpleRequestExecutor.run(() -> {
-            return new StatusMessageList(serverConnectionData.getServerStatusData().getMessages());
+            List<StatusMessageInfo> messages = serverConnectionData.getServerStatusData().getMessages();
+            List<StatusMessageInfo> ret = new ArrayList<>();
+            for (int i = Math.max(messages.size() - count, 0); i < messages.size(); i++)
+                ret.add(messages.get(i));
+            return new StatusMessageList(ret);
         }, callback, errorCallback);
     }
 
