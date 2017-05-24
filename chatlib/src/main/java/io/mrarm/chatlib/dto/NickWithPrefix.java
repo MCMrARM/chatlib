@@ -18,4 +18,8 @@ public class NickWithPrefix {
         return nickPrefixes;
     }
 
+    @Override
+    public String toString() {
+        return nickPrefixes.toString() + nick;
+    }
 }
