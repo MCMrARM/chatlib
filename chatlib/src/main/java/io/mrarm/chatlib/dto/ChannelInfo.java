@@ -6,13 +6,13 @@ public class ChannelInfo {
 
     private String name;
 
-    private String title;
+    private String topic;
 
     private List<NickWithPrefix> members;
 
-    public ChannelInfo(String name, String title, List<NickWithPrefix> members) {
+    public ChannelInfo(String name, String topic, List<NickWithPrefix> members) {
         this.name = name;
-        this.title = title;
+        this.topic = topic;
         this.members = members;
     }
 
@@ -20,8 +20,8 @@ public class ChannelInfo {
         return name;
     }
 
-    public String getTitle() {
-        return title;
+    public String getTopic() {
+        return topic;
     }
 
     public List<NickWithPrefix> getMembers() {

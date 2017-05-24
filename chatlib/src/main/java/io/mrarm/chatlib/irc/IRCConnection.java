@@ -75,7 +75,6 @@ public class IRCConnection extends ServerConnectionApi {
                 String command = readCommand();
                 System.out.println("Got: " + command);
                 try {
-                    // TODO: Synchronize stuff between threads
                     inputHandler.handleLine(command);
                 } catch (InvalidMessageException e) {
                     e.printStackTrace();

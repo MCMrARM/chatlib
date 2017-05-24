@@ -18,7 +18,9 @@ public class SimpleUserInfoApi implements WritableUserInfoApi {
     public Future<UserInfo> getUser(UUID uuid, ResponseCallback<UserInfo> callback,
                                     ResponseErrorCallback errorCallback) {
         return SimpleRequestExecutor.run(() -> {
-            return new UserInfo(uuidToUserInfo.get(uuid));
+            synchronized (SimpleUserInfoApi.this) {
+                return new UserInfo(uuidToUserInfo.get(uuid));
+            }
         }, callback, errorCallback);
     }
 
@@ -26,8 +28,10 @@ public class SimpleUserInfoApi implements WritableUserInfoApi {
     public Future<UserInfo> getUser(String nick, String user, String host, ResponseCallback<UserInfo> callback,
                                     ResponseErrorCallback errorCallback) {
         return SimpleRequestExecutor.run(() -> {
-            UUID uuid = resolveUser(nick, user, host, null, null).get();
-            return getUser(uuid, null, null).get();
+            synchronized (SimpleUserInfoApi.this) {
+                UUID uuid = resolveUser(nick, user, host, null, null).get();
+                return getUser(uuid, null, null).get();
+            }
         }, callback, errorCallback);
     }
 
@@ -35,12 +39,14 @@ public class SimpleUserInfoApi implements WritableUserInfoApi {
     public Future<UUID> resolveUser(String nick, String user, String host, ResponseCallback<UUID> callback,
                                     ResponseErrorCallback errorCallback) {
         return SimpleRequestExecutor.run(() -> {
-            if (nickToUserInfo.containsKey(nick))
-                return nickToUserInfo.get(nick).getUUID();
-            UserInfo userInfo = new UserInfo(UUID.randomUUID(), nick);
-            uuidToUserInfo.put(userInfo.getUUID(), userInfo);
-            nickToUserInfo.put(userInfo.getCurrentNick(), userInfo);;
-            return userInfo.getUUID();
+            synchronized (SimpleUserInfoApi.this) {
+                if (nickToUserInfo.containsKey(nick))
+                    return nickToUserInfo.get(nick).getUUID();
+                UserInfo userInfo = new UserInfo(UUID.randomUUID(), nick);
+                uuidToUserInfo.put(userInfo.getUUID(), userInfo);
+                nickToUserInfo.put(userInfo.getCurrentNick(), userInfo);
+                return userInfo.getUUID();
+            }
         }, callback, errorCallback);
     }
 
@@ -48,11 +54,13 @@ public class SimpleUserInfoApi implements WritableUserInfoApi {
     public Future<Map<String, UUID>> resolveUsers(List<String> nicks, ResponseCallback<Map<String, UUID>> callback,
                                                   ResponseErrorCallback errorCallback) {
         return SimpleRequestExecutor.run(() -> {
-            Map<String, UUID> ret = new HashMap<>();
-            for (String nick : nicks) {
-                ret.put(nick, getUser(nick, null, null, null, null).get().getUUID());
+            synchronized (SimpleUserInfoApi.this) {
+                Map<String, UUID> ret = new HashMap<>();
+                for (String nick : nicks) {
+                    ret.put(nick, getUser(nick, null, null, null, null).get().getUUID());
+                }
+                return ret;
             }
-            return ret;
         }, callback, errorCallback);
     }
 
@@ -60,14 +68,16 @@ public class SimpleUserInfoApi implements WritableUserInfoApi {
     public Future<Map<UUID, String>> getUsersNicks(List<UUID> uuids, ResponseCallback<Map<UUID, String>> callback,
                                                    ResponseErrorCallback errorCallback) {
         return SimpleRequestExecutor.run(() -> {
-            Map<UUID, String> ret = new HashMap<>();
-            for (UUID uuid : uuids) {
-                UserInfo userInfo = uuidToUserInfo.get(uuid);
-                if (userInfo == null)
-                    continue;
-                ret.put(uuid, userInfo.getCurrentNick());
+            synchronized (SimpleUserInfoApi.this) {
+                Map<UUID, String> ret = new HashMap<>();
+                for (UUID uuid : uuids) {
+                    UserInfo userInfo = uuidToUserInfo.get(uuid);
+                    if (userInfo == null)
+                        continue;
+                    ret.put(uuid, userInfo.getCurrentNick());
+                }
+                return ret;
             }
-            return ret;
         }, callback, errorCallback);
     }
 
@@ -75,7 +85,9 @@ public class SimpleUserInfoApi implements WritableUserInfoApi {
     public Future<Void> subscribeNickChanges(UserNickChangeListener listener, ResponseCallback<Void> callback,
                                              ResponseErrorCallback errorCallback) {
         return SimpleRequestExecutor.run(() -> {
-            nickChangeListeners.add(listener);
+            synchronized (SimpleUserInfoApi.this) {
+                nickChangeListeners.add(listener);
+            }
             return null;
         }, callback, errorCallback);
     }
@@ -84,7 +96,9 @@ public class SimpleUserInfoApi implements WritableUserInfoApi {
     public Future<Void> unsubscribeNickChanges(UserNickChangeListener listener, ResponseCallback<Void> callback,
                                                ResponseErrorCallback errorCallback) {
         return SimpleRequestExecutor.run(() -> {
-            nickChangeListeners.remove(listener);
+            synchronized (SimpleUserInfoApi.this) {
+                nickChangeListeners.remove(listener);
+            }
             return null;
         }, callback, errorCallback);
     }
@@ -93,15 +107,17 @@ public class SimpleUserInfoApi implements WritableUserInfoApi {
     public Future<Void> setUserNick(UUID user, String newNick, ResponseCallback<Void> callback,
                                     ResponseErrorCallback errorCallback) {
         return SimpleRequestExecutor.run(() -> {
-            UserInfo userInfo = uuidToUserInfo.get(user);
-            String oldNick = userInfo.getCurrentNick();
-            userInfo.setCurrentNick(newNick);
-            if (nickToUserInfo.get(oldNick) == userInfo) {
-                nickToUserInfo.remove(oldNick);
-                nickToUserInfo.put(newNick, userInfo);
+            synchronized (SimpleUserInfoApi.this) {
+                UserInfo userInfo = uuidToUserInfo.get(user);
+                String oldNick = userInfo.getCurrentNick();
+                userInfo.setCurrentNick(newNick);
+                if (nickToUserInfo.get(oldNick) == userInfo) {
+                    nickToUserInfo.remove(oldNick);
+                    nickToUserInfo.put(newNick, userInfo);
+                }
+                for (UserNickChangeListener listener : nickChangeListeners)
+                    listener.onNickChanged(userInfo, oldNick, newNick);
             }
-            for (UserNickChangeListener listener : nickChangeListeners)
-                listener.onNickChanged(userInfo, oldNick, newNick);
             return null;
         }, callback, errorCallback);
     }
@@ -110,8 +126,10 @@ public class SimpleUserInfoApi implements WritableUserInfoApi {
     public Future<Void> setUserChannelPresence(UUID user, String channel, boolean present,
                                                ResponseCallback<Void> callback, ResponseErrorCallback errorCallback) {
         return SimpleRequestExecutor.run(() -> {
-            UserInfo userInfo = uuidToUserInfo.get(user);
-            userInfo.setChannelPresence(channel, present);
+            synchronized (SimpleUserInfoApi.this) {
+                UserInfo userInfo = uuidToUserInfo.get(user);
+                userInfo.setChannelPresence(channel, present);
+            }
             return null;
         }, callback, errorCallback);
     }

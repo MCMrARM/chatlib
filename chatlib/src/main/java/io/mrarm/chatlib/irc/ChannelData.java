@@ -14,10 +14,11 @@ public class ChannelData {
 
     private ServerConnectionData connection;
     private String name;
-    private String title;
-    private List<MessageInfo> messages = new ArrayList<>();
+    private String topic;
+    private final List<MessageInfo> messages = new ArrayList<>();
     private List<Member> members = new ArrayList<>();
     private Map<UUID, Member> membersMap = new HashMap<>();
+    private final Object membersLock = new Object();
     private List<MessageListener> messageListeners = new ArrayList<>();
     private List<ChannelInfoListener> infoListeners = new ArrayList<>();
 
@@ -27,19 +28,27 @@ public class ChannelData {
     }
 
     public String getName() {
-        return name;
+        synchronized (this) {
+            return name;
+        }
     }
 
     public void setName(String name) {
-        this.name = name;
+        synchronized (this) {
+            this.name = name;
+        }
     }
 
-    public String getTitle() {
-        return title;
+    public String getTopic() {
+        synchronized (this) {
+            return topic;
+        }
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public void setTopic(String topic) {
+        synchronized (this) {
+            this.topic = topic;
+        }
     }
 
     public List<MessageInfo> getMessages() {
@@ -47,86 +56,112 @@ public class ChannelData {
     }
 
     public void addMessage(MessageInfo message) {
-        messages.add(message);
-        for (MessageListener listener : messageListeners)
-            listener.onMessage(message);
+        synchronized (messages) {
+            messages.add(message);
+        }
+        synchronized (messageListeners) {
+            for (MessageListener listener : messageListeners)
+                listener.onMessage(message);
+        }
     }
 
     public List<Member> getMembers() {
-        return members;
+        synchronized (membersLock) {
+            return members;
+        }
     }
 
     public List<NickWithPrefix> getMembersAsNickPrefixList() {
-        List<NickWithPrefix> list = new ArrayList<>();
-        List<UUID> nickRequestList = new ArrayList<>();
-        for (Member member : members)
-            nickRequestList.add(member.getUserUUID());
-        Map<UUID, String> nicks;
-        try {
-            nicks = connection.getUserInfoApi().getUsersNicks(nickRequestList, null, null).get();
-        } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException("Failed to retrieve channel nick list", e);
+        synchronized (membersLock) {
+            List<NickWithPrefix> list = new ArrayList<>();
+            List<UUID> nickRequestList = new ArrayList<>();
+            for (Member member : members)
+                nickRequestList.add(member.getUserUUID());
+            Map<UUID, String> nicks;
+            try {
+                nicks = connection.getUserInfoApi().getUsersNicks(nickRequestList, null, null).get();
+            } catch (InterruptedException | ExecutionException e) {
+                throw new RuntimeException("Failed to retrieve channel nick list", e);
+            }
+            for (Member member : members)
+                list.add(new NickWithPrefix(nicks.get(member.getUserUUID()), member.getNickPrefixes()));
+            return list;
         }
-        for (Member member : members)
-            list.add(new NickWithPrefix(nicks.get(member.getUserUUID()), member.getNickPrefixes()));
-        return list;
     }
 
     private void callMemberListChanged() {
         if (infoListeners.size() > 0) {
             List<NickWithPrefix> nickWithPrefixList = getMembersAsNickPrefixList();
-            for (ChannelInfoListener listener : infoListeners)
-                listener.onMemberListChanged(nickWithPrefixList);
+            synchronized (infoListeners) {
+                for (ChannelInfoListener listener : infoListeners)
+                    listener.onMemberListChanged(nickWithPrefixList);
+            }
         }
     }
 
     public void addMember(Member member) {
         connection.getUserInfoApi().setUserChannelPresence(member.getUserUUID(), name, true, null, null);
-        members.add(member);
-        membersMap.put(member.getUserUUID(), member);
-        callMemberListChanged();
+        synchronized (membersLock) {
+            members.add(member);
+            membersMap.put(member.getUserUUID(), member);
+            callMemberListChanged();
+        }
     }
 
     public void removeMember(Member member) {
         connection.getUserInfoApi().setUserChannelPresence(member.getUserUUID(), name, false, null, null);
-        members.remove(member);
-        membersMap.remove(member.getUserUUID());
-        callMemberListChanged();
+        synchronized (membersLock) {
+            members.remove(member);
+            membersMap.remove(member.getUserUUID());
+            callMemberListChanged();
+        }
     }
 
     public Member getMember(UUID userUUID) {
-        return membersMap.get(userUUID);
+        synchronized (membersLock) {
+            return membersMap.get(userUUID);
+        }
     }
 
     public void setMembers(List<Member> members) {
-        for (Member member : this.members) {
-            if (!members.contains(member))
-                connection.getUserInfoApi().setUserChannelPresence(member.getUserUUID(), name, false, null, null);
+        synchronized (membersLock) {
+            for (Member member : this.members) {
+                if (!members.contains(member))
+                    connection.getUserInfoApi().setUserChannelPresence(member.getUserUUID(), name, false, null, null);
+            }
+            membersMap.clear();
+            for (Member member : members) {
+                if (!this.members.contains(member))
+                    connection.getUserInfoApi().setUserChannelPresence(member.getUserUUID(), name, true, null, null);
+                membersMap.put(member.getUserUUID(), member);
+            }
+            this.members = members;
         }
-        membersMap.clear();
-        for (Member member : members) {
-            if (!this.members.contains(member))
-                connection.getUserInfoApi().setUserChannelPresence(member.getUserUUID(), name, true, null, null);
-            membersMap.put(member.getUserUUID(), member);
-        }
-        this.members = members;
         callMemberListChanged();
     }
 
     public void subscribeMessages(MessageListener listener) {
-        messageListeners.add(listener);
+        synchronized (messageListeners) {
+            messageListeners.add(listener);
+        }
     }
 
     public void unsubscribeMessages(MessageListener listener) {
-        messageListeners.remove(listener);
+        synchronized (messageListeners) {
+            messageListeners.remove(listener);
+        }
     }
 
     public void subscribeInfo(ChannelInfoListener listener) {
-        infoListeners.add(listener);
+        synchronized (infoListeners) {
+            infoListeners.add(listener);
+        }
     }
 
     public void unsubscribeInfo(ChannelInfoListener listener) {
-        infoListeners.remove(listener);
+        synchronized (infoListeners) {
+            infoListeners.remove(listener);
+        }
     }
 
     public static class Member {

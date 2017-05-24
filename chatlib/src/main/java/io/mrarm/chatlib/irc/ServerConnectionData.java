@@ -44,24 +44,32 @@ public class ServerConnectionData {
     }
 
     public ChannelData getJoinedChannelData(String channelName) throws NoSuchChannelException {
-        if (!joinedChannels.containsKey(channelName))
-            throw new NoSuchChannelException();
-        return joinedChannels.get(channelName);
+        synchronized (joinedChannels) {
+            if (!joinedChannels.containsKey(channelName))
+                throw new NoSuchChannelException();
+            return joinedChannels.get(channelName);
+        }
     }
 
     public List<String> getJoinedChannelList() {
-        ArrayList<String> list = new ArrayList<>();
-        list.addAll(joinedChannels.keySet());
-        return list;
+        synchronized (joinedChannels) {
+            ArrayList<String> list = new ArrayList<>();
+            list.addAll(joinedChannels.keySet());
+            return list;
+        }
     }
 
     public void onChannelJoined(String channelName) {
-        joinedChannels.put(channelName, new ChannelData(this, channelName));
-        if (channelListListeners.size() > 0) {
-            List<String> joinedChannels = getJoinedChannelList();
-            for (ChannelListListener listener : channelListListeners) {
-                listener.onChannelJoined(channelName);
-                listener.onChannelListChanged(joinedChannels);
+        synchronized (joinedChannels) {
+            joinedChannels.put(channelName, new ChannelData(this, channelName));
+        }
+        synchronized (channelListListeners) {
+            if (channelListListeners.size() > 0) {
+                List<String> joinedChannels = getJoinedChannelList();
+                for (ChannelListListener listener : channelListListeners) {
+                    listener.onChannelJoined(channelName);
+                    listener.onChannelListChanged(joinedChannels);
+                }
             }
         }
     }

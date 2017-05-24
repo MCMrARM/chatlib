@@ -43,7 +43,7 @@ public abstract class ServerConnectionApi implements ChatApi {
                                               ResponseErrorCallback errorCallback) {
         return SimpleRequestExecutor.run(() -> {
             ChannelData data = getChannelData(channelName);
-            return new ChannelInfo(data.getName(), data.getTitle(), data.getMembersAsNickPrefixList());
+            return new ChannelInfo(data.getName(), data.getTopic(), data.getMembersAsNickPrefixList());
         }, callback, errorCallback);
     }
 
@@ -58,8 +58,10 @@ public abstract class ServerConnectionApi implements ChatApi {
             ChannelData data = getChannelData(channelName);
             List<MessageInfo> messages = data.getMessages();
             List<MessageInfo> ret = new ArrayList<>();
-            for (int i = Math.max(messages.size() - count, 0); i < messages.size(); i++)
-                ret.add(messages.get(i));
+            synchronized (messages) {
+                for (int i = Math.max(messages.size() - count, 0); i < messages.size(); i++)
+                    ret.add(messages.get(i));
+            }
             return new MessageList(ret);
         }, callback, errorCallback);
     }
@@ -71,8 +73,10 @@ public abstract class ServerConnectionApi implements ChatApi {
         return SimpleRequestExecutor.run(() -> {
             List<StatusMessageInfo> messages = serverConnectionData.getServerStatusData().getMessages();
             List<StatusMessageInfo> ret = new ArrayList<>();
-            for (int i = Math.max(messages.size() - count, 0); i < messages.size(); i++)
-                ret.add(messages.get(i));
+            synchronized (messages) {
+                for (int i = Math.max(messages.size() - count, 0); i < messages.size(); i++)
+                    ret.add(messages.get(i));
+            }
             return new StatusMessageList(ret);
         }, callback, errorCallback);
     }
