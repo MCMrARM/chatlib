@@ -6,6 +6,7 @@ import java.util.List;
 
 import io.mrarm.chatlib.ChannelListListener;
 import io.mrarm.chatlib.NoSuchChannelException;
+import io.mrarm.chatlib.dto.NickPrefixList;
 import io.mrarm.chatlib.user.WritableUserInfoApi;
 
 public class ServerConnectionData {
@@ -14,7 +15,8 @@ public class ServerConnectionData {
     private HashMap<String, ChannelData> joinedChannels = new HashMap<>();
     private ServerStatusData serverStatusData = new ServerStatusData();
     private WritableUserInfoApi userInfoApi;
-    private NickPrefixParser nickPrefixParser = new OneCharNickPrefixParser();
+    private NickPrefixParser nickPrefixParser = new OneCharNickPrefixParser(this);
+    private NickPrefixList supportedNickPrefixes = new NickPrefixList("@+");
     private List<ChannelListListener> channelListListeners = new ArrayList<>();
 
     public void setUserNick(String nick) {
@@ -35,6 +37,10 @@ public class ServerConnectionData {
 
     public NickPrefixParser getNickPrefixParser() {
         return nickPrefixParser;
+    }
+
+    public NickPrefixList getSupportedNickPrefixes() {
+        return supportedNickPrefixes;
     }
 
     public ChannelData getJoinedChannelData(String channelName) throws NoSuchChannelException {

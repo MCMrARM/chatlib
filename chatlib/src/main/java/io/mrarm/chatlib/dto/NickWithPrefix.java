@@ -20,6 +20,6 @@ public class NickWithPrefix {
 
     @Override
     public String toString() {
-        return nickPrefixes.toString() + nick;
+        return (nickPrefixes != null ? nickPrefixes.toString() : "") + nick;
     }
 }

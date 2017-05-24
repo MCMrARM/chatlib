@@ -36,6 +36,7 @@ public class SimpleRequestExecutor {
         try {
             ret = task.call();
         } catch (Throwable ex) {
+            ex.printStackTrace();
             if (ex instanceof ChatApiException && errorCallback != null)
                 errorCallback.onError((ChatApiException) ex);
             return new InstantFuture<T>(null, ex);

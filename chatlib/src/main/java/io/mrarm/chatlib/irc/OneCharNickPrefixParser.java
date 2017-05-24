@@ -5,9 +5,21 @@ import io.mrarm.chatlib.dto.NickWithPrefix;
 
 public class OneCharNickPrefixParser implements NickPrefixParser {
 
+    private ServerConnectionData connection;
+
+    public OneCharNickPrefixParser(ServerConnectionData connection) {
+        this.connection = connection;
+    }
+
     @Override
     public NickWithPrefix parse(String nick) {
-        return new NickWithPrefix(nick, new NickPrefixList("")); // TODO:
+        NickPrefixList supportedNickPrefixes = connection.getSupportedNickPrefixes();
+        char firstNickChar = nick.charAt(0);
+        for (char prefix : supportedNickPrefixes) {
+            if (firstNickChar == prefix)
+                return new NickWithPrefix(nick.substring(1), new NickPrefixList(prefix + ""));
+        }
+        return new NickWithPrefix(nick, null);
     }
 
 }
