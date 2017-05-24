@@ -15,6 +15,9 @@ public interface ChatApi {
     Future<Void> joinChannels(List<String> channels, ResponseCallback<Void> callback,
                               ResponseErrorCallback errorCallback);
 
+    Future<Void> sendMessage(String channel, String message, ResponseCallback<Void> callback,
+                             ResponseErrorCallback errorCallback);
+
     Future<List<String>> getJoinedChannelList(ResponseCallback<List<String>> callback,
                                               ResponseErrorCallback errorCallback);
 

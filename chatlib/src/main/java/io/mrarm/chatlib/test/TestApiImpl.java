@@ -42,4 +42,11 @@ public class TestApiImpl extends ServerConnectionApi {
                                      ResponseErrorCallback errorCallback) {
         throw new UnsupportedOperationException();
     }
+
+    @Override
+    public Future<Void> sendMessage(String channel, String message, ResponseCallback<Void> callback,
+                                    ResponseErrorCallback errorCallback) {
+        throw new UnsupportedOperationException();
+    }
+
 }

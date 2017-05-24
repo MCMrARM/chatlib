@@ -2,7 +2,10 @@ package io.mrarm.chatlib.irc;
 
 import io.mrarm.chatlib.ResponseCallback;
 import io.mrarm.chatlib.ResponseErrorCallback;
+import io.mrarm.chatlib.dto.MessageInfo;
+import io.mrarm.chatlib.dto.MessageSenderInfo;
 import io.mrarm.chatlib.user.SimpleUserInfoApi;
+import io.mrarm.chatlib.user.UserInfo;
 import io.mrarm.chatlib.util.SimpleRequestExecutor;
 
 import java.io.IOException;
@@ -10,7 +13,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
+import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.Future;
 
 public class IRCConnection extends ServerConnectionApi {
@@ -70,6 +75,7 @@ public class IRCConnection extends ServerConnectionApi {
                 String command = readCommand();
                 System.out.println("Got: " + command);
                 try {
+                    // TODO: Synchronize stuff between threads
                     inputHandler.handleLine(command);
                 } catch (InvalidMessageException e) {
                     e.printStackTrace();
@@ -88,6 +94,8 @@ public class IRCConnection extends ServerConnectionApi {
         }, callback, errorCallback);
     }
 
+    // TODO: validate params
+
     @Override
     public Future<Void> joinChannels(List<String> channels, ResponseCallback<Void> callback,
                                      ResponseErrorCallback errorCallback) {
@@ -102,6 +110,33 @@ public class IRCConnection extends ServerConnectionApi {
                     cmd.append(",");
                 cmd.append(channel);
             }
+            sendCommand(cmd.toString(), true);
+            return null;
+        }, callback, errorCallback);
+    }
+
+    @Override
+    public Future<Void> sendMessage(String channel, String message, ResponseCallback<Void> callback,
+                                    ResponseErrorCallback errorCallback) {
+        return executor.queue(() -> {
+            try {
+                UUID userUUID = getUserInfoApi().resolveUser(getServerConnectionData().getUserNick(), null, null,
+                        null, null).get();
+                ChannelData channelData = getChannelData(channel);
+                ChannelData.Member memberInfo = channelData.getMember(userUUID);
+                MessageSenderInfo sender = new MessageSenderInfo(getServerConnectionData().getUserNick(), null, null,
+                        memberInfo != null ? memberInfo.getNickPrefixes() : null, userUUID);
+                channelData.addMessage(new MessageInfo(sender, new Date(), message, MessageInfo.MessageType.NORMAL));
+            } catch (Exception ignored) {
+                // it failed, but we don't really care - the message might have been sent to a channel which we have not
+                // joined, which is perfectly valid but will cause the code above to raise an exception
+            }
+
+            StringBuilder cmd = new StringBuilder();
+            cmd.append("PRIVMSG ");
+            cmd.append(channel);
+            cmd.append(" :");
+            cmd.append(message);
             sendCommand(cmd.toString(), true);
             return null;
         }, callback, errorCallback);
