@@ -5,14 +5,16 @@ import io.mrarm.chatlib.ResponseErrorCallback;
 import io.mrarm.chatlib.dto.MessageInfo;
 import io.mrarm.chatlib.dto.MessageSenderInfo;
 import io.mrarm.chatlib.user.SimpleUserInfoApi;
-import io.mrarm.chatlib.user.UserInfo;
 import io.mrarm.chatlib.util.SimpleRequestExecutor;
 
+import javax.net.SocketFactory;
+import javax.net.ssl.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
+import java.security.SecureRandom;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -142,7 +144,11 @@ public class IRCConnection extends ServerConnectionApi {
     }
 
     public void connectSync(IRCConnectionRequest request) throws IOException {
-        Socket socket = new Socket(request.getServerIP(), request.getServerPort());
+        if (request.isUsingSSL()) {
+            socket = request.getSSLSocketFactory().createSocket(request.getServerIP(), request.getServerPort());
+        } else {
+            socket = new Socket(request.getServerIP(), request.getServerPort());
+        }
         socketInputStream = socket.getInputStream();
         socketOutputStream = socket.getOutputStream();
         // TODO: validate those params

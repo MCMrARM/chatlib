@@ -1,5 +1,6 @@
 package io.mrarm.chatlib.irc;
 
+import javax.net.SocketFactory;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,6 +8,8 @@ public class IRCConnectionRequest {
 
     private String serverIP;
     private int serverPort;
+    private boolean serverSSL = false;
+    private SocketFactory sslSocketFactory;
     private String user;
     private int userMode;
     private String realname;
@@ -18,6 +21,14 @@ public class IRCConnectionRequest {
 
     public int getServerPort() {
         return serverPort;
+    }
+
+    public boolean isUsingSSL() {
+        return serverSSL;
+    }
+
+    public SocketFactory getSSLSocketFactory() {
+        return sslSocketFactory;
     }
 
     public String getUser() {
@@ -50,6 +61,16 @@ public class IRCConnectionRequest {
     public IRCConnectionRequest setServerAddress(String ip, int port) {
         this.serverIP = ip;
         this.serverPort = port;
+        return this;
+    }
+
+    public IRCConnectionRequest enableSSL(SocketFactory factory) {
+        this.sslSocketFactory = factory;
+        return this;
+    }
+
+    public IRCConnectionRequest disableSSL() {
+        this.serverSSL = false;
         return this;
     }
 
