@@ -37,16 +37,18 @@ public class IRCConnection extends ServerConnectionApi {
     }
 
     private void sendCommand(String string, boolean flush) throws IOException {
-        try {
-            byte[] data = (string + '\n').getBytes("UTF-8");
-            if (data.length > 512)
-                throw new IOException("Too long message");
-            socketOutputStream.write(data);
-            System.out.println("Sent: " + string);
-            if (flush)
-                socketOutputStream.flush();
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
+        synchronized (socketOutputStream) {
+            try {
+                byte[] data = (string + '\n').getBytes("UTF-8");
+                if (data.length > 512)
+                    throw new IOException("Too long message");
+                socketOutputStream.write(data);
+                System.out.println("Sent: " + string);
+                if (flush)
+                    socketOutputStream.flush();
+            } catch (UnsupportedEncodingException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -142,11 +144,12 @@ public class IRCConnection extends ServerConnectionApi {
     }
 
     @Override
-    public Future<Void> sendPong(String text, ResponseCallback<Void> callback, ResponseErrorCallback errorCallback) {
-        return executor.queue(() -> {
+    public void sendPong(String text) {
+        try {
             sendCommand("PONG :" + text, true);
-            return null;
-        }, callback, errorCallback);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void connectSync(IRCConnectionRequest request) throws IOException {
@@ -174,7 +177,8 @@ public class IRCConnection extends ServerConnectionApi {
         Thread thread = new Thread(this::handleInput);
         thread.setName("IRC Connection Handler");
         thread.start();
-    }
 
+        waitForMotd();
+    }
 
 }

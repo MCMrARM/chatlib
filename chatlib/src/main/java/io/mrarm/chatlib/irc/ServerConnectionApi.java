@@ -12,6 +12,8 @@ import java.util.concurrent.Future;
 public abstract class ServerConnectionApi implements ChatApi {
 
     private ServerConnectionData serverConnectionData;
+    private final Object hasReceivedMotdLock = new Object();
+    private boolean hasReceivedMotd = false;
 
     public ServerConnectionApi(ServerConnectionData serverConnectionData) {
         this.serverConnectionData = serverConnectionData;
@@ -28,8 +30,25 @@ public abstract class ServerConnectionApi implements ChatApi {
     }
 
 
-    public abstract Future<Void> sendPong(String text, ResponseCallback<Void> callback,
-                                          ResponseErrorCallback errorCallback);
+    public void notifyMotdReceived() {
+        synchronized (hasReceivedMotdLock) {
+            hasReceivedMotd = true;
+            hasReceivedMotdLock.notifyAll();
+        }
+    }
+
+    protected void waitForMotd() {
+        synchronized (hasReceivedMotdLock) {
+            while (!hasReceivedMotd) {
+                try {
+                    hasReceivedMotdLock.wait();
+                } catch (InterruptedException ignored) {
+                }
+            }
+        }
+    }
+
+    public abstract void sendPong(String text);
 
 
     public ChannelData getChannelData(String channelName) throws NoSuchChannelException {

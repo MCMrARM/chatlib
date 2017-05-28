@@ -49,8 +49,7 @@ public class TestApiImpl extends ServerConnectionApi {
         throw new UnsupportedOperationException();
     }
 
-    @Override
-    public Future<Void> sendPong(String text, ResponseCallback<Void> callback, ResponseErrorCallback errorCallback) {
+    public void sendPong(String text) {
         throw new UnsupportedOperationException();
     }
 

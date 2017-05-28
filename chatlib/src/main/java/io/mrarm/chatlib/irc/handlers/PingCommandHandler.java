@@ -17,7 +17,7 @@ public class PingCommandHandler implements CommandHandler {
     @Override
     public void handle(ServerConnectionData connection, MessagePrefix sender, String command, List<String> params)
             throws InvalidMessageException {
-        connection.getApi().sendPong(params.get(0), null, null);
+        connection.getApi().sendPong(params.get(0));
     }
 
 }

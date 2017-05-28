@@ -41,6 +41,7 @@ public class MotdCommandHandler extends NumericCommandHandler {
                 connection.getServerStatusData().addMessage(new StatusMessageInfo(sender.getServerName(), new Date(),
                         StatusMessageInfo.MessageType.MOTD, motd));
                 motdBuilder = null;
+                connection.getApi().notifyMotdReceived();
                 break;
             }
         }
