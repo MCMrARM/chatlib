@@ -11,6 +11,7 @@ import io.mrarm.chatlib.user.WritableUserInfoApi;
 
 public class ServerConnectionData {
 
+    private ServerConnectionApi api;
     private String userNick;
     private HashMap<String, ChannelData> joinedChannels = new HashMap<>();
     private ServerStatusData serverStatusData = new ServerStatusData();
@@ -25,6 +26,14 @@ public class ServerConnectionData {
 
     public String getUserNick() {
         return userNick;
+    }
+
+    public ServerConnectionApi getApi() {
+        return api;
+    }
+
+    public void setApi(ServerConnectionApi api) {
+        this.api = api;
     }
 
     public WritableUserInfoApi getUserInfoApi() {

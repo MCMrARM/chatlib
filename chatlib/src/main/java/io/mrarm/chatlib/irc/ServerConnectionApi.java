@@ -15,6 +15,7 @@ public abstract class ServerConnectionApi implements ChatApi {
 
     public ServerConnectionApi(ServerConnectionData serverConnectionData) {
         this.serverConnectionData = serverConnectionData;
+        serverConnectionData.setApi(this);
     }
 
     public ServerConnectionData getServerConnectionData() {
@@ -25,6 +26,11 @@ public abstract class ServerConnectionApi implements ChatApi {
     public UserInfoApi getUserInfoApi() {
         return serverConnectionData.getUserInfoApi();
     }
+
+
+    public abstract Future<Void> sendPong(String text, ResponseCallback<Void> callback,
+                                          ResponseErrorCallback errorCallback);
+
 
     public ChannelData getChannelData(String channelName) throws NoSuchChannelException {
         return serverConnectionData.getJoinedChannelData(channelName);

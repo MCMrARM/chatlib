@@ -141,6 +141,14 @@ public class IRCConnection extends ServerConnectionApi {
         }, callback, errorCallback);
     }
 
+    @Override
+    public Future<Void> sendPong(String text, ResponseCallback<Void> callback, ResponseErrorCallback errorCallback) {
+        return executor.queue(() -> {
+            sendCommand("PONG :" + text, true);
+            return null;
+        }, callback, errorCallback);
+    }
+
     public void connectSync(IRCConnectionRequest request) throws IOException {
         if (request.isUsingSSL()) {
             socket = request.getSSLSocketFactory().createSocket(request.getServerIP(), request.getServerPort());
