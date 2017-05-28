@@ -7,14 +7,12 @@ import io.mrarm.chatlib.dto.MessageSenderInfo;
 import io.mrarm.chatlib.user.SimpleUserInfoApi;
 import io.mrarm.chatlib.util.SimpleRequestExecutor;
 
-import javax.net.SocketFactory;
 import javax.net.ssl.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
-import java.security.SecureRandom;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -146,6 +144,14 @@ public class IRCConnection extends ServerConnectionApi {
     public void connectSync(IRCConnectionRequest request) throws IOException {
         if (request.isUsingSSL()) {
             socket = request.getSSLSocketFactory().createSocket(request.getServerIP(), request.getServerPort());
+            HostnameVerifier hostnameVerifier = request.getSSLHostnameVerifier();
+            if (hostnameVerifier != null) {
+                SSLSocket sslSocket = (SSLSocket) socket;
+                sslSocket.setUseClientMode(true);
+                sslSocket.startHandshake();
+                if (!hostnameVerifier.verify(request.getServerIP(), sslSocket.getSession()))
+                    throw new IOException("Failed to verify hostname: " + request.getServerIP());
+            }
         } else {
             socket = new Socket(request.getServerIP(), request.getServerPort());
         }

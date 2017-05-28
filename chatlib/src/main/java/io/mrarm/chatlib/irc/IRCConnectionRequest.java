@@ -1,6 +1,7 @@
 package io.mrarm.chatlib.irc;
 
 import javax.net.SocketFactory;
+import javax.net.ssl.HostnameVerifier;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,6 +11,7 @@ public class IRCConnectionRequest {
     private int serverPort;
     private boolean serverSSL = false;
     private SocketFactory sslSocketFactory;
+    private HostnameVerifier sslHostnameVerifier;
     private String user;
     private int userMode;
     private String realname;
@@ -29,6 +31,10 @@ public class IRCConnectionRequest {
 
     public SocketFactory getSSLSocketFactory() {
         return sslSocketFactory;
+    }
+
+    public HostnameVerifier getSSLHostnameVerifier() {
+        return sslHostnameVerifier;
     }
 
     public String getUser() {
@@ -64,8 +70,10 @@ public class IRCConnectionRequest {
         return this;
     }
 
-    public IRCConnectionRequest enableSSL(SocketFactory factory) {
+    public IRCConnectionRequest enableSSL(SocketFactory factory, HostnameVerifier verifier) {
         this.sslSocketFactory = factory;
+        this.sslHostnameVerifier = verifier;
+        this.serverSSL = true;
         return this;
     }
 

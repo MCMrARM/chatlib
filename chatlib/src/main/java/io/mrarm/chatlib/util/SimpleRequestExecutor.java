@@ -20,6 +20,7 @@ public class SimpleRequestExecutor {
             try {
                 ret = task.call();
             } catch (ChatApiException ex) {
+                ex.printStackTrace();
                 if (errorCallback != null)
                     errorCallback.onError(ex);
                 throw ex;
