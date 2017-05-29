@@ -12,6 +12,7 @@ public class IRCConnectionRequest {
     private boolean serverSSL = false;
     private SocketFactory sslSocketFactory;
     private HostnameVerifier sslHostnameVerifier;
+    private String serverPass;
     private String user;
     private int userMode;
     private String realname;
@@ -35,6 +36,14 @@ public class IRCConnectionRequest {
 
     public HostnameVerifier getSSLHostnameVerifier() {
         return sslHostnameVerifier;
+    }
+
+    public String getServerPass() {
+        return serverPass;
+    }
+
+    public void setServerPass(String serverPass) {
+        this.serverPass = serverPass;
     }
 
     public String getUser() {

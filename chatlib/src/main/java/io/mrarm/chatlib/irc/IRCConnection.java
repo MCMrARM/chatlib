@@ -184,6 +184,8 @@ public class IRCConnection extends ServerConnectionApi {
         }
         socketInputStream = socket.getInputStream();
         socketOutputStream = socket.getOutputStream();
+        if (request.getServerPass() != null)
+            sendCommand(false, "PASS", request.getServerPass().contains(" "), request.getServerPass());
         sendCommand(false, "NICK", false, request.getNickList().get(0));
         getServerConnectionData().setUserNick(request.getNickList().get(0));
         sendCommand("USER", true, request.getUser(), String.valueOf(request.getUserMode()), "*", request.getRealName());
