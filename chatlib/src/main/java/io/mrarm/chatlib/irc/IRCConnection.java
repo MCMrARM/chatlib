@@ -36,7 +36,7 @@ public class IRCConnection extends ServerConnectionApi {
         getServerConnectionData().setUserInfoApi(new SimpleUserInfoApi());
     }
 
-    private void sendCommand(String string, boolean flush) throws IOException {
+    private void sendCommandRaw(String string, boolean flush) throws IOException {
         synchronized (socketOutputStream) {
             try {
                 byte[] data = (string + '\n').getBytes("UTF-8");
@@ -50,6 +50,28 @@ public class IRCConnection extends ServerConnectionApi {
                 throw new RuntimeException(e);
             }
         }
+    }
+
+    private void sendCommand(boolean flush, String command, boolean isLastArgFullLine, String... args) throws IOException {
+        StringBuilder builder = new StringBuilder();
+        builder.append(command); // TODO: validate
+        builder.append(' ');
+        for (int i = 0; i < args.length; i++) {
+            if (i > 0)
+                builder.append(' ');
+            if (i == args.length - 1 && isLastArgFullLine) {
+                builder.append(':');
+                // TODO: validate
+            } else {
+                // TODO: validate
+            }
+            builder.append(args[i]);
+        }
+        sendCommandRaw(builder.toString(), flush);
+    }
+
+    private void sendCommand(String command, boolean isLastArgFullLine, String... args) throws IOException {
+        sendCommand(true, command, isLastArgFullLine, args);
     }
 
     private String readCommand() throws IOException {
@@ -102,7 +124,6 @@ public class IRCConnection extends ServerConnectionApi {
                                      ResponseErrorCallback errorCallback) {
         return executor.queue(() -> {
             StringBuilder cmd = new StringBuilder();
-            cmd.append("JOIN ");
             boolean f = true;
             for (String channel : channels) {
                 if (f)
@@ -111,7 +132,7 @@ public class IRCConnection extends ServerConnectionApi {
                     cmd.append(",");
                 cmd.append(channel);
             }
-            sendCommand(cmd.toString(), true);
+            sendCommand("JOIN", true, cmd.toString());
             return null;
         }, callback, errorCallback);
     }
@@ -133,12 +154,7 @@ public class IRCConnection extends ServerConnectionApi {
                 // joined, which is perfectly valid but will cause the code above to raise an exception
             }
 
-            StringBuilder cmd = new StringBuilder();
-            cmd.append("PRIVMSG ");
-            cmd.append(channel);
-            cmd.append(" :");
-            cmd.append(message);
-            sendCommand(cmd.toString(), true);
+            sendCommand("PRIVMSG", true, channel, message);
             return null;
         }, callback, errorCallback);
     }
@@ -146,7 +162,7 @@ public class IRCConnection extends ServerConnectionApi {
     @Override
     public void sendPong(String text) {
         try {
-            sendCommand("PONG :" + text, true);
+            sendCommand("PONG", true, text);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -168,10 +184,9 @@ public class IRCConnection extends ServerConnectionApi {
         }
         socketInputStream = socket.getInputStream();
         socketOutputStream = socket.getOutputStream();
-        // TODO: validate those params
-        sendCommand("NICK " + request.getNickList().get(0), false);
+        sendCommand(false, "NICK", false, request.getNickList().get(0));
         getServerConnectionData().setUserNick(request.getNickList().get(0));
-        sendCommand("USER " + request.getUser() + " " + request.getUserMode() + " * " + request.getRealName(), true);
+        sendCommand("USER", true, request.getUser(), String.valueOf(request.getUserMode()), "*", request.getRealName());
         System.out.println("Sent inital commands");
 
         Thread thread = new Thread(this::handleInput);
