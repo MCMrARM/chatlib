@@ -2,16 +2,18 @@ package io.mrarm.chatlib.test;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.Future;
 
 import io.mrarm.chatlib.ResponseCallback;
 import io.mrarm.chatlib.ResponseErrorCallback;
-import io.mrarm.chatlib.irc.CommandHandlerList;
-import io.mrarm.chatlib.irc.MessageHandler;
-import io.mrarm.chatlib.irc.ServerConnectionApi;
-import io.mrarm.chatlib.irc.ServerConnectionData;
+import io.mrarm.chatlib.dto.MessageInfo;
+import io.mrarm.chatlib.dto.MessageSenderInfo;
+import io.mrarm.chatlib.irc.*;
 import io.mrarm.chatlib.user.SimpleUserInfoApi;
+import io.mrarm.chatlib.util.SimpleRequestExecutor;
 
 public class TestApiImpl extends ServerConnectionApi {
 
@@ -46,7 +48,20 @@ public class TestApiImpl extends ServerConnectionApi {
     @Override
     public Future<Void> sendMessage(String channel, String message, ResponseCallback<Void> callback,
                                     ResponseErrorCallback errorCallback) {
-        throw new UnsupportedOperationException();
+        return SimpleRequestExecutor.run(() -> {
+            try {
+                UUID userUUID = getUserInfoApi().resolveUser(getServerConnectionData().getUserNick(), null, null,
+                        null, null).get();
+                ChannelData channelData = getChannelData(channel);
+                ChannelData.Member memberInfo = channelData.getMember(userUUID);
+                MessageSenderInfo sender = new MessageSenderInfo(getServerConnectionData().getUserNick(), null, null,
+                        memberInfo != null ? memberInfo.getNickPrefixes() : null, userUUID);
+                channelData.addMessage(new MessageInfo(sender, new Date(), message, MessageInfo.MessageType.NORMAL));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }, callback, errorCallback);
     }
 
     public void sendPong(String text) {
