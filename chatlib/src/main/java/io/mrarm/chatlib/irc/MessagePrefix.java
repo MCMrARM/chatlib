@@ -1,5 +1,9 @@
 package io.mrarm.chatlib.irc;
 
+import io.mrarm.chatlib.dto.MessageSenderInfo;
+
+import java.util.UUID;
+
 public class MessagePrefix {
 
     private String rawPrefix;
@@ -23,6 +27,12 @@ public class MessagePrefix {
     @Override
     public String toString() {
         return rawPrefix;
+    }
+
+    public MessageSenderInfo toSenderInfo(UUID userUUID, ChannelData channelData) {
+        ChannelData.Member memberInfo = channelData.getMember(userUUID);
+        return new MessageSenderInfo(getNick(), getUser(), getHost(),
+                memberInfo != null ? memberInfo.getNickPrefixes() : null, userUUID);
     }
 
     // sent by server
