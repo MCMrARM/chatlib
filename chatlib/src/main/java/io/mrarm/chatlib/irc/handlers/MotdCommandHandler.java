@@ -14,12 +14,13 @@ public class MotdCommandHandler extends NumericCommandHandler {
     public static final int RPL_MOTDSTART = 375;
     public static final int RPL_MOTD = 372;
     public static final int RPL_ENDOFMOTD = 376;
+    public static final int ERR_NOMOTD = 422;
 
     private StringBuilder motdBuilder = null;
 
     @Override
     public int[] getNumericHandledCommands() {
-        return new int[] { RPL_MOTDSTART, RPL_MOTD, RPL_ENDOFMOTD };
+        return new int[] { RPL_MOTDSTART, RPL_MOTD, RPL_ENDOFMOTD, ERR_NOMOTD };
     }
 
     @Override
@@ -34,9 +35,11 @@ public class MotdCommandHandler extends NumericCommandHandler {
                 motdBuilder.append(params.get(1));
                 motdBuilder.append('\n');
                 break;
+            case ERR_NOMOTD:
             case RPL_ENDOFMOTD: {
-                motdBuilder.append(params.get(1));
-                String motd = motdBuilder.toString();
+                if (command != ERR_NOMOTD)
+                    motdBuilder.append(params.get(1));
+                String motd = (command == ERR_NOMOTD ? params.get(1) : motdBuilder.toString());
                 connection.getServerStatusData().setMotd(motd);
                 connection.getServerStatusData().addMessage(new StatusMessageInfo(sender.getServerName(), new Date(),
                         StatusMessageInfo.MessageType.MOTD, motd));
