@@ -144,7 +144,10 @@ public abstract class ServerConnectionApi implements ChatApi {
     public Future<Void> subscribeChannelMessages(String channelName, MessageListener listener,
                                                  ResponseCallback<Void> callback, ResponseErrorCallback errorCallback) {
         return SimpleRequestExecutor.run(() -> {
-            getChannelData(channelName).subscribeMessages(listener);
+            if (channelName == null)
+                getServerConnectionData().subscribeMessages(listener);
+            else
+                getChannelData(channelName).subscribeMessages(listener);
             return null;
         }, callback, errorCallback);
     }
@@ -154,7 +157,10 @@ public abstract class ServerConnectionApi implements ChatApi {
                                                    ResponseCallback<Void> callback,
                                                    ResponseErrorCallback errorCallback) {
         return SimpleRequestExecutor.run(() -> {
-            getChannelData(channelName).unsubscribeMessages(listener);
+            if (channelName == null)
+                getServerConnectionData().unsubscribeMessages(listener);
+            else
+                getChannelData(channelName).unsubscribeMessages(listener);
             return null;
         }, callback, errorCallback);
     }

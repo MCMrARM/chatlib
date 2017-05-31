@@ -19,8 +19,8 @@ public class ChannelData {
     private List<Member> members = new ArrayList<>();
     private Map<UUID, Member> membersMap = new HashMap<>();
     private final Object membersLock = new Object();
-    private List<MessageListener> messageListeners = new ArrayList<>();
-    private List<ChannelInfoListener> infoListeners = new ArrayList<>();
+    private final List<MessageListener> messageListeners = new ArrayList<>();
+    private final List<ChannelInfoListener> infoListeners = new ArrayList<>();
 
     public ChannelData(ServerConnectionData connection, String name) {
         this.connection = connection;
@@ -59,10 +59,12 @@ public class ChannelData {
         synchronized (messages) {
             messages.add(message);
         }
+        String channelName = getName();
         synchronized (messageListeners) {
             for (MessageListener listener : messageListeners)
-                listener.onMessage(message);
+                listener.onMessage(channelName, message);
         }
+        connection.onMessage(channelName, message);
     }
 
     public List<Member> getMembers() {

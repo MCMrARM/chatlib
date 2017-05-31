@@ -5,7 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 
 import io.mrarm.chatlib.ChannelListListener;
+import io.mrarm.chatlib.MessageListener;
 import io.mrarm.chatlib.NoSuchChannelException;
+import io.mrarm.chatlib.dto.MessageInfo;
 import io.mrarm.chatlib.dto.NickPrefixList;
 import io.mrarm.chatlib.user.WritableUserInfoApi;
 
@@ -18,7 +20,8 @@ public class ServerConnectionData {
     private WritableUserInfoApi userInfoApi;
     private NickPrefixParser nickPrefixParser = new OneCharNickPrefixParser(this);
     private NickPrefixList supportedNickPrefixes = new NickPrefixList("@+");
-    private List<ChannelListListener> channelListListeners = new ArrayList<>();
+    private final List<ChannelListListener> channelListListeners = new ArrayList<>();
+    private final List<MessageListener> globalMessageListeners = new ArrayList<>();
 
     public void setUserNick(String nick) {
         userNick = nick;
@@ -83,6 +86,13 @@ public class ServerConnectionData {
         }
     }
 
+    public void onMessage(String channelName, MessageInfo message) {
+        synchronized (globalMessageListeners) {
+            for (MessageListener listener : globalMessageListeners)
+                listener.onMessage(channelName, message);
+        }
+    }
+
     public ServerStatusData getServerStatusData() {
         return serverStatusData;
     }
@@ -93,6 +103,18 @@ public class ServerConnectionData {
 
     public void unsubscribeChannelList(ChannelListListener listener) {
         channelListListeners.remove(listener);
+    }
+
+    public void subscribeMessages(MessageListener listener) {
+        synchronized (globalMessageListeners) {
+            globalMessageListeners.add(listener);
+        }
+    }
+
+    public void unsubscribeMessages(MessageListener listener) {
+        synchronized (globalMessageListeners) {
+            globalMessageListeners.remove(listener);
+        }
     }
     
 }

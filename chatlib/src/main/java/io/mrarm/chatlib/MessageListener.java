@@ -4,6 +4,6 @@ import io.mrarm.chatlib.dto.MessageInfo;
 
 public interface MessageListener {
 
-    void onMessage(MessageInfo message);
+    void onMessage(String channel, MessageInfo message);
 
 }
