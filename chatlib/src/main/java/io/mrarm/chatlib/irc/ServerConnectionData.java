@@ -7,6 +7,7 @@ import java.util.List;
 import io.mrarm.chatlib.ChannelListListener;
 import io.mrarm.chatlib.MessageListener;
 import io.mrarm.chatlib.NoSuchChannelException;
+import io.mrarm.chatlib.dto.ChannelInfo;
 import io.mrarm.chatlib.dto.MessageInfo;
 import io.mrarm.chatlib.dto.NickPrefixList;
 import io.mrarm.chatlib.user.WritableUserInfoApi;
@@ -15,7 +16,7 @@ public class ServerConnectionData {
 
     private ServerConnectionApi api;
     private String userNick;
-    private HashMap<String, ChannelData> joinedChannels = new HashMap<>();
+    private final HashMap<String, ChannelData> joinedChannels = new HashMap<>();
     private ServerStatusData serverStatusData = new ServerStatusData();
     private WritableUserInfoApi userInfoApi;
     private NickPrefixParser nickPrefixParser = new OneCharNickPrefixParser(this);
@@ -90,6 +91,14 @@ public class ServerConnectionData {
         synchronized (globalMessageListeners) {
             for (MessageListener listener : globalMessageListeners)
                 listener.onMessage(channelName, message);
+        }
+    }
+
+    public void addLocalMessageToAllChannels(MessageInfo messageInfo) {
+        synchronized (joinedChannels) {
+            for (ChannelData channel : joinedChannels.values()) {
+                channel.addMessage(messageInfo);
+            }
         }
     }
 

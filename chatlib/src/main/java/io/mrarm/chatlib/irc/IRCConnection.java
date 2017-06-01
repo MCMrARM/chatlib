@@ -4,6 +4,7 @@ import io.mrarm.chatlib.ResponseCallback;
 import io.mrarm.chatlib.ResponseErrorCallback;
 import io.mrarm.chatlib.dto.MessageInfo;
 import io.mrarm.chatlib.dto.MessageSenderInfo;
+import io.mrarm.chatlib.dto.StatusMessageInfo;
 import io.mrarm.chatlib.user.SimpleUserInfoApi;
 import io.mrarm.chatlib.util.SimpleRequestExecutor;
 
@@ -106,6 +107,8 @@ public class IRCConnection extends ServerConnectionApi {
             }
         } catch (IOException e) {
             e.printStackTrace();
+            getServerConnectionData().addLocalMessageToAllChannels(new MessageInfo(null, new Date(), null, MessageInfo.MessageType.DISCONNECT_WARNING));
+            getServerConnectionData().getServerStatusData().addMessage(new StatusMessageInfo(null, new Date(), StatusMessageInfo.MessageType.DISCONNECT_WARNING, null));
         }
     }
 
