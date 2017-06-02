@@ -14,6 +14,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -26,6 +27,7 @@ public class IRCConnection extends ServerConnectionApi {
     private OutputStream socketOutputStream;
     private MessageHandler inputHandler;
     private CommandHandlerList commandHandlerList;
+    private final List<DisconnectListener> disconnectListeners = new ArrayList<>();
 
     private SimpleRequestExecutor executor = new SimpleRequestExecutor();
 
@@ -109,6 +111,11 @@ public class IRCConnection extends ServerConnectionApi {
             e.printStackTrace();
             getServerConnectionData().addLocalMessageToAllChannels(new MessageInfo(null, new Date(), null, MessageInfo.MessageType.DISCONNECT_WARNING));
             getServerConnectionData().getServerStatusData().addMessage(new StatusMessageInfo(null, new Date(), StatusMessageInfo.MessageType.DISCONNECT_WARNING, null));
+            synchronized (disconnectListeners) {
+                for (DisconnectListener listener : disconnectListeners) {
+                    listener.onDisconnected(this, e);
+                }
+            }
         }
     }
 
@@ -118,6 +125,18 @@ public class IRCConnection extends ServerConnectionApi {
             connectSync(request);
             return null;
         }, callback, errorCallback);
+    }
+
+    public void addDisconnectListener(DisconnectListener listener) {
+        synchronized (disconnectListeners) {
+            disconnectListeners.add(listener);
+        }
+    }
+
+    public void removeDisconnectListener(DisconnectListener listener) {
+        synchronized (disconnectListeners) {
+            disconnectListeners.remove(listener);
+        }
     }
 
     // TODO: validate params
@@ -199,6 +218,10 @@ public class IRCConnection extends ServerConnectionApi {
         thread.start();
 
         waitForMotd();
+    }
+
+    public interface DisconnectListener {
+        void onDisconnected(IRCConnection connection, Exception reason);
     }
 
 }
