@@ -74,6 +74,8 @@ public class ServerConnectionData {
 
     public void onChannelJoined(String channelName) {
         synchronized (joinedChannels) {
+            if (joinedChannels.containsKey(channelName))
+                return;
             joinedChannels.put(channelName, new ChannelData(this, channelName));
         }
         synchronized (channelListListeners) {
