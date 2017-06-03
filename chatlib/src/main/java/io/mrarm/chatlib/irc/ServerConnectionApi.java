@@ -57,14 +57,15 @@ public abstract class ServerConnectionApi implements ChatApi {
         }
     }
 
-    protected void waitForMotd() {
+    protected boolean waitForMotd() {
         synchronized (motdReceiveLock) {
-            while (!motdReceived) {
+            while (!motdReceived && !motdReceiveFailed) {
                 try {
                     motdReceiveLock.wait();
                 } catch (InterruptedException ignored) {
                 }
             }
+            return motdReceived && !motdReceiveFailed;
         }
     }
 

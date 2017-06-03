@@ -220,7 +220,8 @@ public class IRCConnection extends ServerConnectionApi {
         thread.setName("IRC Connection Handler");
         thread.start();
 
-        waitForMotd();
+        if (!waitForMotd())
+            throw new IOException("Failed to receive MOTD");
     }
 
     public interface DisconnectListener {
