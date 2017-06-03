@@ -12,8 +12,9 @@ import java.util.concurrent.Future;
 public abstract class ServerConnectionApi implements ChatApi {
 
     private ServerConnectionData serverConnectionData;
-    private final Object hasReceivedMotdLock = new Object();
-    private boolean hasReceivedMotd = false;
+    private final Object motdReceiveLock = new Object();
+    private boolean motdReceived = false;
+    private boolean motdReceiveFailed = false;
 
     public ServerConnectionApi(ServerConnectionData serverConnectionData) {
         this.serverConnectionData = serverConnectionData;
@@ -29,19 +30,38 @@ public abstract class ServerConnectionApi implements ChatApi {
         return serverConnectionData.getUserInfoApi();
     }
 
+    protected void resetMotdStatus() {
+        synchronized (motdReceiveLock) {
+            motdReceived = false;
+            motdReceiveFailed = false;
+        }
+    }
 
     public void notifyMotdReceived() {
-        synchronized (hasReceivedMotdLock) {
-            hasReceivedMotd = true;
-            hasReceivedMotdLock.notifyAll();
+        synchronized (motdReceiveLock) {
+            motdReceived = true;
+            motdReceiveLock.notifyAll();
+        }
+    }
+
+    public void notifyMotdReceiveFailed() {
+        synchronized (motdReceiveLock) {
+            motdReceiveFailed = true;
+            motdReceiveLock.notifyAll();
+        }
+    }
+
+    protected boolean hasReceivedMotd() {
+        synchronized (motdReceiveLock) {
+            return motdReceived;
         }
     }
 
     protected void waitForMotd() {
-        synchronized (hasReceivedMotdLock) {
-            while (!hasReceivedMotd) {
+        synchronized (motdReceiveLock) {
+            while (!motdReceived) {
                 try {
-                    hasReceivedMotdLock.wait();
+                    motdReceiveLock.wait();
                 } catch (InterruptedException ignored) {
                 }
             }

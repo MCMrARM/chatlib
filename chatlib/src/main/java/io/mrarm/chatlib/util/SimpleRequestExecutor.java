@@ -19,7 +19,7 @@ public class SimpleRequestExecutor {
             T ret;
             try {
                 ret = task.call();
-            } catch (ChatApiException ex) {
+            } catch (Exception ex) {
                 ex.printStackTrace();
                 if (errorCallback != null)
                     errorCallback.onError(ex);
@@ -36,10 +36,10 @@ public class SimpleRequestExecutor {
         T ret;
         try {
             ret = task.call();
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
-            if (ex instanceof ChatApiException && errorCallback != null)
-                errorCallback.onError((ChatApiException) ex);
+            if (errorCallback != null)
+                errorCallback.onError(ex);
             return new InstantFuture<T>(null, ex);
         }
         if (callback != null)

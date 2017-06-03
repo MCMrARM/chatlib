@@ -109,6 +109,8 @@ public class IRCConnection extends ServerConnectionApi {
             }
         } catch (IOException e) {
             e.printStackTrace();
+            if (!hasReceivedMotd())
+                notifyMotdReceiveFailed();
             getServerConnectionData().addLocalMessageToAllChannels(new MessageInfo(null, new Date(), null, MessageInfo.MessageType.DISCONNECT_WARNING));
             getServerConnectionData().getServerStatusData().addMessage(new StatusMessageInfo(null, new Date(), StatusMessageInfo.MessageType.DISCONNECT_WARNING, null));
             synchronized (disconnectListeners) {
@@ -191,6 +193,7 @@ public class IRCConnection extends ServerConnectionApi {
     }
 
     public void connectSync(IRCConnectionRequest request) throws IOException {
+        resetMotdStatus();
         if (request.isUsingSSL()) {
             socket = request.getSSLSocketFactory().createSocket(request.getServerIP(), request.getServerPort());
             HostnameVerifier hostnameVerifier = request.getSSLHostnameVerifier();
