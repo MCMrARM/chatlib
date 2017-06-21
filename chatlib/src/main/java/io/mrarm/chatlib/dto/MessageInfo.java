@@ -13,6 +13,7 @@ public class MessageInfo {
     private Date date;
     private String message;
     private MessageType type;
+    private BatchInfo batch;
 
     public MessageInfo(MessageSenderInfo sender, Date date, String message, MessageType type) {
         this.sender = sender;
@@ -35,6 +36,50 @@ public class MessageInfo {
 
     public MessageType getType() {
         return type;
+    }
+
+    public BatchInfo getBatch() {
+        return batch;
+    }
+
+    public static class Builder {
+
+        private MessageInfo messageInfo;
+
+        public Builder() {
+            messageInfo = new MessageInfo(null, new Date(), null, null);
+        }
+
+        public Builder(MessageSenderInfo info, String message, MessageType type) {
+            messageInfo = new MessageInfo(info, new Date(), message, type);
+        }
+
+        public void setSender(MessageSenderInfo sender) {
+            messageInfo.sender = sender;
+        }
+
+        public void setMessage(String message) {
+            messageInfo.message = message;
+        }
+
+        public void setDate(Date date) {
+            messageInfo.date = date;
+        }
+
+        public void setType(MessageType type) {
+            messageInfo.type = type;
+        }
+
+        public void setBatch(BatchInfo batch) {
+            messageInfo.batch = batch;
+        }
+
+        public MessageInfo build() {
+            MessageInfo ret = messageInfo;
+            messageInfo = null;
+            return ret;
+        }
+
     }
 
 }

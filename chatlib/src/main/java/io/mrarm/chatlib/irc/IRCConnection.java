@@ -26,16 +26,13 @@ public class IRCConnection extends ServerConnectionApi {
     private InputStream socketInputStream;
     private OutputStream socketOutputStream;
     private MessageHandler inputHandler;
-    private CommandHandlerList commandHandlerList;
     private final List<DisconnectListener> disconnectListeners = new ArrayList<>();
 
     private SimpleRequestExecutor executor = new SimpleRequestExecutor();
 
     public IRCConnection() {
         super(new ServerConnectionData());
-        commandHandlerList = new CommandHandlerList();
-        commandHandlerList.addDefaultHandlers();
-        inputHandler = new MessageHandler(getServerConnectionData(), commandHandlerList);
+        inputHandler = new MessageHandler(getServerConnectionData());
         getServerConnectionData().setUserInfoApi(new SimpleUserInfoApi());
     }
 
@@ -192,6 +189,35 @@ public class IRCConnection extends ServerConnectionApi {
         }
     }
 
+    @Override
+    public void requestCapabilities(List<String> capabilities) {
+        try {
+            // TODO: Somehow handle a situation where the resulting string is larger than the maximal allowed message
+            // length (specs don't really mention what should be done in this case ?)
+            StringBuilder capsBuilder = new StringBuilder();
+            boolean f = true;
+            for (String cap : capabilities) {
+                if (f)
+                    f = false;
+                else
+                    capsBuilder.append(' ');
+                capsBuilder.append(cap);
+            }
+            sendCommand("CAP", true, "REQ", capsBuilder.toString());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void endCapabilityNegotiation() {
+        try {
+            sendCommand("CAP", false, "END");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void connectSync(IRCConnectionRequest request) throws IOException {
         resetMotdStatus();
         if (request.isUsingSSL()) {
@@ -209,6 +235,7 @@ public class IRCConnection extends ServerConnectionApi {
         }
         socketInputStream = socket.getInputStream();
         socketOutputStream = socket.getOutputStream();
+        sendCommand(false, "CAP", false, "LS", "302");
         if (request.getServerPass() != null)
             sendCommand(false, "PASS", request.getServerPass().contains(" "), request.getServerPass());
         sendCommand(false, "NICK", false, request.getNickList().get(0));

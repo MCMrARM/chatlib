@@ -10,6 +10,7 @@ import io.mrarm.chatlib.NoSuchChannelException;
 import io.mrarm.chatlib.dto.ChannelInfo;
 import io.mrarm.chatlib.dto.MessageInfo;
 import io.mrarm.chatlib.dto.NickPrefixList;
+import io.mrarm.chatlib.irc.cap.CapabilityManager;
 import io.mrarm.chatlib.user.WritableUserInfoApi;
 
 public class ServerConnectionData {
@@ -21,8 +22,15 @@ public class ServerConnectionData {
     private WritableUserInfoApi userInfoApi;
     private NickPrefixParser nickPrefixParser = new OneCharNickPrefixParser(this);
     private NickPrefixList supportedNickPrefixes = new NickPrefixList("@+");
+    private CommandHandlerList commandHandlerList = new CommandHandlerList();
+    private CapabilityManager capabilityManager = new CapabilityManager(this);
     private final List<ChannelListListener> channelListListeners = new ArrayList<>();
     private final List<MessageListener> globalMessageListeners = new ArrayList<>();
+
+    public ServerConnectionData() {
+        commandHandlerList.addDefaultHandlers();
+        capabilityManager.addDefaultCapabilities();
+    }
 
     public void setUserNick(String nick) {
         userNick = nick;
@@ -54,6 +62,14 @@ public class ServerConnectionData {
 
     public NickPrefixList getSupportedNickPrefixes() {
         return supportedNickPrefixes;
+    }
+
+    public CommandHandlerList getCommandHandlerList() {
+        return commandHandlerList;
+    }
+
+    public CapabilityManager getCapabilityManager() {
+        return capabilityManager;
     }
 
     public ChannelData getJoinedChannelData(String channelName) throws NoSuchChannelException {

@@ -23,6 +23,7 @@ public class CommandHandlerList {
         // per-connection handlers
         registerHandler(new NamesReplyCommandHandler());
         registerHandler(new MotdCommandHandler());
+        registerHandler(new CapCommandHandler());
     }
 
     public CommandHandler getHandlerFor(String command) throws InvalidMessageException {
@@ -32,8 +33,17 @@ public class CommandHandlerList {
     }
 
     public void registerHandler(CommandHandler handler) {
-        for (String command : handler.getHandledCommands())
+        for (String command : handler.getHandledCommands()) {
+            if (handlers.containsKey(command))
+                throw new RuntimeException("Handler registration name collision");
             handlers.put(command, handler);
+        }
+    }
+
+    public void unregisterHandler(CommandHandler handler) {
+        for (String command : handler.getHandledCommands()) {
+            handlers.remove(command);
+        }
     }
 
 }

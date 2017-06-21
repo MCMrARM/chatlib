@@ -22,7 +22,7 @@ public class NamesReplyCommandHandler extends NumericCommandHandler {
 
     @Override
     public void handle(ServerConnectionData connection, MessagePrefix sender, int command,
-                       List<String> params) throws InvalidMessageException {
+                       List<String> params, Map<String, String> tags) throws InvalidMessageException {
         if (command == RPL_NAMREPLY) {
             int paramId = 1;
             String channelName = params.get(paramId);

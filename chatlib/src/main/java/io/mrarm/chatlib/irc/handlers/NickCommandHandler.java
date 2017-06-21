@@ -8,6 +8,7 @@ import io.mrarm.chatlib.user.UserInfo;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 public class NickCommandHandler implements CommandHandler {
@@ -18,7 +19,8 @@ public class NickCommandHandler implements CommandHandler {
     }
 
     @Override
-    public void handle(ServerConnectionData connection, MessagePrefix sender, String command, List<String> params)
+    public void handle(ServerConnectionData connection, MessagePrefix sender, String command, List<String> params,
+                       Map<String, String> tags)
             throws InvalidMessageException {
         String newNick = params.get(0);
         if (sender.getNick().equals(connection.getUserNick()))

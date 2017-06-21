@@ -71,6 +71,10 @@ public abstract class ServerConnectionApi implements ChatApi {
 
     public abstract void sendPong(String text);
 
+    public abstract void requestCapabilities(List<String> capabilities);
+
+    public abstract void endCapabilityNegotiation();
+
 
     public ChannelData getChannelData(String channelName) throws NoSuchChannelException {
         return serverConnectionData.getJoinedChannelData(channelName);

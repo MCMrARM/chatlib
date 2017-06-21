@@ -8,6 +8,7 @@ import io.mrarm.chatlib.irc.ServerConnectionData;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 public class MotdCommandHandler extends NumericCommandHandler {
 
@@ -24,7 +25,8 @@ public class MotdCommandHandler extends NumericCommandHandler {
     }
 
     @Override
-    public void handle(ServerConnectionData connection, MessagePrefix sender, int command, List<String> params)
+    public void handle(ServerConnectionData connection, MessagePrefix sender, int command, List<String> params,
+                       Map<String, String> tags)
             throws InvalidMessageException {
         switch (command) {
             case RPL_MOTDSTART:

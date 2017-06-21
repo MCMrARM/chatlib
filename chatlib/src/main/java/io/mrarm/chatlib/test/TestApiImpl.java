@@ -26,9 +26,7 @@ public class TestApiImpl extends ServerConnectionApi {
 
     public void readTestChatLog(BufferedReader reader) throws IOException {
         String line;
-        CommandHandlerList commandHandlerList = new CommandHandlerList();
-        commandHandlerList.addDefaultHandlers();
-        MessageHandler handler = new MessageHandler(getServerConnectionData(), commandHandlerList);
+        MessageHandler handler = new MessageHandler(getServerConnectionData());
         while ((line = reader.readLine()) != null) {
             try {
                 handler.handleLine(line);
@@ -64,8 +62,18 @@ public class TestApiImpl extends ServerConnectionApi {
         }, callback, errorCallback);
     }
 
+    @Override
     public void sendPong(String text) {
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public void requestCapabilities(List<String> capabilities) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void endCapabilityNegotiation() {
+        throw new UnsupportedOperationException();
+    }
 }

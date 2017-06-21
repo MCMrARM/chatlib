@@ -4,9 +4,11 @@ import io.mrarm.chatlib.NoSuchChannelException;
 import io.mrarm.chatlib.dto.MessageInfo;
 import io.mrarm.chatlib.dto.StatusMessageInfo;
 import io.mrarm.chatlib.irc.*;
+import io.mrarm.chatlib.irc.cap.Capability;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
@@ -18,7 +20,8 @@ public class MessageCommandHandler implements CommandHandler {
     }
 
     @Override
-    public void handle(ServerConnectionData connection, MessagePrefix sender, String command, List<String> params)
+    public void handle(ServerConnectionData connection, MessagePrefix sender, String command, List<String> params,
+                       Map<String, String> tags)
             throws InvalidMessageException {
         try {
             MessageInfo.MessageType type = (command.equals("NOTICE") ? MessageInfo.MessageType.NOTICE :
@@ -48,7 +51,10 @@ public class MessageCommandHandler implements CommandHandler {
                 }
 
                 ChannelData channelData = connection.getJoinedChannelData(channel);
-                channelData.addMessage(new MessageInfo(sender.toSenderInfo(userUUID, channelData), new Date(), text, type));
+                MessageInfo.Builder message = new MessageInfo.Builder(sender.toSenderInfo(userUUID, channelData), text, type);
+                for (Capability cap : connection.getCapabilityManager().getEnabledCapabilities())
+                    cap.processMessage(message, tags);
+                channelData.addMessage(message.build());
             }
         } catch (NoSuchChannelException e) {
             throw new InvalidMessageException("Invalid channel specified in a message", e);
@@ -76,7 +82,7 @@ public class MessageCommandHandler implements CommandHandler {
     private String lowDequote(String text) {
         StringBuilder outpBuilder = new StringBuilder(text.length());
         for (int i = 0; i < text.length(); i++) {
-            int c = text.charAt(i);
+            char c = text.charAt(i);
             if (c == '\020') {
                 int cc = text.charAt(++i);
                 switch (cc) {
@@ -105,7 +111,7 @@ public class MessageCommandHandler implements CommandHandler {
     private String ctcpDequote(String text) {
         StringBuilder outpBuilder = new StringBuilder(text.length());
         for (int i = 0; i < text.length(); i++) {
-            int c = text.charAt(i);
+            char c = text.charAt(i);
             if (c == '\134') {
                 if (text.charAt(i + 1) == 'a') {
                     outpBuilder.append('\01');

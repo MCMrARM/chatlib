@@ -8,6 +8,7 @@ import io.mrarm.chatlib.user.UserInfo;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
@@ -19,8 +20,8 @@ public class JoinCommandHandler implements CommandHandler {
     }
 
     @Override
-    public void handle(ServerConnectionData connection, MessagePrefix sender, String command,
-                       List<String> params)
+    public void handle(ServerConnectionData connection, MessagePrefix sender, String command, List<String> params,
+                       Map<String, String> tags)
             throws InvalidMessageException {
         if (sender.getNick().equals(connection.getUserNick())) {
             for (String channel : params.get(0).split(","))

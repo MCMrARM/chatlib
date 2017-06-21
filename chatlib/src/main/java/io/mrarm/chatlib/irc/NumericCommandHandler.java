@@ -1,11 +1,12 @@
 package io.mrarm.chatlib.irc;
 
 import java.util.List;
+import java.util.Map;
 
 public abstract class NumericCommandHandler implements CommandHandler {
 
     public abstract void handle(ServerConnectionData connection, MessagePrefix sender, int command,
-                                List<String> params) throws InvalidMessageException;
+                                List<String> params, Map<String, String> tags) throws InvalidMessageException;
 
     public abstract int[] getNumericHandledCommands();
 
@@ -18,7 +19,7 @@ public abstract class NumericCommandHandler implements CommandHandler {
     }
 
     public void handle(ServerConnectionData connection, MessagePrefix sender, String command,
-                       List<String> params)
+                       List<String> params, Map<String, String> tags)
             throws InvalidMessageException {
         int cmdId;
         try {
@@ -26,7 +27,7 @@ public abstract class NumericCommandHandler implements CommandHandler {
         } catch (NumberFormatException ex) {
             throw new InvalidMessageException("Invalid numerical command (" + command + ")");
         }
-        handle(connection, sender, cmdId, params);
+        handle(connection, sender, cmdId, params, tags);
     }
 
 }
