@@ -220,6 +220,7 @@ public class IRCConnection extends ServerConnectionApi {
 
     public void connectSync(IRCConnectionRequest request) throws IOException {
         resetMotdStatus();
+        getServerConnectionData().getCapabilityManager().reset();
         if (request.isUsingSSL()) {
             socket = request.getSSLSocketFactory().createSocket(request.getServerIP(), request.getServerPort());
             HostnameVerifier hostnameVerifier = request.getSSLHostnameVerifier();

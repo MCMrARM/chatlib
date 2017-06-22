@@ -18,6 +18,11 @@ public class CapabilityManager {
         this.connection = connection;
     }
 
+    public void reset() {
+        setEnabledCapabilities(new ArrayList<>());
+        negotiationFinished = false;
+    }
+
     public void addDefaultCapabilities() {
         registerCapability(new BatchCapability());
         registerCapability(new ServerTimeCapability());
