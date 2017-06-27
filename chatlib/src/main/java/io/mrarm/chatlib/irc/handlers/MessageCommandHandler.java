@@ -37,7 +37,7 @@ public class MessageCommandHandler implements CommandHandler {
             int ctcpE = text.lastIndexOf('\01');
             if (ctcpS != -1 && ctcpE != -1) {
                 for (String ctcpCommand : text.substring(ctcpS, ctcpE).split("\01"))
-                    processCtcp(connection, sender, userUUID, targetChannels, ctcpCommand.indexOf('\134') == -1 ? ctcpCommand : ctcpDequote(ctcpCommand));
+                    processCtcp(connection, sender, userUUID, targetChannels, ctcpCommand.indexOf('\134') == -1 ? ctcpCommand : ctcpDequote(ctcpCommand), tags);
                 if (ctcpS == 0 && ctcpE == text.length() - 1)
                     return;
                 text = text.substring(0, ctcpS) + text.substring(ctcpE + 1, text.length());
@@ -64,14 +64,17 @@ public class MessageCommandHandler implements CommandHandler {
     }
 
 
-    private void processCtcp(ServerConnectionData connection, MessagePrefix sender, UUID userUUID, String[] targetChannels, String data) throws NoSuchChannelException {
+    private void processCtcp(ServerConnectionData connection, MessagePrefix sender, UUID userUUID, String[] targetChannels, String data, Map<String, String> tags) throws NoSuchChannelException {
         int iof = data.indexOf(' ');
         String command = iof == -1 ? data : data.substring(0, iof);
         String args = data.substring(iof + 1);
         if (command.equals("ACTION")) {
             for (String channel : targetChannels) {
                 ChannelData channelData = connection.getJoinedChannelData(channel);
-                channelData.addMessage(new MessageInfo(sender.toSenderInfo(userUUID, channelData), new Date(), args, MessageInfo.MessageType.ME));
+                MessageInfo.Builder message = new MessageInfo.Builder(sender.toSenderInfo(userUUID, channelData), args, MessageInfo.MessageType.ME);
+                for (Capability cap : connection.getCapabilityManager().getEnabledCapabilities())
+                    cap.processMessage(message, tags);
+                channelData.addMessage(message.build());
             }
         }
         // TODO: Implement other CTCP commands
