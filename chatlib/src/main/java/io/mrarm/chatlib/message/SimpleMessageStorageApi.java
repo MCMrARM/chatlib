@@ -54,16 +54,29 @@ public class SimpleMessageStorageApi implements WritableMessageStorageApi {
                 ChannelData data = getChannelData(channelName);
                 List<MessageInfo> ret = new ArrayList<>();
                 int end = data.messages.size();
-                if (after != null && after instanceof SimpleAfterIdentifier)
-                    end = ((SimpleAfterIdentifier) after).index;
+                if (after != null && after instanceof SimpleMessageListAfterIdentifier)
+                    end = ((SimpleMessageListAfterIdentifier) after).getIndex();
                 int start = Math.max(end - count, 0);
                 for (int i = start; i < end; i++)
                     ret.add(data.messages.get(i));
-                return new MessageList(ret, new SimpleAfterIdentifier(start));
+                return new MessageList(ret, new SimpleMessageListAfterIdentifier(start));
             }
         }, callback, errorCallback);
     }
 
+    @Override
+    public Future<MessageListAfterIdentifier> getMessageListAfterIdentifier(String channelName, int count, MessageListAfterIdentifier after, ResponseCallback<MessageListAfterIdentifier> callback, ResponseErrorCallback errorCallback) {
+        return SimpleRequestExecutor.run(() -> {
+            synchronized (channels) {
+                ChannelData data = getChannelData(channelName);
+                int end = data.messages.size();
+                if (after != null && after instanceof SimpleMessageListAfterIdentifier)
+                    end = ((SimpleMessageListAfterIdentifier) after).getIndex();
+                int start = Math.max(end - count, 0);
+                return new SimpleMessageListAfterIdentifier(start);
+            }
+        }, callback, errorCallback);
+    }
 
     @Override
     public Future<Void> subscribeChannelMessages(String channelName, MessageListener listener,
@@ -106,16 +119,6 @@ public class SimpleMessageStorageApi implements WritableMessageStorageApi {
 
         private final List<MessageInfo> messages = new ArrayList<>();
         private final List<MessageListener> listeners = new ArrayList<>();
-
-    }
-
-    private static class SimpleAfterIdentifier implements MessageListAfterIdentifier {
-
-        private final int index;
-
-        SimpleAfterIdentifier(int index) {
-            this.index = index;
-        }
 
     }
 
