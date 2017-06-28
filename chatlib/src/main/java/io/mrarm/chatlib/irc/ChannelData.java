@@ -4,22 +4,17 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 import io.mrarm.chatlib.ChannelInfoListener;
-import io.mrarm.chatlib.MessageListener;
 import io.mrarm.chatlib.dto.NickWithPrefix;
-import io.mrarm.chatlib.dto.MessageInfo;
 import io.mrarm.chatlib.dto.NickPrefixList;
-import io.mrarm.chatlib.user.UserInfo;
 
 public class ChannelData {
 
     private ServerConnectionData connection;
     private String name;
     private String topic;
-    private final List<MessageInfo> messages = new ArrayList<>();
     private List<Member> members = new ArrayList<>();
     private Map<UUID, Member> membersMap = new HashMap<>();
     private final Object membersLock = new Object();
-    private final List<MessageListener> messageListeners = new ArrayList<>();
     private final List<ChannelInfoListener> infoListeners = new ArrayList<>();
 
     public ChannelData(ServerConnectionData connection, String name) {
@@ -49,22 +44,6 @@ public class ChannelData {
         synchronized (this) {
             this.topic = topic;
         }
-    }
-
-    public List<MessageInfo> getMessages() {
-        return messages;
-    }
-
-    public void addMessage(MessageInfo message) {
-        synchronized (messages) {
-            messages.add(message);
-        }
-        String channelName = getName();
-        synchronized (messageListeners) {
-            for (MessageListener listener : messageListeners)
-                listener.onMessage(channelName, message);
-        }
-        connection.onMessage(channelName, message);
     }
 
     public List<Member> getMembers() {
@@ -140,18 +119,6 @@ public class ChannelData {
             this.members = members;
         }
         callMemberListChanged();
-    }
-
-    public void subscribeMessages(MessageListener listener) {
-        synchronized (messageListeners) {
-            messageListeners.add(listener);
-        }
-    }
-
-    public void unsubscribeMessages(MessageListener listener) {
-        synchronized (messageListeners) {
-            messageListeners.remove(listener);
-        }
     }
 
     public void subscribeInfo(ChannelInfoListener listener) {

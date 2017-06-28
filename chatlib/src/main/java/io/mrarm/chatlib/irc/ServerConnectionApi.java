@@ -2,6 +2,7 @@ package io.mrarm.chatlib.irc;
 
 import io.mrarm.chatlib.*;
 import io.mrarm.chatlib.dto.*;
+import io.mrarm.chatlib.message.MessageStorageApi;
 import io.mrarm.chatlib.user.UserInfoApi;
 import io.mrarm.chatlib.util.SimpleRequestExecutor;
 
@@ -28,6 +29,11 @@ public abstract class ServerConnectionApi implements ChatApi {
     @Override
     public UserInfoApi getUserInfoApi() {
         return serverConnectionData.getUserInfoApi();
+    }
+
+    @Override
+    public MessageStorageApi getMessageStorageApi() {
+        return serverConnectionData.getMessageStorageApi();
     }
 
     protected void resetMotdStatus() {
@@ -98,23 +104,6 @@ public abstract class ServerConnectionApi implements ChatApi {
     }
 
     // TODO: This still isn't a deep clone of the message list, change it to one
-    // TODO: 'after' parameter is currently disfunctional
-
-    @Override
-    public Future<MessageList> getMessages(String channelName, int count, MessageList after,
-                                           ResponseCallback<MessageList> callback,
-                                           ResponseErrorCallback errorCallback) {
-        return SimpleRequestExecutor.run(() -> {
-            ChannelData data = getChannelData(channelName);
-            List<MessageInfo> messages = data.getMessages();
-            List<MessageInfo> ret = new ArrayList<>();
-            synchronized (messages) {
-                for (int i = Math.max(messages.size() - count, 0); i < messages.size(); i++)
-                    ret.add(messages.get(i));
-            }
-            return new MessageList(ret);
-        }, callback, errorCallback);
-    }
 
     @Override
     public Future<StatusMessageList> getStatusMessages(int count, StatusMessageList after,
@@ -161,31 +150,6 @@ public abstract class ServerConnectionApi implements ChatApi {
                                                ResponseCallback<Void> callback, ResponseErrorCallback errorCallback) {
         return SimpleRequestExecutor.run(() -> {
             getChannelData(channelName).unsubscribeInfo(listener);
-            return null;
-        }, callback, errorCallback);
-    }
-
-    @Override
-    public Future<Void> subscribeChannelMessages(String channelName, MessageListener listener,
-                                                 ResponseCallback<Void> callback, ResponseErrorCallback errorCallback) {
-        return SimpleRequestExecutor.run(() -> {
-            if (channelName == null)
-                getServerConnectionData().subscribeMessages(listener);
-            else
-                getChannelData(channelName).subscribeMessages(listener);
-            return null;
-        }, callback, errorCallback);
-    }
-
-    @Override
-    public Future<Void> unsubscribeChannelMessages(String channelName, MessageListener listener,
-                                                   ResponseCallback<Void> callback,
-                                                   ResponseErrorCallback errorCallback) {
-        return SimpleRequestExecutor.run(() -> {
-            if (channelName == null)
-                getServerConnectionData().unsubscribeMessages(listener);
-            else
-                getChannelData(channelName).unsubscribeMessages(listener);
             return null;
         }, callback, errorCallback);
     }

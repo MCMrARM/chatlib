@@ -12,6 +12,7 @@ import io.mrarm.chatlib.ResponseErrorCallback;
 import io.mrarm.chatlib.dto.MessageInfo;
 import io.mrarm.chatlib.dto.MessageSenderInfo;
 import io.mrarm.chatlib.irc.*;
+import io.mrarm.chatlib.message.SimpleMessageStorageApi;
 import io.mrarm.chatlib.user.SimpleUserInfoApi;
 import io.mrarm.chatlib.util.SimpleRequestExecutor;
 
@@ -22,6 +23,7 @@ public class TestApiImpl extends ServerConnectionApi {
 
         getServerConnectionData().setUserNick(nick);
         getServerConnectionData().setUserInfoApi(new SimpleUserInfoApi());
+        getServerConnectionData().setMessageStorageApi(new SimpleMessageStorageApi());
     }
 
     public void readTestChatLog(BufferedReader reader) throws IOException {
@@ -54,7 +56,8 @@ public class TestApiImpl extends ServerConnectionApi {
                 ChannelData.Member memberInfo = channelData.getMember(userUUID);
                 MessageSenderInfo sender = new MessageSenderInfo(getServerConnectionData().getUserNick(), null, null,
                         memberInfo != null ? memberInfo.getNickPrefixes() : null, userUUID);
-                channelData.addMessage(new MessageInfo(sender, new Date(), message, MessageInfo.MessageType.NORMAL));
+                getServerConnectionData().getMessageStorageApi().addMessage(channel,
+                        new MessageInfo(sender, new Date(), message, MessageInfo.MessageType.NORMAL), null, null).get();
             } catch (Exception e) {
                 e.printStackTrace();
             }

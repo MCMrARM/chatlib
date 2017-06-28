@@ -32,10 +32,7 @@ public class NickCommandHandler implements CommandHandler {
                     null, userInfo.getUUID());
             NickChangeMessageInfo nickChangeMessageInfo = new NickChangeMessageInfo(senderInfo, new Date(), newNick);
             for (String channel : userInfo.getChannels()) {
-                try {
-                    connection.getJoinedChannelData(channel).addMessage(nickChangeMessageInfo);
-                } catch (NoSuchChannelException ignored) {
-                }
+                connection.getMessageStorageApi().addMessage(channel, nickChangeMessageInfo, null, null).get();
             }
             connection.getUserInfoApi().setUserNick(userInfo.getUUID(), params.get(0), null, null)
                     .get();

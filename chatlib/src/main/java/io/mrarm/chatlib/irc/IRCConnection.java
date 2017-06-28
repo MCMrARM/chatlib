@@ -5,6 +5,8 @@ import io.mrarm.chatlib.ResponseErrorCallback;
 import io.mrarm.chatlib.dto.MessageInfo;
 import io.mrarm.chatlib.dto.MessageSenderInfo;
 import io.mrarm.chatlib.dto.StatusMessageInfo;
+import io.mrarm.chatlib.message.SimpleMessageStorageApi;
+import io.mrarm.chatlib.message.WritableMessageStorageApi;
 import io.mrarm.chatlib.user.SimpleUserInfoApi;
 import io.mrarm.chatlib.util.SimpleRequestExecutor;
 
@@ -34,6 +36,7 @@ public class IRCConnection extends ServerConnectionApi {
         super(new ServerConnectionData());
         inputHandler = new MessageHandler(getServerConnectionData());
         getServerConnectionData().setUserInfoApi(new SimpleUserInfoApi());
+        getServerConnectionData().setMessageStorageApi(new SimpleMessageStorageApi());
     }
 
     private void sendCommandRaw(String string, boolean flush) throws IOException {
@@ -185,7 +188,8 @@ public class IRCConnection extends ServerConnectionApi {
                 ChannelData.Member memberInfo = channelData.getMember(userUUID);
                 MessageSenderInfo sender = new MessageSenderInfo(getServerConnectionData().getUserNick(), null, null,
                         memberInfo != null ? memberInfo.getNickPrefixes() : null, userUUID);
-                channelData.addMessage(new MessageInfo(sender, new Date(), message, MessageInfo.MessageType.NORMAL));
+                getServerConnectionData().getMessageStorageApi().addMessage(channel,
+                        new MessageInfo(sender, new Date(), message, MessageInfo.MessageType.NORMAL), null, null).get();
             } catch (Exception ignored) {
                 // it failed, but we don't really care - the message might have been sent to a channel which we have not
                 // joined, which is perfectly valid but will cause the code above to raise an exception

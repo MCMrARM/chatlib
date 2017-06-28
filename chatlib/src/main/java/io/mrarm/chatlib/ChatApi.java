@@ -4,13 +4,15 @@ import java.util.List;
 import java.util.concurrent.Future;
 
 import io.mrarm.chatlib.dto.ChannelInfo;
-import io.mrarm.chatlib.dto.MessageList;
 import io.mrarm.chatlib.dto.StatusMessageList;
+import io.mrarm.chatlib.message.MessageStorageApi;
 import io.mrarm.chatlib.user.UserInfoApi;
 
 public interface ChatApi {
 
     UserInfoApi getUserInfoApi();
+
+    MessageStorageApi getMessageStorageApi();
 
     Future<Void> joinChannels(List<String> channels, ResponseCallback<Void> callback,
                               ResponseErrorCallback errorCallback);
@@ -23,9 +25,6 @@ public interface ChatApi {
 
     Future<ChannelInfo> getChannelInfo(String channelName, ResponseCallback<ChannelInfo> callback,
                                        ResponseErrorCallback errorCallback);
-
-    Future<MessageList> getMessages(String channelName, int count, MessageList after,
-                                    ResponseCallback<MessageList> callback, ResponseErrorCallback errorCallback);
 
     Future<StatusMessageList> getStatusMessages(int count, StatusMessageList after,
                                                 ResponseCallback<StatusMessageList> callback,
@@ -42,12 +41,6 @@ public interface ChatApi {
 
     Future<Void> unsubscribeChannelInfo(String channelName, ChannelInfoListener listener,
                                         ResponseCallback<Void> callback, ResponseErrorCallback errorCallback);
-
-    Future<Void> subscribeChannelMessages(String channelName, MessageListener listener, ResponseCallback<Void> callback,
-                                          ResponseErrorCallback errorCallback);
-
-    Future<Void> unsubscribeChannelMessages(String channelName, MessageListener listener,
-                                            ResponseCallback<Void> callback, ResponseErrorCallback errorCallback);
 
     Future<Void> subscribeStatusMessages(StatusMessageListener listener, ResponseCallback<Void> callback,
                                          ResponseErrorCallback errorCallback);

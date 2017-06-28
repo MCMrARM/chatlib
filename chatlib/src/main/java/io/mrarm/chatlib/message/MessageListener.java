@@ -1,4 +1,4 @@
-package io.mrarm.chatlib;
+package io.mrarm.chatlib.message;
 
 import io.mrarm.chatlib.dto.MessageInfo;
 

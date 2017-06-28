@@ -5,12 +5,11 @@ import java.util.HashMap;
 import java.util.List;
 
 import io.mrarm.chatlib.ChannelListListener;
-import io.mrarm.chatlib.MessageListener;
 import io.mrarm.chatlib.NoSuchChannelException;
-import io.mrarm.chatlib.dto.ChannelInfo;
 import io.mrarm.chatlib.dto.MessageInfo;
 import io.mrarm.chatlib.dto.NickPrefixList;
 import io.mrarm.chatlib.irc.cap.CapabilityManager;
+import io.mrarm.chatlib.message.WritableMessageStorageApi;
 import io.mrarm.chatlib.user.WritableUserInfoApi;
 
 public class ServerConnectionData {
@@ -20,12 +19,12 @@ public class ServerConnectionData {
     private final HashMap<String, ChannelData> joinedChannels = new HashMap<>();
     private ServerStatusData serverStatusData = new ServerStatusData();
     private WritableUserInfoApi userInfoApi;
+    private WritableMessageStorageApi messageStorageApi;
     private NickPrefixParser nickPrefixParser = new OneCharNickPrefixParser(this);
     private NickPrefixList supportedNickPrefixes = new NickPrefixList("@+");
     private CommandHandlerList commandHandlerList = new CommandHandlerList();
     private CapabilityManager capabilityManager = new CapabilityManager(this);
     private final List<ChannelListListener> channelListListeners = new ArrayList<>();
-    private final List<MessageListener> globalMessageListeners = new ArrayList<>();
 
     public ServerConnectionData() {
         commandHandlerList.addDefaultHandlers();
@@ -54,6 +53,14 @@ public class ServerConnectionData {
 
     public void setUserInfoApi(WritableUserInfoApi api) {
         this.userInfoApi = api;
+    }
+
+    public WritableMessageStorageApi getMessageStorageApi() {
+        return messageStorageApi;
+    }
+
+    public void setMessageStorageApi(WritableMessageStorageApi messageStorageApi) {
+        this.messageStorageApi = messageStorageApi;
     }
 
     public NickPrefixParser getNickPrefixParser() {
@@ -105,19 +112,8 @@ public class ServerConnectionData {
         }
     }
 
-    public void onMessage(String channelName, MessageInfo message) {
-        synchronized (globalMessageListeners) {
-            for (MessageListener listener : globalMessageListeners)
-                listener.onMessage(channelName, message);
-        }
-    }
-
     public void addLocalMessageToAllChannels(MessageInfo messageInfo) {
-        synchronized (joinedChannels) {
-            for (ChannelData channel : joinedChannels.values()) {
-                channel.addMessage(messageInfo);
-            }
-        }
+        messageStorageApi.addMessage(null, messageInfo, null, null);
     }
 
     public ServerStatusData getServerStatusData() {
@@ -130,18 +126,6 @@ public class ServerConnectionData {
 
     public void unsubscribeChannelList(ChannelListListener listener) {
         channelListListeners.remove(listener);
-    }
-
-    public void subscribeMessages(MessageListener listener) {
-        synchronized (globalMessageListeners) {
-            globalMessageListeners.add(listener);
-        }
-    }
-
-    public void unsubscribeMessages(MessageListener listener) {
-        synchronized (globalMessageListeners) {
-            globalMessageListeners.remove(listener);
-        }
     }
     
 }

@@ -54,7 +54,7 @@ public class MessageCommandHandler implements CommandHandler {
                 MessageInfo.Builder message = new MessageInfo.Builder(sender.toSenderInfo(userUUID, channelData), text, type);
                 for (Capability cap : connection.getCapabilityManager().getEnabledCapabilities())
                     cap.processMessage(message, tags);
-                channelData.addMessage(message.build());
+                connection.getMessageStorageApi().addMessage(channel, message.build(), null, null).get();
             }
         } catch (NoSuchChannelException e) {
             throw new InvalidMessageException("Invalid channel specified in a message", e);
@@ -64,7 +64,7 @@ public class MessageCommandHandler implements CommandHandler {
     }
 
 
-    private void processCtcp(ServerConnectionData connection, MessagePrefix sender, UUID userUUID, String[] targetChannels, String data, Map<String, String> tags) throws NoSuchChannelException {
+    private void processCtcp(ServerConnectionData connection, MessagePrefix sender, UUID userUUID, String[] targetChannels, String data, Map<String, String> tags) throws NoSuchChannelException, InterruptedException, ExecutionException {
         int iof = data.indexOf(' ');
         String command = iof == -1 ? data : data.substring(0, iof);
         String args = data.substring(iof + 1);
@@ -74,7 +74,7 @@ public class MessageCommandHandler implements CommandHandler {
                 MessageInfo.Builder message = new MessageInfo.Builder(sender.toSenderInfo(userUUID, channelData), args, MessageInfo.MessageType.ME);
                 for (Capability cap : connection.getCapabilityManager().getEnabledCapabilities())
                     cap.processMessage(message, tags);
-                channelData.addMessage(message.build());
+                connection.getMessageStorageApi().addMessage(channel, message.build(), null, null).get();
             }
         }
         // TODO: Implement other CTCP commands
