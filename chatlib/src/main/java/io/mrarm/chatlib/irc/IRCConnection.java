@@ -126,6 +126,22 @@ public class IRCConnection extends ServerConnectionApi {
         }, callback, errorCallback);
     }
 
+    public void disconnect(boolean cleanly) {
+        if (socket != null) {
+            if (cleanly && hasReceivedMotd()) {
+                try {
+                    socketInputStream.close();
+                    socketOutputStream.close();
+                } catch (IOException ignored) {
+                }
+            }
+            try {
+                socket.close();
+            } catch (IOException ignored) {
+            }
+        }
+    }
+
     public void addDisconnectListener(DisconnectListener listener) {
         synchronized (disconnectListeners) {
             disconnectListeners.add(listener);
