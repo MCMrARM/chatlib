@@ -17,6 +17,7 @@ public class CachedWritableMessageStorageApi extends CachedMessageStorageApi imp
 
     @Override
     public Future<Void> addMessage(String channelName, MessageInfo message, ResponseCallback<Void> callback, ResponseErrorCallback errorCallback) {
+        // TODO: Somehow cache addMessage too
         return api.addMessage(channelName, message, callback, errorCallback);
     }
 }

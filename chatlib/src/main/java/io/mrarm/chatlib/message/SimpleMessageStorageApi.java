@@ -65,17 +65,15 @@ public class SimpleMessageStorageApi implements WritableMessageStorageApi {
     }
 
     @Override
-    public Future<MessageListAfterIdentifier> getMessageListAfterIdentifier(String channelName, int count, MessageListAfterIdentifier after, ResponseCallback<MessageListAfterIdentifier> callback, ResponseErrorCallback errorCallback) {
-        return SimpleRequestExecutor.run(() -> {
-            synchronized (channels) {
-                ChannelData data = getChannelData(channelName);
-                int end = data.messages.size();
-                if (after != null && after instanceof SimpleMessageListAfterIdentifier)
-                    end = ((SimpleMessageListAfterIdentifier) after).getIndex();
-                int start = Math.max(end - count, 0);
-                return new SimpleMessageListAfterIdentifier(start);
-            }
-        }, callback, errorCallback);
+    public MessageListAfterIdentifier getMessageListAfterIdentifier(String channelName, int count, MessageListAfterIdentifier after) {
+        synchronized (channels) {
+            ChannelData data = getChannelData(channelName);
+            int end = data.messages.size();
+            if (after != null && after instanceof SimpleMessageListAfterIdentifier)
+                end = ((SimpleMessageListAfterIdentifier) after).getIndex();
+            int start = Math.max(end - count, 0);
+            return new SimpleMessageListAfterIdentifier(start);
+        }
     }
 
     @Override
