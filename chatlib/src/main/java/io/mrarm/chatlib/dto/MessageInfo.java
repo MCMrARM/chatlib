@@ -5,8 +5,17 @@ import java.util.Date;
 public class MessageInfo {
 
     public enum MessageType {
-        NORMAL, NOTICE, ME, JOIN, PART, NICK_CHANGE,
-        DISCONNECT_WARNING
+        NORMAL(0), NOTICE(1), ME(2), JOIN(3), PART(4), NICK_CHANGE(5),
+        DISCONNECT_WARNING(100);
+
+        private final int intValue;
+        MessageType(int i) {
+            intValue = i;
+        }
+
+        public int asInt() {
+            return intValue;
+        }
     }
 
     private MessageSenderInfo sender;
