@@ -25,8 +25,8 @@ public class WrapperMessageStorageApi implements MessageStorageApi {
     }
 
     @Override
-    public Future<MessageListAfterIdentifier> getMessageListAfterIdentifier(String channelName, int count, MessageListAfterIdentifier after, ResponseCallback<MessageListAfterIdentifier> callback, ResponseErrorCallback errorCallback) {
-        return wrapped.getMessageListAfterIdentifier(channelName, count, after, callback, errorCallback);
+    public MessageListAfterIdentifier getMessageListAfterIdentifier(String channelName, int count, MessageListAfterIdentifier after) {
+        return wrapped.getMessageListAfterIdentifier(channelName, count, after);
     }
 
     @Override

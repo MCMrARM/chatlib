@@ -37,8 +37,8 @@ public class CachedMessageStorageApi extends WrapperMessageStorageApi implements
             ChannelCacheData channel = channels.get(channelName);
             channel.messageIndexOff++;
             channel.messages.add(message);
-            channel.sourcePreId = null;
-            channel.sourceAfterId = null; // TODO: this will break more stuff
+            channel.sourcePreId = getWrappedApi().getMessageListAfterIdentifier(channelName, 0, null);
+            channel.sourceAfterId = getWrappedApi().getMessageListAfterIdentifier(channelName, channel.messageIndexOff, channel.sourcePreId);
         }
     }
 
@@ -54,11 +54,8 @@ public class CachedMessageStorageApi extends WrapperMessageStorageApi implements
             CachedMessageListAfterIdentifier cafter = (CachedMessageListAfterIdentifier) after;
             int end = (after != null ? cafter.getIndex() - channel.messageIndexOff + cafter.offset : channel.messages.size());
             if (end < 0) { // we don't have that data anymore
-                SettableFuture<MessageList> retVal = new SettableFuture<>();
-                super.getMessageListAfterIdentifier(channelName, cafter.getIndex(), cafter.sourcePreId, (MessageListAfterIdentifier afterIdentifier) -> {
-                    super.getMessages(channelName, count, afterIdentifier, retVal::set, retVal::setExecutionException);
-                }, retVal::setExecutionException);
-                return retVal;
+                MessageListAfterIdentifier afterIdentifier = super.getMessageListAfterIdentifier(channelName, cafter.getIndex(), cafter.sourcePreId);
+                return super.getMessages(channelName, count, afterIdentifier, callback, errorCallback);
             }
 
             int start = end - count;
@@ -67,17 +64,19 @@ public class CachedMessageStorageApi extends WrapperMessageStorageApi implements
                 ret.add(channel.messages.get(i));
 
             if (start < 0) {
-                int requestCount = count - ret.size();
-                int missingToFillCache = channel.messages.size() - cacheMessageCount;
                 SettableFuture<MessageList> retVal = new SettableFuture<>();
                 MessageListAfterIdentifier oldAfterId = channel.sourceAfterId;
                 super.getMessages(channelName, count, channel.sourceAfterId, (MessageList list) -> {
-                    if (requestCount != missingToFillCache) { // doesn't exactly fill cache
-                        super.getMessageListAfterIdentifier(channelName, missingToFillCache, oldAfterId, (MessageListAfterIdentifier ident) -> {
-                            appendChannelMessageCache(channel, oldAfterId, list, missingToFillCache, ident);
-                        }, null);
-                    } else { // exactly fills cache item count
-                        appendChannelMessageCache(channel, oldAfterId, list, requestCount, list.getAfterIdentifier());
+                    synchronized (channels) {
+                        if (channel.sourceAfterId == oldAfterId) {
+                            int missingToFillCache = cacheMessageCount - channel.messages.size();
+                            int actualMessagesSize = list.getMessages().size();
+                            channel.messages.addAll(list.getMessages().subList(actualMessagesSize - missingToFillCache, actualMessagesSize));
+                            if (missingToFillCache == actualMessagesSize)
+                                channel.sourceAfterId = list.getAfterIdentifier();
+                            else
+                                channel.sourceAfterId = super.getMessageListAfterIdentifier(channelName, missingToFillCache, channel.sourceAfterId);
+                        }
                     }
                     ret.addAll(0, list.getMessages());
                     retVal.set(new MessageList(ret, list.getAfterIdentifier()));
@@ -94,32 +93,20 @@ public class CachedMessageStorageApi extends WrapperMessageStorageApi implements
         }
     }
 
-    private void appendChannelMessageCache(ChannelCacheData channel, MessageListAfterIdentifier oldAfterId,
-                                           MessageList list, int appendItems, MessageListAfterIdentifier newAfterId) {
-        synchronized (channels) {
-            if (channel.sourceAfterId != oldAfterId || channel.messages.size() + appendItems != cacheMessageCount) // make sure the data did not change
-                return;
-            int actualMessagesSize = list.getMessages().size();
-            channel.messages.addAll(list.getMessages().subList(actualMessagesSize - appendItems, actualMessagesSize));
-            channel.messageIndexOff += appendItems;
-            channel.sourceAfterId = newAfterId;
-        }
-    }
-
     @Override
-    public Future<MessageListAfterIdentifier> getMessageListAfterIdentifier(String channelName, int count, MessageListAfterIdentifier after, ResponseCallback<MessageListAfterIdentifier> callback, ResponseErrorCallback errorCallback) {
+    public MessageListAfterIdentifier getMessageListAfterIdentifier(String channelName, int count, MessageListAfterIdentifier after) {
         if (after != null && !(after instanceof CachedMessageListAfterIdentifier))
-            return super.getMessageListAfterIdentifier(channelName, count, after, callback, errorCallback);
+            return super.getMessageListAfterIdentifier(channelName, count, after);
         synchronized (channels) {
             if (!channels.containsKey(channelName))
-                return super.getMessageListAfterIdentifier(channelName, count, after, callback, errorCallback);
+                return super.getMessageListAfterIdentifier(channelName, count, after);
             ChannelCacheData channel = channels.get(channelName);
             CachedMessageListAfterIdentifier cafter = (CachedMessageListAfterIdentifier) after;
             int end = (after != null ? cafter.getIndex() - channel.messageIndexOff + cafter.offset : channel.messages.size());
             int start = end - count;
             if (start < 0)
-                return super.getMessageListAfterIdentifier(channelName, cafter.getIndex() + count, cafter.sourcePreId, callback, errorCallback);
-            return SimpleRequestExecutor.run(() -> new CachedMessageListAfterIdentifier(start, channel.messageIndexOff, channel.sourcePreId), callback, errorCallback);
+                return super.getMessageListAfterIdentifier(channelName, cafter.getIndex() + count, cafter.sourcePreId);
+            return new CachedMessageListAfterIdentifier(start, channel.messageIndexOff, channel.sourcePreId);
         }
     }
 
