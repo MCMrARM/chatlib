@@ -61,7 +61,12 @@ public class CapabilityManager {
             }
         }
 
-        connection.getApi().requestCapabilities(requestedCapabilities);
+        if (requestedCapabilities.size() > 0) {
+            connection.getApi().requestCapabilities(requestedCapabilities);
+        } else if (!negotiationFinished) {
+            connection.getApi().endCapabilityNegotiation();
+            negotiationFinished = true;
+        }
     }
 
     public void onCapabilitiesAck(List<String> capabilities) {
