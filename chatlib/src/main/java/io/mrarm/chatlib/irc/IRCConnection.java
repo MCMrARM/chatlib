@@ -78,9 +78,9 @@ public class IRCConnection extends ServerConnectionApi {
     }
 
     private String readCommand() throws IOException {
-        byte[] buf = new byte[512];
+        byte[] buf = new byte[1024];
         int i, v;
-        for (i = 0; i < 512; i++) {
+        for (i = 0; i < 1024; i++) {
             v = socketInputStream.read();
             if (v == -1)
                 throw new IOException("read() returned -1");
