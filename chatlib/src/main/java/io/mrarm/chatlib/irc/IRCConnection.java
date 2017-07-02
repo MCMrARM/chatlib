@@ -177,6 +177,13 @@ public class IRCConnection extends ServerConnectionApi {
         }, callback, errorCallback);
     }
 
+    public Future<Void> sendCommandRaw(String command, ResponseCallback<Void> callback, ResponseErrorCallback errorCallback) {
+        return executor.queue(() -> {
+            sendCommandRaw(command, true);
+            return null;
+        }, callback, errorCallback);
+    }
+
     @Override
     public Future<Void> sendMessage(String channel, String message, ResponseCallback<Void> callback,
                                     ResponseErrorCallback errorCallback) {
