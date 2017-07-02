@@ -52,8 +52,10 @@ public class MessageCommandHandler implements CommandHandler {
 
                 ChannelData channelData = connection.getJoinedChannelData(channel);
                 MessageInfo.Builder message = new MessageInfo.Builder(sender.toSenderInfo(userUUID, channelData), text, type);
-                for (Capability cap : connection.getCapabilityManager().getEnabledCapabilities())
-                    cap.processMessage(message, tags);
+                if (tags != null) {
+                    for (Capability cap : connection.getCapabilityManager().getEnabledCapabilities())
+                        cap.processMessage(message, tags);
+                }
                 connection.getMessageStorageApi().addMessage(channel, message.build(), null, null).get();
             }
         } catch (NoSuchChannelException e) {
@@ -72,8 +74,10 @@ public class MessageCommandHandler implements CommandHandler {
             for (String channel : targetChannels) {
                 ChannelData channelData = connection.getJoinedChannelData(channel);
                 MessageInfo.Builder message = new MessageInfo.Builder(sender.toSenderInfo(userUUID, channelData), args, MessageInfo.MessageType.ME);
-                for (Capability cap : connection.getCapabilityManager().getEnabledCapabilities())
-                    cap.processMessage(message, tags);
+                if (tags != null) {
+                    for (Capability cap : connection.getCapabilityManager().getEnabledCapabilities())
+                        cap.processMessage(message, tags);
+                }
                 connection.getMessageStorageApi().addMessage(channel, message.build(), null, null).get();
             }
         }

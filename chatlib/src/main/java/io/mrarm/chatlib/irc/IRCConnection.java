@@ -5,6 +5,7 @@ import io.mrarm.chatlib.ResponseErrorCallback;
 import io.mrarm.chatlib.dto.MessageInfo;
 import io.mrarm.chatlib.dto.MessageSenderInfo;
 import io.mrarm.chatlib.dto.StatusMessageInfo;
+import io.mrarm.chatlib.irc.handlers.MessageCommandHandler;
 import io.mrarm.chatlib.message.SimpleMessageStorageApi;
 import io.mrarm.chatlib.message.WritableMessageStorageApi;
 import io.mrarm.chatlib.user.SimpleUserInfoApi;
@@ -23,6 +24,8 @@ import java.util.UUID;
 import java.util.concurrent.Future;
 
 public class IRCConnection extends ServerConnectionApi {
+
+    private static final MessageCommandHandler selfMessageHandler = new MessageCommandHandler();
 
     private Socket socket;
     private InputStream socketInputStream;
@@ -189,19 +192,14 @@ public class IRCConnection extends ServerConnectionApi {
                                     ResponseErrorCallback errorCallback) {
         return executor.queue(() -> {
             try {
-                UUID userUUID = getUserInfoApi().resolveUser(getServerConnectionData().getUserNick(), null, null,
-                        null, null).get();
-                ChannelData channelData = getChannelData(channel);
-                ChannelData.Member memberInfo = channelData.getMember(userUUID);
-                MessageSenderInfo sender = new MessageSenderInfo(getServerConnectionData().getUserNick(), null, null,
-                        memberInfo != null ? memberInfo.getNickPrefixes() : null, userUUID);
-                getServerConnectionData().getMessageStorageApi().addMessage(channel,
-                        new MessageInfo(sender, new Date(), message, MessageInfo.MessageType.NORMAL), null, null).get();
+                List<String> params = new ArrayList<>();
+                params.add(channel);
+                params.add(message);
+                selfMessageHandler.handle(getServerConnectionData(), new MessagePrefix(getServerConnectionData().getUserNick()), "PRIVMSG", params, null);
             } catch (Exception ignored) {
                 // it failed, but we don't really care - the message might have been sent to a channel which we have not
                 // joined, which is perfectly valid but will cause the code above to raise an exception
             }
-
             sendCommand("PRIVMSG", true, channel, message);
             return null;
         }, callback, errorCallback);
