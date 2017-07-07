@@ -148,6 +148,13 @@ public class IRCConnection extends ServerConnectionApi {
         }
     }
 
+    public Future<Void> disconnect(ResponseCallback<Void> callback, ResponseErrorCallback errorCallback) {
+        return executor.queue(() -> {
+            disconnect(true);
+            return null;
+        }, callback, errorCallback);
+    }
+
     public void addDisconnectListener(DisconnectListener listener) {
         synchronized (disconnectListeners) {
             disconnectListeners.add(listener);
