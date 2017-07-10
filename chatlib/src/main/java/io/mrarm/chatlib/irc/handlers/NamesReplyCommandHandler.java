@@ -32,7 +32,11 @@ public class NamesReplyCommandHandler extends NumericCommandHandler {
                     channelName.charAt(0) == '@'))
                 channelName = params.get(++paramId);
 
-            List<ChannelData.Member> list = channelNamesList.computeIfAbsent(channelName, k -> new ArrayList<>());
+            List<ChannelData.Member> list = channelNamesList.get(channelName);
+            if (list == null) {
+                list = new ArrayList<>();
+                channelNamesList.put(channelName, list);
+            }
             List<NickWithPrefix> nicksWithPrefixes = new ArrayList<>();
             List<String> uuidRequestList = new ArrayList<>();
             for (String rawNick : params.get(++paramId).split(" ")) {
