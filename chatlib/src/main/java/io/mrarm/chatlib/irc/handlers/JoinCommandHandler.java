@@ -34,7 +34,7 @@ public class JoinCommandHandler implements CommandHandler {
             MessageSenderInfo senderInfo = new MessageSenderInfo(sender.getNick(), sender.getUser(), sender.getHost(),
                     null, userUUID);
             for (String channel : params.get(0).split(",")) {
-                connection.getJoinedChannelData(channel).addMember(new ChannelData.Member(userUUID, new NickPrefixList("")));
+                connection.getJoinedChannelData(channel).addMember(new ChannelData.Member(userUUID, null));
                 connection.getMessageStorageApi().addMessage(channel, new MessageInfo(senderInfo, new Date(), null,
                         MessageInfo.MessageType.JOIN), null, null).get();
             }
