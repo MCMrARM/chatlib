@@ -63,6 +63,7 @@ public class NamesReplyCommandHandler extends NumericCommandHandler {
             } catch (NoSuchChannelException e) {
                 throw new InvalidMessageException("Invalid channel name", e);
             }
+            channelNamesList.remove(channelName);
         }
     }
 }
