@@ -16,6 +16,7 @@ public class CommandHandlerList {
             defaultHandlers.registerHandler(new MessageCommandHandler());
             defaultHandlers.registerHandler(new NickCommandHandler());
             defaultHandlers.registerHandler(new WelcomeCommandHandler());
+            defaultHandlers.registerHandler(new ISupportCommandHandler());
             defaultHandlers.registerHandler(new PingCommandHandler());
         }
         handlers.putAll(defaultHandlers.handlers);

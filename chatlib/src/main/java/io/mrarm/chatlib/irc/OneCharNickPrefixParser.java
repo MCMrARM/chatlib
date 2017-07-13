@@ -13,7 +13,7 @@ public class OneCharNickPrefixParser implements NickPrefixParser {
 
     @Override
     public NickWithPrefix parse(String nick) {
-        NickPrefixList supportedNickPrefixes = connection.getSupportedNickPrefixes();
+        NickPrefixList supportedNickPrefixes = connection.getSupportList().getSupportedNickPrefixes();
         char firstNickChar = nick.charAt(0);
         for (char prefix : supportedNickPrefixes) {
             if (firstNickChar == prefix)

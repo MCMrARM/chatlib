@@ -7,7 +7,6 @@ import java.util.List;
 import io.mrarm.chatlib.ChannelListListener;
 import io.mrarm.chatlib.NoSuchChannelException;
 import io.mrarm.chatlib.dto.MessageInfo;
-import io.mrarm.chatlib.dto.NickPrefixList;
 import io.mrarm.chatlib.irc.cap.CapabilityManager;
 import io.mrarm.chatlib.message.WritableMessageStorageApi;
 import io.mrarm.chatlib.user.WritableUserInfoApi;
@@ -21,7 +20,7 @@ public class ServerConnectionData {
     private WritableUserInfoApi userInfoApi;
     private WritableMessageStorageApi messageStorageApi;
     private NickPrefixParser nickPrefixParser = new OneCharNickPrefixParser(this);
-    private NickPrefixList supportedNickPrefixes = new NickPrefixList("@+");
+    private final ServerSupportList supportList = new ServerSupportList();
     private CommandHandlerList commandHandlerList = new CommandHandlerList();
     private CapabilityManager capabilityManager = new CapabilityManager(this);
     private final List<ChannelListListener> channelListListeners = new ArrayList<>();
@@ -67,8 +66,8 @@ public class ServerConnectionData {
         return nickPrefixParser;
     }
 
-    public NickPrefixList getSupportedNickPrefixes() {
-        return supportedNickPrefixes;
+    public ServerSupportList getSupportList() {
+        return supportList;
     }
 
     public CommandHandlerList getCommandHandlerList() {
