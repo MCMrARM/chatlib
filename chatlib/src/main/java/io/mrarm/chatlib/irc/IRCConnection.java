@@ -187,6 +187,15 @@ public class IRCConnection extends ServerConnectionApi {
         }, callback, errorCallback);
     }
 
+    @Override
+    public Future<Void> leaveChannel(String channel, String reason, ResponseCallback<Void> callback,
+                                     ResponseErrorCallback errorCallback) {
+        return executor.queue(() -> {
+            sendCommand("PART", true, channel, reason);
+            return null;
+        }, callback, errorCallback);
+    }
+
     public Future<Void> sendCommandRaw(String command, ResponseCallback<Void> callback, ResponseErrorCallback errorCallback) {
         return executor.queue(() -> {
             sendCommandRaw(command, true);

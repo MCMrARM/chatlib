@@ -46,6 +46,11 @@ public class TestApiImpl extends ServerConnectionApi {
     }
 
     @Override
+    public Future<Void> leaveChannel(String channel, String reason, ResponseCallback<Void> callback, ResponseErrorCallback errorCallback) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Future<Void> sendMessage(String channel, String message, ResponseCallback<Void> callback,
                                     ResponseErrorCallback errorCallback) {
         return SimpleRequestExecutor.run(() -> {
