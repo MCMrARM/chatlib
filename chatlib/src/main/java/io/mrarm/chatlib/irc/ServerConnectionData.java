@@ -111,6 +111,23 @@ public class ServerConnectionData {
         }
     }
 
+    public void onChannelLeft(String channelName) {
+        synchronized (joinedChannels) {
+            if (!joinedChannels.containsKey(channelName))
+                return;
+            joinedChannels.remove(channelName);
+        }
+        synchronized (channelListListeners) {
+            if (channelListListeners.size() > 0) {
+                List<String> joinedChannels = getJoinedChannelList();
+                for (ChannelListListener listener : channelListListeners) {
+                    listener.onChannelLeft(channelName);
+                    listener.onChannelListChanged(joinedChannels);
+                }
+            }
+        }
+    }
+
     public void addLocalMessageToAllChannels(MessageInfo messageInfo) {
         messageStorageApi.addMessage(null, messageInfo, null, null);
     }

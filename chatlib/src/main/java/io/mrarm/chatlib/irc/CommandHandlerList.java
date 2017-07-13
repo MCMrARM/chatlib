@@ -13,6 +13,7 @@ public class CommandHandlerList {
         if (defaultHandlers == null) {
             defaultHandlers = new CommandHandlerList();
             defaultHandlers.registerHandler(new JoinCommandHandler());
+            defaultHandlers.registerHandler(new PartCommandHandler());
             defaultHandlers.registerHandler(new MessageCommandHandler());
             defaultHandlers.registerHandler(new NickCommandHandler());
             defaultHandlers.registerHandler(new WelcomeCommandHandler());
