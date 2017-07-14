@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public class BatchCapability implements Capability {
+public class BatchCapability extends Capability {
 
     private Map<String, BatchInfo> batches = new HashMap<>();
 
@@ -23,11 +23,6 @@ public class BatchCapability implements Capability {
     @Override
     public String[] getHandledCommands() {
         return new String[] { "BATCH" };
-    }
-
-    @Override
-    public boolean supportsCapability(CapabilityEntryPair capability) {
-        return true;
     }
 
     private BatchInfo getBatchForTags(Map<String, String> tags) {

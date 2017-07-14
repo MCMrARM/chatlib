@@ -6,6 +6,7 @@ import io.mrarm.chatlib.message.MessageStorageApi;
 import io.mrarm.chatlib.user.UserInfoApi;
 import io.mrarm.chatlib.util.SimpleRequestExecutor;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
@@ -75,11 +76,14 @@ public abstract class ServerConnectionApi implements ChatApi {
         }
     }
 
-    public abstract void sendPong(String text);
 
-    public abstract void requestCapabilities(List<String> capabilities);
+    public abstract Future<Void> sendCommand(String command, boolean isLastArgFullLine, String[] args,
+                                             ResponseCallback<Void> callback, ResponseErrorCallback errorCallback);
 
-    public abstract void endCapabilityNegotiation();
+    /**
+     * This is a internal function intended for capability and command handler usage only.
+     */
+    public abstract void sendCommand(String command, boolean isLastArgFullLine, String... args) throws IOException;
 
 
     public ChannelData getChannelData(String channelName) throws NoSuchChannelException {

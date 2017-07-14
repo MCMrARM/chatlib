@@ -51,8 +51,7 @@ public class TestApiImpl extends ServerConnectionApi {
     }
 
     @Override
-    public Future<Void> sendMessage(String channel, String message, ResponseCallback<Void> callback,
-                                    ResponseErrorCallback errorCallback) {
+    public Future<Void> sendMessage(String channel, String message, ResponseCallback<Void> callback, ResponseErrorCallback errorCallback) {
         return SimpleRequestExecutor.run(() -> {
             try {
                 UUID userUUID = getUserInfoApi().resolveUser(getServerConnectionData().getUserNick(), null, null,
@@ -71,17 +70,11 @@ public class TestApiImpl extends ServerConnectionApi {
     }
 
     @Override
-    public void sendPong(String text) {
-        throw new UnsupportedOperationException();
+    public void sendCommand(String command, boolean isLastArgFullLine, String... args) throws IOException {
     }
 
     @Override
-    public void requestCapabilities(List<String> capabilities) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void endCapabilityNegotiation() {
+    public Future<Void> sendCommand(String command, boolean isLastArgFullLine, String[] args, ResponseCallback<Void> callback, ResponseErrorCallback errorCallback) {
         throw new UnsupportedOperationException();
     }
 }

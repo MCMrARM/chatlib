@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
-public class ServerTimeCapability implements Capability {
+public class ServerTimeCapability extends Capability {
 
     private SimpleDateFormat parser;
 
@@ -28,11 +28,6 @@ public class ServerTimeCapability implements Capability {
     @Override
     public String[] getHandledCommands() {
         return new String[0];
-    }
-
-    @Override
-    public boolean supportsCapability(CapabilityEntryPair capability) {
-        return true;
     }
 
     @Override

@@ -3,11 +3,9 @@ package io.mrarm.chatlib.irc;
 import io.mrarm.chatlib.ResponseCallback;
 import io.mrarm.chatlib.ResponseErrorCallback;
 import io.mrarm.chatlib.dto.MessageInfo;
-import io.mrarm.chatlib.dto.MessageSenderInfo;
 import io.mrarm.chatlib.dto.StatusMessageInfo;
 import io.mrarm.chatlib.irc.handlers.MessageCommandHandler;
 import io.mrarm.chatlib.message.SimpleMessageStorageApi;
-import io.mrarm.chatlib.message.WritableMessageStorageApi;
 import io.mrarm.chatlib.user.SimpleUserInfoApi;
 import io.mrarm.chatlib.util.SimpleRequestExecutor;
 
@@ -20,7 +18,6 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.Future;
 
 public class IRCConnection extends ServerConnectionApi {
@@ -76,7 +73,8 @@ public class IRCConnection extends ServerConnectionApi {
         sendCommandRaw(builder.toString(), flush);
     }
 
-    private void sendCommand(String command, boolean isLastArgFullLine, String... args) throws IOException {
+    @Override
+    public void sendCommand(String command, boolean isLastArgFullLine, String... args) throws IOException {
         sendCommand(true, command, isLastArgFullLine, args);
     }
 
@@ -204,6 +202,15 @@ public class IRCConnection extends ServerConnectionApi {
     }
 
     @Override
+    public Future<Void> sendCommand(String command, boolean isLastArgFullLine, String[] args,
+                                       ResponseCallback<Void> callback, ResponseErrorCallback errorCallback) {
+        return executor.queue(() -> {
+            sendCommand(command, isLastArgFullLine, args);
+            return null;
+        }, callback, errorCallback);
+    }
+
+    @Override
     public Future<Void> sendMessage(String channel, String message, ResponseCallback<Void> callback,
                                     ResponseErrorCallback errorCallback) {
         return executor.queue(() -> {
@@ -219,44 +226,6 @@ public class IRCConnection extends ServerConnectionApi {
             sendCommand("PRIVMSG", true, channel, message);
             return null;
         }, callback, errorCallback);
-    }
-
-    @Override
-    public void sendPong(String text) {
-        try {
-            sendCommand("PONG", true, text);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    public void requestCapabilities(List<String> capabilities) {
-        try {
-            // TODO: Somehow handle a situation where the resulting string is larger than the maximal allowed message
-            // length (specs don't really mention what should be done in this case ?)
-            StringBuilder capsBuilder = new StringBuilder();
-            boolean f = true;
-            for (String cap : capabilities) {
-                if (f)
-                    f = false;
-                else
-                    capsBuilder.append(' ');
-                capsBuilder.append(cap);
-            }
-            sendCommand("CAP", true, "REQ", capsBuilder.toString());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    public void endCapabilityNegotiation() {
-        try {
-            sendCommand("CAP", false, "END");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     public void connectSync(IRCConnectionRequest request) throws IOException {

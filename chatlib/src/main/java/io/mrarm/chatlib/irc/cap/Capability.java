@@ -2,15 +2,26 @@ package io.mrarm.chatlib.irc.cap;
 
 import io.mrarm.chatlib.dto.MessageInfo;
 import io.mrarm.chatlib.irc.CommandHandler;
+import io.mrarm.chatlib.irc.ServerConnectionData;
 
 import java.util.Map;
 
-public interface Capability extends CommandHandler {
+public abstract class Capability implements CommandHandler {
 
-    String[] getNames();
+    public abstract String[] getNames();
 
-    boolean supportsCapability(CapabilityEntryPair capability);
+    public boolean shouldEnableCapability(ServerConnectionData connection, CapabilityEntryPair capability) {
+        return true;
+    }
 
-    void processMessage(MessageInfo.Builder message, Map<String, String> tags);
+    public boolean isBlockingNegotationFinish() {
+        return false;
+    }
+
+    public void onEnabled(ServerConnectionData connection) {
+    }
+
+    public void processMessage(MessageInfo.Builder message, Map<String, String> tags) {
+    }
 
 }
