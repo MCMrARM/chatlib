@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 import io.mrarm.chatlib.ChannelInfoListener;
+import io.mrarm.chatlib.dto.ModeList;
 import io.mrarm.chatlib.dto.NickWithPrefix;
 import io.mrarm.chatlib.dto.NickPrefixList;
 
@@ -16,6 +17,10 @@ public class ChannelData {
     private Map<UUID, Member> membersMap = new HashMap<>();
     private final Object membersLock = new Object();
     private final List<ChannelInfoListener> infoListeners = new ArrayList<>();
+    private Map<Character, Set<String>> modesList;
+    private Map<Character, String> modesValueExactUnset;
+    private Map<Character, String> modesValue;
+    private ModeList modesFlag;
 
     public ChannelData(ServerConnectionData connection, String name) {
         this.connection = connection;
@@ -121,6 +126,112 @@ public class ChannelData {
         callMemberListChanged();
     }
 
+    public void setMemberModeList(Member member, ModeList modeList) {
+        synchronized (membersLock) {
+            member.modeList = modeList;
+        }
+    }
+
+    public void setMemberNickPrefixes(Member member, NickPrefixList prefixes) {
+        synchronized (membersLock) {
+            member.nickPrefixes = prefixes;
+            callMemberListChanged();
+        }
+    }
+
+    public ModeList getFlagModes() {
+        synchronized (this) {
+            return modesFlag;
+        }
+    }
+
+    public boolean getFlagMode(char flag) {
+        synchronized (this) {
+            if (modesFlag == null)
+                return false;
+            return modesFlag.contains(flag);
+        }
+    }
+
+    public void setFlagMode(char flag, boolean set) {
+        synchronized (this) {
+            if (modesFlag == null) {
+                if (set)
+                    modesFlag = new ModeList(String.valueOf(flag));
+                return;
+            }
+            int iof = modesFlag.find(flag);
+            if ((iof != -1) == set)
+                return;
+            String str = modesFlag.toString();
+            if (set)
+                modesFlag = new ModeList(str + flag);
+            else
+                modesFlag = new ModeList(str.substring(0, iof) + str.substring(iof + 1));
+        }
+    }
+
+    public Map<Character, Set<String>> getListModes() {
+        synchronized (this) {
+            return modesList;
+        }
+    }
+
+    public void addListMode(char flag, String val) {
+        synchronized (this) {
+            if (modesList == null)
+                modesList = new HashMap<>();
+            if (!modesList.containsKey(flag))
+                modesList.put(flag, new HashSet<>());
+            modesList.get(flag).add(val);
+        }
+    }
+
+    public void removeListMode(char flag, String val) {
+        synchronized (this) {
+            if (modesList == null)
+                return;
+            Set<String> s = modesList.get(flag);
+            if (s != null) {
+                s.remove(val);
+                if (s.size() == 0)
+                    modesList.remove(flag);
+            }
+        }
+    }
+
+    public void setValueExactUnsetMode(char flag, String val) {
+        synchronized (this) {
+            if (modesValueExactUnset == null)
+                modesValueExactUnset = new HashMap<>();
+            modesValueExactUnset.put(flag, val);
+        }
+    }
+
+    public void removeValueExactUnsetMode(char flag) {
+        synchronized (this) {
+            if (modesValueExactUnset == null)
+                return;
+            modesValueExactUnset.remove(flag);
+        }
+    }
+
+    public void setValueMode(char flag, String val) {
+        synchronized (this) {
+            if (modesValue == null)
+                modesValue = new HashMap<>();
+            modesValue.put(flag, val);
+        }
+    }
+
+    public void removeValueMode(char flag) {
+        synchronized (this) {
+            if (modesValue == null)
+                return;
+            modesValue.remove(flag);
+        }
+    }
+
     public void subscribeInfo(ChannelInfoListener listener) {
         synchronized (infoListeners) {
             infoListeners.add(listener);
@@ -136,15 +247,21 @@ public class ChannelData {
     public static class Member {
 
         private UUID userUUID;
+        private ModeList modeList;
         private NickPrefixList nickPrefixes;
 
-        public Member(UUID userUUID, NickPrefixList nickPrefixes) {
+        public Member(UUID userUUID, ModeList modeList, NickPrefixList nickPrefixes) {
             this.userUUID = userUUID;
+            this.modeList = modeList;
             this.nickPrefixes = nickPrefixes;
         }
 
         public UUID getUserUUID() {
             return userUUID;
+        }
+
+        public ModeList getModeList() {
+            return modeList;
         }
 
         public NickPrefixList getNickPrefixes() {

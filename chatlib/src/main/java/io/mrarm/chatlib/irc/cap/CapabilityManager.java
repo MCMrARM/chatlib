@@ -27,6 +27,7 @@ public class CapabilityManager {
     public void addDefaultCapabilities() {
         registerCapability(new BatchCapability());
         registerCapability(new ServerTimeCapability());
+        registerCapability(new MultiPrefixCapability());
     }
 
     public List<Capability> getEnabledCapabilities() {

@@ -54,7 +54,7 @@ public class MessageHandler {
         List<String> params = new ArrayList<>();
         int i = 0;
         while (true) {
-            if (paramsRaw.charAt(i) == ':') {
+            if (i < paramsRaw.length() && paramsRaw.charAt(i) == ':') {
                 params.add(paramsRaw.substring(i + 1));
                 break;
             }

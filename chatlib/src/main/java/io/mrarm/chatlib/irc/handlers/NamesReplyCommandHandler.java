@@ -1,6 +1,7 @@
 package io.mrarm.chatlib.irc.handlers;
 
 import io.mrarm.chatlib.NoSuchChannelException;
+import io.mrarm.chatlib.dto.ModeList;
 import io.mrarm.chatlib.dto.NickWithPrefix;
 import io.mrarm.chatlib.irc.*;
 import io.mrarm.chatlib.user.UserInfo;
@@ -54,7 +55,16 @@ public class NamesReplyCommandHandler extends NumericCommandHandler {
                 UUID uuid = uuidResponse.get(nickWithPrefix.getNick());
                 if (uuid == null)
                     continue;
-                list.add(new ChannelData.Member(uuid, nickWithPrefix.getNickPrefixes()));
+                char[] prefixModes = null;
+                if (nickWithPrefix.getNickPrefixes() != null) {
+                    prefixModes = new char[nickWithPrefix.getNickPrefixes().length()];
+                    int i = 0;
+                    ServerSupportList s = connection.getSupportList();
+                    for (char c : nickWithPrefix.getNickPrefixes())
+                        prefixModes[i++] = s.getSupportedNickPrefixModes().get(s.getSupportedNickPrefixes().find(c));
+                }
+                list.add(new ChannelData.Member(uuid, new ModeList(prefixModes != null ? String.valueOf(prefixModes)
+                        : null), nickWithPrefix.getNickPrefixes()));
             }
         } else if (command == RPL_ENDOFNAMES) {
             String channelName = params.get(1);
