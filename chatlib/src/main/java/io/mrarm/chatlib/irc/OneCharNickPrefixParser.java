@@ -5,14 +5,14 @@ import io.mrarm.chatlib.dto.NickWithPrefix;
 
 public class OneCharNickPrefixParser implements NickPrefixParser {
 
-    private ServerConnectionData connection;
+    private static final OneCharNickPrefixParser instance = new OneCharNickPrefixParser();
 
-    public OneCharNickPrefixParser(ServerConnectionData connection) {
-        this.connection = connection;
+    public static OneCharNickPrefixParser getInstance() {
+        return instance;
     }
 
     @Override
-    public NickWithPrefix parse(String nick) {
+    public NickWithPrefix parse(ServerConnectionData connection, String nick) {
         NickPrefixList supportedNickPrefixes = connection.getSupportList().getSupportedNickPrefixes();
         char firstNickChar = nick.charAt(0);
         for (char prefix : supportedNickPrefixes) {

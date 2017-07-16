@@ -4,6 +4,6 @@ import io.mrarm.chatlib.dto.NickWithPrefix;
 
 public interface NickPrefixParser {
 
-    NickWithPrefix parse(String nick);
+    NickWithPrefix parse(ServerConnectionData connection, String nick);
 
 }

@@ -1,8 +1,6 @@
 package io.mrarm.chatlib.irc.cap;
 
-import io.mrarm.chatlib.irc.InvalidMessageException;
-import io.mrarm.chatlib.irc.MessagePrefix;
-import io.mrarm.chatlib.irc.ServerConnectionData;
+import io.mrarm.chatlib.irc.*;
 
 import java.util.List;
 import java.util.Map;
@@ -20,8 +18,17 @@ public class MultiPrefixCapability extends Capability {
     }
 
     @Override
-    public void handle(ServerConnectionData connection, MessagePrefix sender, String command, List<String> params, Map<String, String> tags) throws InvalidMessageException {
+    public void onEnabled(ServerConnectionData connection) {
+        connection.setNickPrefixParser(MultiNickPrefixParser.getInstance());
+    }
 
+    @Override
+    public void onDisabled(ServerConnectionData connection) {
+        connection.setNickPrefixParser(OneCharNickPrefixParser.getInstance());
+    }
+
+    @Override
+    public void handle(ServerConnectionData connection, MessagePrefix sender, String command, List<String> params, Map<String, String> tags) throws InvalidMessageException {
     }
 
 }

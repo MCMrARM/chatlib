@@ -41,7 +41,7 @@ public class NamesReplyCommandHandler extends NumericCommandHandler {
             List<NickWithPrefix> nicksWithPrefixes = new ArrayList<>();
             List<String> uuidRequestList = new ArrayList<>();
             for (String rawNick : params.get(++paramId).split(" ")) {
-                NickWithPrefix nickWithPrefix = connection.getNickPrefixParser().parse(rawNick);
+                NickWithPrefix nickWithPrefix = connection.getNickPrefixParser().parse(connection, rawNick);
                 nicksWithPrefixes.add(nickWithPrefix);
                 uuidRequestList.add(nickWithPrefix.getNick());
             }

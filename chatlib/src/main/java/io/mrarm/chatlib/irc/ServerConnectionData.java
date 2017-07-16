@@ -19,7 +19,7 @@ public class ServerConnectionData {
     private ServerStatusData serverStatusData = new ServerStatusData();
     private WritableUserInfoApi userInfoApi;
     private WritableMessageStorageApi messageStorageApi;
-    private NickPrefixParser nickPrefixParser = new OneCharNickPrefixParser(this);
+    private NickPrefixParser nickPrefixParser = OneCharNickPrefixParser.getInstance();
     private final ServerSupportList supportList = new ServerSupportList();
     private CommandHandlerList commandHandlerList = new CommandHandlerList();
     private CapabilityManager capabilityManager = new CapabilityManager(this);
@@ -64,6 +64,10 @@ public class ServerConnectionData {
 
     public NickPrefixParser getNickPrefixParser() {
         return nickPrefixParser;
+    }
+
+    public void setNickPrefixParser(NickPrefixParser parser) {
+        this.nickPrefixParser = parser;
     }
 
     public ServerSupportList getSupportList() {
