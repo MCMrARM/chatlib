@@ -63,8 +63,8 @@ public class NamesReplyCommandHandler extends NumericCommandHandler {
                     for (char c : nickWithPrefix.getNickPrefixes())
                         prefixModes[i++] = s.getSupportedNickPrefixModes().get(s.getSupportedNickPrefixes().find(c));
                 }
-                list.add(new ChannelData.Member(uuid, new ModeList(prefixModes != null ? String.valueOf(prefixModes)
-                        : null), nickWithPrefix.getNickPrefixes()));
+                list.add(new ChannelData.Member(uuid, prefixModes != null ? new ModeList(String.valueOf(prefixModes))
+                        : null, nickWithPrefix.getNickPrefixes()));
             }
         } else if (command == RPL_ENDOFNAMES) {
             String channelName = params.get(1);

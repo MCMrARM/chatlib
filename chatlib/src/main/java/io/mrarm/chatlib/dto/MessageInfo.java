@@ -5,7 +5,7 @@ import java.util.Date;
 public class MessageInfo {
 
     public enum MessageType {
-        NORMAL(0), NOTICE(1), ME(2), JOIN(3), PART(4), NICK_CHANGE(5),
+        NORMAL(0), NOTICE(1), ME(2), JOIN(3), PART(4), NICK_CHANGE(5), MODE(6),
         DISCONNECT_WARNING(100);
 
         private final int intValue;
@@ -53,7 +53,7 @@ public class MessageInfo {
 
     public static class Builder {
 
-        private MessageInfo messageInfo;
+        protected MessageInfo messageInfo;
 
         public Builder() {
             messageInfo = new MessageInfo(null, new Date(), null, null);
