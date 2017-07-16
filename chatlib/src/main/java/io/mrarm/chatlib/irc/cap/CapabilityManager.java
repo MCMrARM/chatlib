@@ -25,6 +25,7 @@ public class CapabilityManager {
     }
 
     public void addDefaultCapabilities() {
+        registerCapability(new CapNotifyCapability());
         registerCapability(new BatchCapability());
         registerCapability(new ServerTimeCapability());
         registerCapability(new MultiPrefixCapability());
@@ -53,6 +54,13 @@ public class CapabilityManager {
     }
 
     public void onServerCapabilityList(List<CapabilityEntryPair> capabilities) {
+        List<String> requestedCapabilities = onNewServerCapabilitiesAvailable(capabilities);
+        if (requestedCapabilities.size() == 0 && !negotiationFinished) {
+            endCapabilityNegotiation();
+        }
+    }
+
+    public List<String> onNewServerCapabilitiesAvailable(List<CapabilityEntryPair> capabilities) {
         List<String> requestedCapabilities = new ArrayList<>();
         for (CapabilityEntryPair capability : capabilities) {
             if (supportedCapabilities.containsKey(capability.getName())) {
@@ -65,10 +73,21 @@ public class CapabilityManager {
             }
         }
 
-        if (requestedCapabilities.size() > 0) {
+        if (requestedCapabilities.size() > 0)
             requestCapabilities(requestedCapabilities);
-        } else if (!negotiationFinished) {
-            endCapabilityNegotiation();
+        return requestedCapabilities;
+    }
+
+    public void onServerCapabilitiesRemoved(List<String> removeCapabilities) {
+        for (int i = enabledCapabilities.size() - 1; i >= 0; i--) {
+            Capability capability = enabledCapabilities.get(i);
+            for (String n : capability.getNames()) {
+                if (removeCapabilities.contains(n)) {
+                    removeCapabilities.remove(n);
+                    enabledCapabilities.remove(i);
+                    capability.onDisabled(connection);
+                }
+            }
         }
     }
 

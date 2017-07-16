@@ -7,6 +7,7 @@ import io.mrarm.chatlib.irc.ServerConnectionData;
 import io.mrarm.chatlib.irc.cap.CapabilityEntryPair;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -49,6 +50,15 @@ public class CapCommandHandler implements CommandHandler {
                 connection.getCapabilityManager().onCapabilitiesAck(ackEntries);
                 ackEntries = null;
             }
+        } else if (subcmd.equals("NEW")) {
+            List<CapabilityEntryPair> entries = new ArrayList<>();
+            for (String s : params.get(baseSubcmdI + 1).split(" "))
+                entries.add(new CapabilityEntryPair(s));
+            connection.getCapabilityManager().onNewServerCapabilitiesAvailable(entries);
+        } else if (subcmd.equals("DEL")) {
+            List<String> entries = new ArrayList<>();
+            Collections.addAll(entries, params.get(baseSubcmdI + 1).split(" "));
+            connection.getCapabilityManager().onServerCapabilitiesRemoved(entries);
         } else {
             throw new InvalidMessageException("Unknown subcommand: " + subcmd);
         }

@@ -21,6 +21,9 @@ public abstract class Capability implements CommandHandler {
     public void onEnabled(ServerConnectionData connection) {
     }
 
+    public void onDisabled(ServerConnectionData connection) {
+    }
+
     public void processMessage(MessageInfo.Builder message, Map<String, String> tags) {
     }
 
