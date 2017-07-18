@@ -4,9 +4,12 @@ import io.mrarm.chatlib.ResponseCallback;
 import io.mrarm.chatlib.ResponseErrorCallback;
 import io.mrarm.chatlib.dto.MessageInfo;
 import io.mrarm.chatlib.dto.StatusMessageInfo;
+import io.mrarm.chatlib.dto.WhoisInfo;
 import io.mrarm.chatlib.irc.handlers.MessageCommandHandler;
+import io.mrarm.chatlib.irc.handlers.WhoisCommandHandler;
 import io.mrarm.chatlib.message.SimpleMessageStorageApi;
 import io.mrarm.chatlib.user.SimpleUserInfoApi;
+import io.mrarm.chatlib.util.SettableFuture;
 import io.mrarm.chatlib.util.SimpleRequestExecutor;
 
 import javax.net.ssl.*;
@@ -15,9 +18,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.Future;
 
 public class IRCConnection extends ServerConnectionApi {
@@ -166,6 +167,24 @@ public class IRCConnection extends ServerConnectionApi {
     }
 
     // TODO: validate params
+
+
+    @Override
+    public Future<WhoisInfo> sendWhois(String nick, ResponseCallback<WhoisInfo> callback, ResponseErrorCallback errorCallback) {
+        SettableFuture<WhoisInfo> ret = new SettableFuture<>();
+        executor.queue(ret, () -> {
+            getServerConnectionData().getCommandHandlerList().getHandler(WhoisCommandHandler.class).onInfoRequested(
+                    nick, (WhoisInfo info) -> {
+                        executor.queue(() -> {
+                            ret.set(info);
+                            if (callback != null)
+                                callback.onResponse(info);
+                        });
+                    });
+            sendCommand("WHOIS", false, nick);
+        }, errorCallback);
+        return ret;
+    }
 
     @Override
     public Future<Void> joinChannels(List<String> channels, ResponseCallback<Void> callback,

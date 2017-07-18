@@ -11,6 +11,7 @@ import io.mrarm.chatlib.ResponseCallback;
 import io.mrarm.chatlib.ResponseErrorCallback;
 import io.mrarm.chatlib.dto.MessageInfo;
 import io.mrarm.chatlib.dto.MessageSenderInfo;
+import io.mrarm.chatlib.dto.WhoisInfo;
 import io.mrarm.chatlib.irc.*;
 import io.mrarm.chatlib.message.SimpleMessageStorageApi;
 import io.mrarm.chatlib.user.SimpleUserInfoApi;
@@ -37,6 +38,11 @@ public class TestApiImpl extends ServerConnectionApi {
                 t.printStackTrace();
             }
         }
+    }
+
+    @Override
+    public Future<WhoisInfo> sendWhois(String nick, ResponseCallback<WhoisInfo> callback, ResponseErrorCallback errorCallback) {
+        throw new UnsupportedOperationException();
     }
 
     @Override

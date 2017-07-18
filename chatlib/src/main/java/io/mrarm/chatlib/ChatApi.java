@@ -5,6 +5,7 @@ import java.util.concurrent.Future;
 
 import io.mrarm.chatlib.dto.ChannelInfo;
 import io.mrarm.chatlib.dto.StatusMessageList;
+import io.mrarm.chatlib.dto.WhoisInfo;
 import io.mrarm.chatlib.message.MessageStorageApi;
 import io.mrarm.chatlib.user.UserInfoApi;
 
@@ -13,6 +14,8 @@ public interface ChatApi {
     UserInfoApi getUserInfoApi();
 
     MessageStorageApi getMessageStorageApi();
+
+    Future<WhoisInfo> sendWhois(String nick, ResponseCallback<WhoisInfo> callback, ResponseErrorCallback errorCallback);
 
     Future<Void> joinChannels(List<String> channels, ResponseCallback<Void> callback,
                               ResponseErrorCallback errorCallback);

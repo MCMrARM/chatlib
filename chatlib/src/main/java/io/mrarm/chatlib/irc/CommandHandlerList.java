@@ -27,6 +27,7 @@ public class CommandHandlerList {
         registerHandler(new NamesReplyCommandHandler());
         registerHandler(new MotdCommandHandler());
         registerHandler(new CapCommandHandler());
+        registerHandler(new WhoisCommandHandler());
     }
 
     public CommandHandler getHandlerFor(String command) throws InvalidMessageException {
@@ -47,6 +48,14 @@ public class CommandHandlerList {
         for (String command : handler.getHandledCommands()) {
             handlers.remove(command);
         }
+    }
+
+    public <T> T getHandler(Class<? extends T> cl) {
+        for (CommandHandler handler : handlers.values()) {
+            if (handler.getClass().equals(cl))
+                return (T) handler;
+        }
+        return null;
     }
 
 }
