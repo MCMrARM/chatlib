@@ -14,6 +14,8 @@ public class WhoisInfo {
     private boolean operator;
     private int idle;
     private List<ChannelWithNickPrefixes> channels;
+    private String account;
+    private boolean secureConnection;
 
     public String getNick() {
         return nick;
@@ -51,6 +53,13 @@ public class WhoisInfo {
         return channels;
     }
 
+    public String getLoggedInAsAccount() {
+        return account;
+    }
+
+    public boolean isConnectionSecure() {
+        return secureConnection;
+    }
 
     public static class ChannelWithNickPrefixes {
 
@@ -100,6 +109,14 @@ public class WhoisInfo {
             if (object.channels == null)
                 object.channels = new ArrayList<>();
             object.channels.add(channel);
+        }
+
+        public void setAccount(String account) {
+            object.account = account;
+        }
+
+        public void setSecure(boolean secureConnection) {
+            object.secureConnection = secureConnection;
         }
 
         public WhoisInfo build() {

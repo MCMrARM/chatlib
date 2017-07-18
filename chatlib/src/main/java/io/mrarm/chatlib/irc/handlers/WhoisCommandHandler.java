@@ -20,6 +20,8 @@ public class WhoisCommandHandler extends NumericCommandHandler {
     public static final int RPL_WHOISIDLE = 317;
     public static final int RPL_ENDOFWHOIS = 318;
     public static final int RPL_WHOISCHANNELS = 319;
+    public static final int RPL_WHOISACCOUNT = 330;
+    public static final int RPL_WHOISSECURE = 671;
 
     private final Map<String, WhoisInfo.Builder> currentReply = new HashMap<>();
     private final Map<String, List<WhoisCallback>> callbacks = new HashMap<>();
@@ -27,7 +29,7 @@ public class WhoisCommandHandler extends NumericCommandHandler {
     @Override
     public int[] getNumericHandledCommands() {
         return new int[] { RPL_WHOISUSER, RPL_WHOISSERVER, RPL_WHOISOPERATOR, RPL_WHOISIDLE, RPL_ENDOFWHOIS,
-                RPL_WHOISCHANNELS };
+                RPL_WHOISCHANNELS, RPL_WHOISACCOUNT, RPL_WHOISSECURE };
     }
 
     @Override
@@ -58,6 +60,10 @@ public class WhoisCommandHandler extends NumericCommandHandler {
                 NickWithPrefix p = connection.getNickPrefixParser().parse(connection, channel);
                 builder.addChannel(new WhoisInfo.ChannelWithNickPrefixes(p.getNick(), p.getNickPrefixes()));
             }
+        } else if (command == RPL_WHOISACCOUNT) {
+            builder.setAccount(params.get(2));
+        } else if (command == RPL_WHOISSECURE) {
+            builder.setSecure(true);
         } else if (command == RPL_ENDOFWHOIS) {
             WhoisInfo info = builder.build();
             currentReply.remove(nick);
