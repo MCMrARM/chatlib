@@ -49,8 +49,10 @@ public class MessageCommandHandler implements CommandHandler {
                             new Date(), StatusMessageInfo.MessageType.NOTICE, params.get(1)));
                     continue;
                 }
+                if (channel.equals(connection.getUserNick()))
+                    channel = sender.getNick();
 
-                ChannelData channelData = connection.getJoinedChannelData(channel);
+                ChannelData channelData = getChannelData(connection, sender, channel);
                 MessageInfo.Builder message = new MessageInfo.Builder(sender.toSenderInfo(userUUID, channelData), text, type);
                 if (tags != null) {
                     for (Capability cap : connection.getCapabilityManager().getEnabledCapabilities())
@@ -58,21 +60,18 @@ public class MessageCommandHandler implements CommandHandler {
                 }
                 connection.getMessageStorageApi().addMessage(channel, message.build(), null, null).get();
             }
-        } catch (NoSuchChannelException e) {
-            throw new InvalidMessageException("Invalid channel specified in a message", e);
         } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException(e);
         }
     }
 
-
-    private void processCtcp(ServerConnectionData connection, MessagePrefix sender, UUID userUUID, String[] targetChannels, String data, Map<String, String> tags) throws NoSuchChannelException, InterruptedException, ExecutionException {
+    private void processCtcp(ServerConnectionData connection, MessagePrefix sender, UUID userUUID, String[] targetChannels, String data, Map<String, String> tags) throws InterruptedException, ExecutionException {
         int iof = data.indexOf(' ');
         String command = iof == -1 ? data : data.substring(0, iof);
         String args = data.substring(iof + 1);
         if (command.equals("ACTION")) {
             for (String channel : targetChannels) {
-                ChannelData channelData = connection.getJoinedChannelData(channel);
+                ChannelData channelData = getChannelData(connection, sender, channel);
                 MessageInfo.Builder message = new MessageInfo.Builder(sender.toSenderInfo(userUUID, channelData), args, MessageInfo.MessageType.ME);
                 if (tags != null) {
                     for (Capability cap : connection.getCapabilityManager().getEnabledCapabilities())
@@ -82,6 +81,23 @@ public class MessageCommandHandler implements CommandHandler {
             }
         }
         // TODO: Implement other CTCP commands
+    }
+
+    private ChannelData getChannelData(ServerConnectionData connection, MessagePrefix sender, String channel) {
+        boolean isDirectMessage = (channel.equals(sender.getNick()));
+        try {
+            return connection.getJoinedChannelData(isDirectMessage ? sender.getNick() : channel);
+        } catch (NoSuchChannelException exception) {
+            if (isDirectMessage) {
+                connection.onChannelJoined(sender.getNick());
+                try {
+                    return connection.getJoinedChannelData(sender.getNick());
+                } catch (NoSuchChannelException e) {
+                    return null;
+                }
+            }
+            return null;
+        }
     }
 
     // http://www.irchelp.org/protocol/ctcpspec.html

@@ -191,15 +191,19 @@ public class IRCConnection extends ServerConnectionApi {
                                      ResponseErrorCallback errorCallback) {
         return executor.queue(() -> {
             StringBuilder cmd = new StringBuilder();
-            boolean f = true;
             for (String channel : channels) {
-                if (f)
-                    f = false;
-                else
+                if (channel.length() == 0)
+                    continue;
+                if (!getServerConnectionData().getSupportList().getSupportedChannelTypes().contains(channel.charAt(0))) {
+                    getServerConnectionData().onChannelJoined(channel);
+                    continue;
+                }
+                if (cmd.length() > 0)
                     cmd.append(",");
                 cmd.append(channel);
             }
-            sendCommand("JOIN", true, cmd.toString());
+            if (cmd.length() > 0)
+                sendCommand("JOIN", true, cmd.toString());
             return null;
         }, callback, errorCallback);
     }
