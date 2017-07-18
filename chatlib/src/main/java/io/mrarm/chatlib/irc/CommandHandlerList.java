@@ -20,6 +20,7 @@ public class CommandHandlerList {
             defaultHandlers.registerHandler(new WelcomeCommandHandler());
             defaultHandlers.registerHandler(new ISupportCommandHandler());
             defaultHandlers.registerHandler(new PingCommandHandler());
+            defaultHandlers.registerHandler(new AwayCommandHandler());
         }
         handlers.putAll(defaultHandlers.handlers);
 

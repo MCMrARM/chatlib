@@ -78,6 +78,12 @@ public class WhoisCommandHandler extends NumericCommandHandler {
         }
     }
 
+    public void onAwayMessage(String nick, String message) {
+        WhoisInfo.Builder builder = currentReply.get(nick);
+        if (builder != null)
+            builder.setAway(message);
+    }
+
     public void onInfoRequested(String nick, WhoisCallback callback) {
         synchronized (callbacks) {
             if (!callbacks.containsKey(nick))

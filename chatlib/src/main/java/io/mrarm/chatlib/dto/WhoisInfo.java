@@ -16,6 +16,7 @@ public class WhoisInfo {
     private List<ChannelWithNickPrefixes> channels;
     private String account;
     private boolean secureConnection;
+    private String awayMessage;
 
     public String getNick() {
         return nick;
@@ -59,6 +60,10 @@ public class WhoisInfo {
 
     public boolean isConnectionSecure() {
         return secureConnection;
+    }
+
+    public String getAwayMessage() {
+        return awayMessage;
     }
 
     public static class ChannelWithNickPrefixes {
@@ -117,6 +122,10 @@ public class WhoisInfo {
 
         public void setSecure(boolean secureConnection) {
             object.secureConnection = secureConnection;
+        }
+
+        public void setAway(String message) {
+            object.awayMessage = message;
         }
 
         public WhoisInfo build() {
