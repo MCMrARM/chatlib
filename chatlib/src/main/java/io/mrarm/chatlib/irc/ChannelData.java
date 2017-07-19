@@ -75,7 +75,7 @@ public class ChannelData {
         }
     }
 
-    private void callMemberListChanged() {
+    public void callMemberListChanged() {
         if (infoListeners.size() > 0) {
             List<NickWithPrefix> nickWithPrefixList = getMembersAsNickPrefixList();
             synchronized (infoListeners) {

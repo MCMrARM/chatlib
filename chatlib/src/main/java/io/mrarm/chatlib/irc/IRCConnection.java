@@ -212,7 +212,12 @@ public class IRCConnection extends ServerConnectionApi {
     public Future<Void> leaveChannel(String channel, String reason, ResponseCallback<Void> callback,
                                      ResponseErrorCallback errorCallback) {
         return executor.queue(() -> {
-            sendCommand("PART", true, channel, reason);
+            if (channel.length() == 0)
+                return null;
+            if (!getServerConnectionData().getSupportList().getSupportedChannelTypes().contains(channel.charAt(0)))
+                getServerConnectionData().onChannelLeft(channel);
+            else
+                sendCommand("PART", true, channel, reason);
             return null;
         }, callback, errorCallback);
     }

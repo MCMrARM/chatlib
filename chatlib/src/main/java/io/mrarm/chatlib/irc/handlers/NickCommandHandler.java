@@ -36,6 +36,12 @@ public class NickCommandHandler implements CommandHandler {
             }
             connection.getUserInfoApi().setUserNick(userInfo.getUUID(), params.get(0), null, null)
                     .get();
+            for (String channel : userInfo.getChannels()) {
+                try {
+                    connection.getJoinedChannelData(channel).callMemberListChanged();
+                } catch (NoSuchChannelException ignored) {
+                }
+            }
         } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException(e);
         }
