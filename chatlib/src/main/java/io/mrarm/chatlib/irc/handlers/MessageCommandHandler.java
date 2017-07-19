@@ -53,6 +53,8 @@ public class MessageCommandHandler implements CommandHandler {
                     channel = sender.getNick();
 
                 ChannelData channelData = getChannelData(connection, sender, channel);
+                if (channelData == null)
+                    continue;
                 MessageInfo.Builder message = new MessageInfo.Builder(sender.toSenderInfo(userUUID, channelData), text, type);
                 if (tags != null) {
                     for (Capability cap : connection.getCapabilityManager().getEnabledCapabilities())
@@ -72,6 +74,8 @@ public class MessageCommandHandler implements CommandHandler {
         if (command.equals("ACTION")) {
             for (String channel : targetChannels) {
                 ChannelData channelData = getChannelData(connection, sender, channel);
+                if (channelData == null)
+                    continue;
                 MessageInfo.Builder message = new MessageInfo.Builder(sender.toSenderInfo(userUUID, channelData), args, MessageInfo.MessageType.ME);
                 if (tags != null) {
                     for (Capability cap : connection.getCapabilityManager().getEnabledCapabilities())
@@ -85,13 +89,16 @@ public class MessageCommandHandler implements CommandHandler {
 
     private ChannelData getChannelData(ServerConnectionData connection, MessagePrefix sender, String channel) {
         boolean isDirectMessage = (channel.equals(sender.getNick()));
+        if (isDirectMessage)
+            channel = sender.getNick();
         try {
-            return connection.getJoinedChannelData(isDirectMessage ? sender.getNick() : channel);
+            return connection.getJoinedChannelData(channel);
         } catch (NoSuchChannelException exception) {
-            if (isDirectMessage) {
-                connection.onChannelJoined(sender.getNick());
+            if (isDirectMessage || (channel.length() > 0 &&
+                    !connection.getSupportList().getSupportedChannelTypes().contains(channel.charAt(0)))) {
+                connection.onChannelJoined(channel);
                 try {
-                    return connection.getJoinedChannelData(sender.getNick());
+                    return connection.getJoinedChannelData(channel);
                 } catch (NoSuchChannelException e) {
                     return null;
                 }
