@@ -41,6 +41,11 @@ public class TestApiImpl extends ServerConnectionApi {
     }
 
     @Override
+    public Future<Void> quit(String message, ResponseCallback<Void> callback, ResponseErrorCallback errorCallback) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Future<WhoisInfo> sendWhois(String nick, ResponseCallback<WhoisInfo> callback, ResponseErrorCallback errorCallback) {
         throw new UnsupportedOperationException();
     }

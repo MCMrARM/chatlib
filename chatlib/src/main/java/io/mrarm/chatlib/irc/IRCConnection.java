@@ -168,6 +168,14 @@ public class IRCConnection extends ServerConnectionApi {
 
     // TODO: validate params
 
+    @Override
+    public Future<Void> quit(String message, ResponseCallback<Void> callback, ResponseErrorCallback errorCallback) {
+        return executor.queue(() -> {
+            sendCommand("QUIT", true, message);
+            disconnect(true);
+            return null;
+        }, callback, errorCallback);
+    }
 
     @Override
     public Future<WhoisInfo> sendWhois(String nick, ResponseCallback<WhoisInfo> callback, ResponseErrorCallback errorCallback) {

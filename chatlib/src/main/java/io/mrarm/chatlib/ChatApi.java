@@ -15,6 +15,8 @@ public interface ChatApi {
 
     MessageStorageApi getMessageStorageApi();
 
+    Future<Void> quit(String message, ResponseCallback<Void> callback, ResponseErrorCallback errorCallback);
+
     Future<WhoisInfo> sendWhois(String nick, ResponseCallback<WhoisInfo> callback, ResponseErrorCallback errorCallback);
 
     Future<Void> joinChannels(List<String> channels, ResponseCallback<Void> callback,
