@@ -44,7 +44,12 @@ public class MessageCommandHandler implements CommandHandler {
             }
 
             for (String channel : targetChannels) {
-                if (channel.equals("*") && type == MessageInfo.MessageType.NOTICE) {
+                ChannelData channelData = null;
+                try {
+                    channelData = connection.getJoinedChannelData(channel);
+                } catch (NoSuchChannelException ignored) {
+                }
+                if (channelData == null && sender.getUser() == null && sender.getHost() == null) {
                     connection.getServerStatusData().addMessage(new StatusMessageInfo(sender.getServerName(),
                             new Date(), StatusMessageInfo.MessageType.NOTICE, params.get(1)));
                     continue;
@@ -52,9 +57,11 @@ public class MessageCommandHandler implements CommandHandler {
                 if (channel.equals(connection.getUserNick()))
                     channel = sender.getNick();
 
-                ChannelData channelData = getChannelData(connection, sender, channel);
-                if (channelData == null)
-                    continue;
+                if (channelData == null) {
+                    channelData = getChannelData(connection, sender, channel);
+                    if (channelData == null)
+                        continue;
+                }
                 MessageInfo.Builder message = new MessageInfo.Builder(sender.toSenderInfo(userUUID, channelData), text, type);
                 if (tags != null) {
                     for (Capability cap : connection.getCapabilityManager().getEnabledCapabilities())
