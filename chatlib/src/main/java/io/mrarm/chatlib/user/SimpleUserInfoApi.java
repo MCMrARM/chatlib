@@ -15,6 +15,22 @@ public class SimpleUserInfoApi implements WritableUserInfoApi {
     private List<UserNickChangeListener> nickChangeListeners = new ArrayList<>();
 
     @Override
+    public Future<List<String>> findUsers(String query, ResponseCallback<List<String>> callback,
+                                          ResponseErrorCallback errorCallback) {
+        return SimpleRequestExecutor.run(() -> {
+            synchronized (SimpleUserInfoApi.this) {
+                List<String> ret = new ArrayList<>();
+                for (UserInfo userInfo : uuidToUserInfo.values()) {
+                    String nick = userInfo.getCurrentNick();
+                    if (nick.regionMatches(true, 0, query, 0, query.length()))
+                        ret.add(nick);
+                }
+                return ret;
+            }
+        }, callback, errorCallback);
+    }
+
+    @Override
     public Future<UserInfo> getUser(UUID uuid, ResponseCallback<UserInfo> callback,
                                     ResponseErrorCallback errorCallback) {
         return SimpleRequestExecutor.run(() -> {

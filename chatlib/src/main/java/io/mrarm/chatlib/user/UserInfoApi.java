@@ -10,6 +10,9 @@ import java.util.concurrent.Future;
 
 public interface UserInfoApi {
 
+    Future<List<String>> findUsers(String query, ResponseCallback<List<String>> callback,
+                                   ResponseErrorCallback errorCallback);
+
     Future<UserInfo> getUser(UUID uuid, ResponseCallback<UserInfo> callback, ResponseErrorCallback errorCallback);
 
     Future<UserInfo> getUser(String nick, String user, String host, ResponseCallback<UserInfo> callback,
