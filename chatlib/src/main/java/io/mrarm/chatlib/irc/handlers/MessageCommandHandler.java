@@ -26,8 +26,10 @@ public class MessageCommandHandler implements CommandHandler {
         try {
             MessageInfo.MessageType type = (command.equals("NOTICE") ? MessageInfo.MessageType.NOTICE :
                     MessageInfo.MessageType.NORMAL);
-            UUID userUUID = connection.getUserInfoApi().resolveUser(sender.getNick(), sender.getUser(),
-                    sender.getHost(), null, null).get();
+            UUID userUUID = null;
+            if (sender != null)
+                userUUID = connection.getUserInfoApi().resolveUser(sender.getNick(), sender.getUser(), sender.getHost(),
+                        null, null).get();
             String[] targetChannels = params.get(0).split(",");
 
             String text = params.get(1);
@@ -35,7 +37,7 @@ public class MessageCommandHandler implements CommandHandler {
                 text = lowDequote(text);
             int ctcpS = text.indexOf('\01');
             int ctcpE = text.lastIndexOf('\01');
-            if (ctcpS != -1 && ctcpE != -1) {
+            if (ctcpS != -1 && ctcpE != -1 && sender != null) {
                 for (String ctcpCommand : text.substring(ctcpS, ctcpE).split("\01"))
                     processCtcp(connection, sender, userUUID, targetChannels, ctcpCommand.indexOf('\134') == -1 ? ctcpCommand : ctcpDequote(ctcpCommand), tags);
                 if (ctcpS == 0 && ctcpE == text.length() - 1)
@@ -49,9 +51,10 @@ public class MessageCommandHandler implements CommandHandler {
                     channelData = connection.getJoinedChannelData(channel);
                 } catch (NoSuchChannelException ignored) {
                 }
-                if (channelData == null && sender.getUser() == null && sender.getHost() == null) {
-                    connection.getServerStatusData().addMessage(new StatusMessageInfo(sender.getServerName(),
-                            new Date(), StatusMessageInfo.MessageType.NOTICE, params.get(1)));
+                if (sender == null || (channelData == null && sender.getUser() == null && sender.getHost() == null)) {
+                    connection.getServerStatusData().addMessage(new StatusMessageInfo(sender != null ?
+                            sender.getServerName() : null, new Date(), StatusMessageInfo.MessageType.NOTICE,
+                            params.get(1)));
                     continue;
                 }
                 if (channel.equals(connection.getUserNick()))
