@@ -60,10 +60,11 @@ public class IRCConnection extends ServerConnectionApi {
         StringBuilder builder = new StringBuilder();
         builder.append(command); // TODO: validate
         builder.append(' ');
-        for (int i = 0; i < args.length; i++) {
+        int l = args != null ? args.length : 0;
+        for (int i = 0; i < l; i++) {
             if (i > 0)
                 builder.append(' ');
-            if (i == args.length - 1 && isLastArgFullLine) {
+            if (i == l - 1 && isLastArgFullLine) {
                 builder.append(':');
                 // TODO: validate
             } else {

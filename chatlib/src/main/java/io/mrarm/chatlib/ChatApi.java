@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.concurrent.Future;
 
 import io.mrarm.chatlib.dto.ChannelInfo;
+import io.mrarm.chatlib.dto.ChannelList;
 import io.mrarm.chatlib.dto.StatusMessageList;
 import io.mrarm.chatlib.dto.WhoisInfo;
 import io.mrarm.chatlib.message.MessageStorageApi;
@@ -27,6 +28,10 @@ public interface ChatApi {
 
     Future<Void> sendMessage(String channel, String message, ResponseCallback<Void> callback,
                              ResponseErrorCallback errorCallback);
+
+    Future<ChannelList> listChannels(ResponseCallback<ChannelList> callback,
+                                     ResponseCallback<ChannelList.Entry> entryCallback,
+                                     ResponseErrorCallback errorCallback);
 
     Future<List<String>> getJoinedChannelList(ResponseCallback<List<String>> callback,
                                               ResponseErrorCallback errorCallback);

@@ -2,6 +2,7 @@ package io.mrarm.chatlib.irc;
 
 import io.mrarm.chatlib.*;
 import io.mrarm.chatlib.dto.*;
+import io.mrarm.chatlib.irc.handlers.ListCommandHandler;
 import io.mrarm.chatlib.message.MessageStorageApi;
 import io.mrarm.chatlib.user.UserInfoApi;
 import io.mrarm.chatlib.util.SimpleRequestExecutor;
@@ -105,6 +106,14 @@ public abstract class ServerConnectionApi implements ChatApi {
             ChannelData data = getChannelData(channelName);
             return new ChannelInfo(data.getName(), data.getTopic(), data.getMembersAsNickPrefixList());
         }, callback, errorCallback);
+    }
+
+    @Override
+    public Future<ChannelList> listChannels(ResponseCallback<ChannelList> callback,
+                                            ResponseCallback<ChannelList.Entry> entryCallback,
+                                            ResponseErrorCallback errorCallback) {
+        return getServerConnectionData().getCommandHandlerList().getHandler(ListCommandHandler.class).addRequest(
+                getServerConnectionData(), callback, entryCallback, errorCallback);
     }
 
     // TODO: This still isn't a deep clone of the message list, change it to one

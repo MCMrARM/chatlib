@@ -29,6 +29,7 @@ public class CommandHandlerList {
         registerHandler(new MotdCommandHandler());
         registerHandler(new CapCommandHandler());
         registerHandler(new WhoisCommandHandler());
+        registerHandler(new ListCommandHandler());
     }
 
     public CommandHandler getHandlerFor(String command) throws InvalidMessageException {
