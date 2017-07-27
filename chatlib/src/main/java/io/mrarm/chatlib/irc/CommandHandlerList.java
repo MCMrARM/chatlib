@@ -14,6 +14,7 @@ public class CommandHandlerList {
             defaultHandlers = new CommandHandlerList();
             defaultHandlers.registerHandler(new JoinCommandHandler());
             defaultHandlers.registerHandler(new PartCommandHandler());
+            defaultHandlers.registerHandler(new QuitCommandHandler());
             defaultHandlers.registerHandler(new MessageCommandHandler());
             defaultHandlers.registerHandler(new NickCommandHandler());
             defaultHandlers.registerHandler(new ModeCommandHandler());
