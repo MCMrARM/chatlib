@@ -1,12 +1,10 @@
 package io.mrarm.chatlib.irc.handlers;
 
-import io.mrarm.chatlib.NoSuchChannelException;
 import io.mrarm.chatlib.dto.MessageSenderInfo;
 import io.mrarm.chatlib.dto.NickChangeMessageInfo;
 import io.mrarm.chatlib.irc.*;
 import io.mrarm.chatlib.user.UserInfo;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -30,16 +28,15 @@ public class NickCommandHandler implements CommandHandler {
                     sender.getHost(), null, null).get();
             MessageSenderInfo senderInfo = new MessageSenderInfo(sender.getNick(), sender.getUser(), sender.getHost(),
                     null, userInfo.getUUID());
-            NickChangeMessageInfo nickChangeMessageInfo = new NickChangeMessageInfo(senderInfo, new Date(), newNick);
-            for (String channel : userInfo.getChannels()) {
-                connection.getMessageStorageApi().addMessage(channel, nickChangeMessageInfo, null, null).get();
-            }
             connection.getUserInfoApi().setUserNick(userInfo.getUUID(), params.get(0), null, null)
                     .get();
             for (String channel : userInfo.getChannels()) {
                 try {
-                    connection.getJoinedChannelData(channel).callMemberListChanged();
-                } catch (NoSuchChannelException ignored) {
+                    ChannelData channelData = connection.getJoinedChannelData(channel);
+                    channelData.addMessage(new NickChangeMessageInfo.Builder(senderInfo, newNick), tags);
+                    channelData.callMemberListChanged();
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
         } catch (InterruptedException | ExecutionException e) {

@@ -32,6 +32,16 @@ public class CapabilityManager {
         registerCapability(new ZNCSelfMessageCapability());
     }
 
+    public <T extends Capability> T getCapability(Class<? extends T> type) {
+        for (List<Capability> cl : supportedCapabilities.values()) {
+            for (Capability c : cl) {
+                if (c.getClass().equals(type))
+                    return (T) c;
+            }
+        }
+        return null;
+    }
+
     public List<Capability> getEnabledCapabilities() {
         return enabledCapabilities;
     }

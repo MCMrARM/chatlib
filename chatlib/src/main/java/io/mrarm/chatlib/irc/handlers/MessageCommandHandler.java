@@ -4,7 +4,6 @@ import io.mrarm.chatlib.NoSuchChannelException;
 import io.mrarm.chatlib.dto.MessageInfo;
 import io.mrarm.chatlib.dto.StatusMessageInfo;
 import io.mrarm.chatlib.irc.*;
-import io.mrarm.chatlib.irc.cap.Capability;
 
 import java.util.Date;
 import java.util.List;
@@ -65,12 +64,7 @@ public class MessageCommandHandler implements CommandHandler {
                     if (channelData == null)
                         continue;
                 }
-                MessageInfo.Builder message = new MessageInfo.Builder(sender.toSenderInfo(userUUID, channelData), text, type);
-                if (tags != null) {
-                    for (Capability cap : connection.getCapabilityManager().getEnabledCapabilities())
-                        cap.processMessage(message, tags);
-                }
-                connection.getMessageStorageApi().addMessage(channel, message.build(), null, null).get();
+                channelData.addMessage(new MessageInfo.Builder(sender.toSenderInfo(userUUID, channelData), text, type), tags);
             }
         } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException(e);
@@ -86,12 +80,7 @@ public class MessageCommandHandler implements CommandHandler {
                 ChannelData channelData = getChannelData(connection, sender, channel);
                 if (channelData == null)
                     continue;
-                MessageInfo.Builder message = new MessageInfo.Builder(sender.toSenderInfo(userUUID, channelData), args, MessageInfo.MessageType.ME);
-                if (tags != null) {
-                    for (Capability cap : connection.getCapabilityManager().getEnabledCapabilities())
-                        cap.processMessage(message, tags);
-                }
-                connection.getMessageStorageApi().addMessage(channel, message.build(), null, null).get();
+                channelData.addMessage(new MessageInfo.Builder(sender.toSenderInfo(userUUID, channelData), args, MessageInfo.MessageType.ME), tags);
             }
         }
         // TODO: Implement other CTCP commands

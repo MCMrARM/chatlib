@@ -6,7 +6,6 @@ import io.mrarm.chatlib.dto.MessageSenderInfo;
 import io.mrarm.chatlib.irc.*;
 import io.mrarm.chatlib.user.UserInfo;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -34,12 +33,9 @@ public class QuitCommandHandler implements CommandHandler {
             for (String channel : userInfo.getChannels()) {
                 ChannelData channelData = connection.getJoinedChannelData(channel);
                 channelData.removeMember(channelData.getMember(userInfo.getUUID()));
-                connection.getMessageStorageApi().addMessage(channel, new MessageInfo(senderInfo, new Date(),
-                        params.get(0), MessageInfo.MessageType.QUIT), null, null).get();
+                channelData.addMessage(new MessageInfo.Builder(senderInfo, params.get(0), MessageInfo.MessageType.QUIT), tags);
             }
-        } catch (NoSuchChannelException e) {
-            throw new InvalidMessageException("Invalid channel specified in a QUIT message", e);
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (InterruptedException | ExecutionException | NoSuchChannelException e) {
             throw new RuntimeException(e);
         }
     }

@@ -4,9 +4,11 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 import io.mrarm.chatlib.ChannelInfoListener;
+import io.mrarm.chatlib.dto.MessageInfo;
 import io.mrarm.chatlib.dto.ModeList;
 import io.mrarm.chatlib.dto.NickWithPrefix;
 import io.mrarm.chatlib.dto.NickPrefixList;
+import io.mrarm.chatlib.irc.cap.Capability;
 
 public class ChannelData {
 
@@ -230,6 +232,24 @@ public class ChannelData {
                 return;
             modesValue.remove(flag);
         }
+    }
+
+    public void addMessage(MessageInfo message) {
+        if (!connection.getMessageFilterList().filterMessage(connection, name, message))
+            return;
+        try {
+            connection.getMessageStorageApi().addMessage(name, message, null, null).get();
+        } catch (ExecutionException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void addMessage(MessageInfo.Builder message, Map<String, String> tags) {
+        if (tags != null) {
+            for (Capability cap : connection.getCapabilityManager().getEnabledCapabilities())
+                cap.processMessage(message, tags);
+        }
+        addMessage(message.build());
     }
 
     public void subscribeInfo(ChannelInfoListener listener) {

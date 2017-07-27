@@ -21,6 +21,7 @@ public class ServerConnectionData {
     private WritableMessageStorageApi messageStorageApi;
     private NickPrefixParser nickPrefixParser = OneCharNickPrefixParser.getInstance();
     private final ServerSupportList supportList = new ServerSupportList();
+    private final MessageFilterList messageFilterList = new MessageFilterList();
     private CommandHandlerList commandHandlerList = new CommandHandlerList();
     private CapabilityManager capabilityManager = new CapabilityManager(this);
     private final List<ChannelListListener> channelListListeners = new ArrayList<>();
@@ -80,6 +81,10 @@ public class ServerConnectionData {
 
     public CapabilityManager getCapabilityManager() {
         return capabilityManager;
+    }
+
+    public MessageFilterList getMessageFilterList() {
+        return messageFilterList;
     }
 
     public ChannelData getJoinedChannelData(String channelName) throws NoSuchChannelException {

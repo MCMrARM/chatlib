@@ -1,6 +1,5 @@
 package io.mrarm.chatlib.dto;
 
-import java.security.InvalidParameterException;
 import java.util.Iterator;
 
 public class ModeList implements Iterable<Character> {
@@ -8,8 +7,6 @@ public class ModeList implements Iterable<Character> {
     private String prefix;
 
     public ModeList(String prefix) {
-        if (prefix == null)
-            throw new InvalidParameterException("One Shall Not Create ModeList With A Null");
         this.prefix = prefix;
     }
 
@@ -32,6 +29,13 @@ public class ModeList implements Iterable<Character> {
     @Override
     public String toString() {
         return prefix;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || o.getClass() != getClass())
+            return false;
+        return prefix.equals(((ModeList) o).prefix);
     }
 
     @Override

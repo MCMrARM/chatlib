@@ -3,11 +3,8 @@ package io.mrarm.chatlib.irc.handlers;
 import io.mrarm.chatlib.NoSuchChannelException;
 import io.mrarm.chatlib.dto.MessageInfo;
 import io.mrarm.chatlib.dto.MessageSenderInfo;
-import io.mrarm.chatlib.dto.NickPrefixList;
 import io.mrarm.chatlib.irc.*;
-import io.mrarm.chatlib.user.UserInfo;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -34,9 +31,9 @@ public class JoinCommandHandler implements CommandHandler {
             MessageSenderInfo senderInfo = new MessageSenderInfo(sender.getNick(), sender.getUser(), sender.getHost(),
                     null, userUUID);
             for (String channel : params.get(0).split(",")) {
-                connection.getJoinedChannelData(channel).addMember(new ChannelData.Member(userUUID, null, null));
-                connection.getMessageStorageApi().addMessage(channel, new MessageInfo(senderInfo, new Date(), null,
-                        MessageInfo.MessageType.JOIN), null, null).get();
+                ChannelData channelData = connection.getJoinedChannelData(channel);
+                channelData.addMember(new ChannelData.Member(userUUID, null, null));
+                channelData.addMessage(new MessageInfo.Builder(senderInfo, null, MessageInfo.MessageType.JOIN), tags);
             }
         } catch (NoSuchChannelException e) {
             throw new InvalidMessageException("Invalid channel specified in a JOIN message", e);

@@ -5,7 +5,6 @@ import io.mrarm.chatlib.dto.MessageInfo;
 import io.mrarm.chatlib.dto.MessageSenderInfo;
 import io.mrarm.chatlib.irc.*;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -34,8 +33,7 @@ public class PartCommandHandler implements CommandHandler {
             String channel = params.get(0);
             ChannelData channelData = connection.getJoinedChannelData(channel);
             channelData.removeMember(channelData.getMember(userUUID));
-            connection.getMessageStorageApi().addMessage(channel, new MessageInfo(senderInfo, new Date(), params.get(1),
-                    MessageInfo.MessageType.PART), null, null).get();
+            channelData.addMessage(new MessageInfo.Builder(senderInfo, params.get(1), MessageInfo.MessageType.PART), tags);
         } catch (NoSuchChannelException e) {
             throw new InvalidMessageException("Invalid channel specified in a JOIN message", e);
         } catch (InterruptedException | ExecutionException e) {

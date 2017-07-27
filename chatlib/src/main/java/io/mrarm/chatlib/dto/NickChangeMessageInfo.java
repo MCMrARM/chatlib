@@ -15,4 +15,18 @@ public class NickChangeMessageInfo extends MessageInfo {
         return newNick;
     }
 
+    public static class Builder extends MessageInfo.Builder {
+
+        public Builder(MessageSenderInfo sender, String newNick) {
+            messageInfo = new NickChangeMessageInfo(sender, new Date(), newNick);
+        }
+
+        public NickChangeMessageInfo build() {
+            NickChangeMessageInfo ret = (NickChangeMessageInfo) messageInfo;
+            messageInfo = null;
+            return ret;
+        }
+
+    }
+
 }

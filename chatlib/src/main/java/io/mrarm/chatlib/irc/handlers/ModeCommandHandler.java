@@ -3,7 +3,6 @@ package io.mrarm.chatlib.irc.handlers;
 import io.mrarm.chatlib.NoSuchChannelException;
 import io.mrarm.chatlib.dto.*;
 import io.mrarm.chatlib.irc.*;
-import io.mrarm.chatlib.irc.cap.Capability;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -99,16 +98,7 @@ public class ModeCommandHandler implements CommandHandler {
                 throw new InvalidMessageException("Unknown channel mode: " + c);
             }
         }
-        try {
-            ChannelModeMessageInfo.Builder message = new ChannelModeMessageInfo.Builder(senderInfo, log);
-            if (tags != null) {
-                for (Capability cap : connection.getCapabilityManager().getEnabledCapabilities())
-                    cap.processMessage(message, tags);
-            }
-            connection.getMessageStorageApi().addMessage(channelData.getName(), message.build(), null, null).get();
-        } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException(e);
-        }
+        channelData.addMessage(new ChannelModeMessageInfo.Builder(senderInfo, log), tags);
     }
 
     private ChannelData.Member getUser(ServerConnectionData connection, ChannelData channelData, String nick) {
