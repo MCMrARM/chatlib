@@ -21,10 +21,6 @@ public class ModeCommandHandler implements CommandHandler {
     public void handle(ServerConnectionData connection, MessagePrefix sender, String command, List<String> params,
                        Map<String, String> tags)
             throws InvalidMessageException {
-        if (sender.getNick().equals(connection.getUserNick())) {
-            for (String channel : params.get(0).split(","))
-                connection.onChannelLeft(channel);
-        }
         try {
             UUID userUUID = connection.getUserInfoApi().resolveUser(sender.getNick(), sender.getUser(),
                     sender.getHost(), null, null).get();
