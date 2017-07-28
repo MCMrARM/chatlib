@@ -33,7 +33,8 @@ public class PartCommandHandler implements CommandHandler {
             String channel = params.get(0);
             ChannelData channelData = connection.getJoinedChannelData(channel);
             channelData.removeMember(channelData.getMember(userUUID));
-            channelData.addMessage(new MessageInfo.Builder(senderInfo, params.get(1), MessageInfo.MessageType.PART), tags);
+            String message = params.size() > 1 ? params.get(1) : null;
+            channelData.addMessage(new MessageInfo.Builder(senderInfo, message, MessageInfo.MessageType.PART), tags);
         } catch (NoSuchChannelException e) {
             throw new InvalidMessageException("Invalid channel specified in a JOIN message", e);
         } catch (InterruptedException | ExecutionException e) {
