@@ -22,6 +22,7 @@ public class CommandHandlerList {
             defaultHandlers.registerHandler(new ISupportCommandHandler());
             defaultHandlers.registerHandler(new PingCommandHandler());
             defaultHandlers.registerHandler(new AwayCommandHandler());
+            defaultHandlers.registerHandler(new TopicCommandHandler());
         }
         handlers.putAll(defaultHandlers.handlers);
 
