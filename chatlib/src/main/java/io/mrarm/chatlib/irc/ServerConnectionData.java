@@ -137,6 +137,13 @@ public class ServerConnectionData {
         }
     }
 
+    void reset() {
+        synchronized (joinedChannels) {
+            joinedChannels.clear();
+        }
+        getCapabilityManager().reset();
+    }
+
     public void addLocalMessageToAllChannels(MessageInfo messageInfo) {
         messageStorageApi.addMessage(null, messageInfo, null, null);
     }
