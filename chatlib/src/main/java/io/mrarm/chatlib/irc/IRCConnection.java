@@ -182,13 +182,18 @@ public class IRCConnection extends ServerConnectionApi {
     public Future<WhoisInfo> sendWhois(String nick, ResponseCallback<WhoisInfo> callback, ResponseErrorCallback errorCallback) {
         SettableFuture<WhoisInfo> ret = new SettableFuture<>();
         executor.queue(ret, () -> {
-            getServerConnectionData().getCommandHandlerList().getHandler(WhoisCommandHandler.class).onInfoRequested(
+            getServerConnectionData().getCommandHandlerList().getHandler(WhoisCommandHandler.class).onRequested(
                     nick, (WhoisInfo info) -> {
                         executor.queue(() -> {
                             ret.set(info);
                             if (callback != null)
                                 callback.onResponse(info);
                         });
+                    }, (String s, int i, String e) -> {
+                        NumericReplyException exception = new NumericReplyException(i, e);
+                        if (errorCallback != null)
+                            errorCallback.onError(exception);
+                        ret.setExecutionException(exception);
                     });
             sendCommand("WHOIS", false, nick);
         }, errorCallback);

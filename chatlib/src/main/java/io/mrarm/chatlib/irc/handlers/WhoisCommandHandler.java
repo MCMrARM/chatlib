@@ -4,7 +4,6 @@ import io.mrarm.chatlib.dto.NickWithPrefix;
 import io.mrarm.chatlib.dto.WhoisInfo;
 import io.mrarm.chatlib.irc.*;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +20,6 @@ public class WhoisCommandHandler extends RequestResponseCommandHandler<String, W
     public static final int RPL_WHOISSECURE = 671;
 
     private final Map<String, WhoisInfo.Builder> currentReply = new HashMap<>();
-    private final Map<String, List<WhoisCallback>> callbacks = new HashMap<>();
 
     public WhoisCommandHandler(ErrorCommandHandler handler) {
         super(handler);
@@ -75,13 +73,9 @@ public class WhoisCommandHandler extends RequestResponseCommandHandler<String, W
             WhoisInfo info = builder.build();
             currentReply.remove(nick);
 
-            synchronized (callbacks) {
-                if (callbacks.containsKey(nick)) {
-                    for (WhoisCallback callback : callbacks.get(nick))
-                        callback.onWhoisInfoReceived(info);
-                    callbacks.remove(nick);
-                }
-            }
+            WhoisCallback cb = requestResponseCallbacksFor(nick);
+            if (cb != null)
+                cb.onWhoisInfoReceived(info);
         }
     }
 
@@ -94,14 +88,6 @@ public class WhoisCommandHandler extends RequestResponseCommandHandler<String, W
         WhoisInfo.Builder builder = currentReply.get(nick);
         if (builder != null)
             builder.setAway(message);
-    }
-
-    public void onInfoRequested(String nick, WhoisCallback callback) {
-        synchronized (callbacks) {
-            if (!callbacks.containsKey(nick))
-                callbacks.put(nick, new ArrayList<>());
-            callbacks.get(nick).add(callback);
-        }
     }
 
     public interface WhoisCallback {

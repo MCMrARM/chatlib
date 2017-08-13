@@ -1,5 +1,7 @@
 package io.mrarm.chatlib.irc;
 
+import io.mrarm.chatlib.ChatApiException;
+
 import java.util.*;
 
 public abstract class RequestResponseCommandHandler<RequestIdentifier, CallbackType> implements CommandHandler,
