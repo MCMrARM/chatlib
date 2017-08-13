@@ -19,6 +19,8 @@ public class WhoisCommandHandler extends RequestResponseCommandHandler<String, W
     public static final int RPL_WHOISACCOUNT = 330;
     public static final int RPL_WHOISSECURE = 671;
 
+    public static final int ERR_NOSUCHNICK = 401;
+
     private final Map<String, WhoisInfo.Builder> currentReply = new HashMap<>();
 
     public WhoisCommandHandler(ErrorCommandHandler handler) {
@@ -33,7 +35,7 @@ public class WhoisCommandHandler extends RequestResponseCommandHandler<String, W
 
     @Override
     public int[] getHandledErrors() {
-        return new int[] { NickCommandHandler.ERR_NICKNAMEINUSE, NickCommandHandler.ERR_NONICKNAMEGIVEN };
+        return new int[] { ERR_NOSUCHNICK, NickCommandHandler.ERR_NONICKNAMEGIVEN };
     }
 
     @Override
