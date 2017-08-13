@@ -12,8 +12,8 @@ import java.util.Map;
 public class PingCommandHandler implements CommandHandler {
 
     @Override
-    public String[] getHandledCommands() {
-        return new String[] { "PING" };
+    public Object[] getHandledCommands() {
+        return new Object[] { "PING" };
     }
 
     @Override

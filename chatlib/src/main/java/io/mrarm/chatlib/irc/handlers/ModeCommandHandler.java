@@ -12,9 +12,11 @@ import java.util.concurrent.ExecutionException;
 
 public class ModeCommandHandler implements CommandHandler {
 
+    public static final int RPL_CHANNELMODEIS = 324;
+
     @Override
-    public String[] getHandledCommands() {
-        return new String[]{"MODE", "324"};
+    public Object[] getHandledCommands() {
+        return new Object[]{"MODE", RPL_CHANNELMODEIS};
     }
 
     @Override

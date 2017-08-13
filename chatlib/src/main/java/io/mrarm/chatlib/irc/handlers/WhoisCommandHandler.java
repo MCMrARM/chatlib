@@ -2,17 +2,14 @@ package io.mrarm.chatlib.irc.handlers;
 
 import io.mrarm.chatlib.dto.NickWithPrefix;
 import io.mrarm.chatlib.dto.WhoisInfo;
-import io.mrarm.chatlib.irc.InvalidMessageException;
-import io.mrarm.chatlib.irc.MessagePrefix;
-import io.mrarm.chatlib.irc.NumericCommandHandler;
-import io.mrarm.chatlib.irc.ServerConnectionData;
+import io.mrarm.chatlib.irc.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class WhoisCommandHandler extends NumericCommandHandler {
+public class WhoisCommandHandler extends RequestResponseCommandHandler<String, WhoisCommandHandler.WhoisCallback> {
 
     public static final int RPL_WHOISUSER = 311;
     public static final int RPL_WHOISSERVER = 312;
@@ -26,45 +23,55 @@ public class WhoisCommandHandler extends NumericCommandHandler {
     private final Map<String, WhoisInfo.Builder> currentReply = new HashMap<>();
     private final Map<String, List<WhoisCallback>> callbacks = new HashMap<>();
 
+    public WhoisCommandHandler(ErrorCommandHandler handler) {
+        super(handler);
+    }
+
     @Override
-    public int[] getNumericHandledCommands() {
-        return new int[] { RPL_WHOISUSER, RPL_WHOISSERVER, RPL_WHOISOPERATOR, RPL_WHOISIDLE, RPL_ENDOFWHOIS,
+    public Object[] getHandledCommands() {
+        return new Object[] { RPL_WHOISUSER, RPL_WHOISSERVER, RPL_WHOISOPERATOR, RPL_WHOISIDLE, RPL_ENDOFWHOIS,
                 RPL_WHOISCHANNELS, RPL_WHOISACCOUNT, RPL_WHOISSECURE };
     }
 
     @Override
-    public void handle(ServerConnectionData connection, MessagePrefix sender, int command, List<String> params,
+    public int[] getHandledErrors() {
+        return new int[] { NickCommandHandler.ERR_NICKNAMEINUSE, NickCommandHandler.ERR_NONICKNAMEGIVEN };
+    }
+
+    @Override
+    public void handle(ServerConnectionData connection, MessagePrefix sender, String command, List<String> params,
                        Map<String, String> tags) throws InvalidMessageException {
+        int numeric = CommandHandler.toNumeric(command);
         String nick = params.get(1);
         WhoisInfo.Builder builder = currentReply.get(nick);
         if (builder == null) {
-            if (command == RPL_WHOISUSER) {
+            if (numeric == RPL_WHOISUSER) {
                 builder = new WhoisInfo.Builder();
                 currentReply.put(nick, builder);
             } else {
                 throw new InvalidMessageException("Whois data not started with a RPL_WHOISUSER");
             }
         }
-        if (command == RPL_WHOISUSER) {
+        if (numeric == RPL_WHOISUSER) {
             builder.setUserInfo(nick, params.get(2), params.get(3), params.get(5));
-        } else if (command == RPL_WHOISSERVER) {
+        } else if (numeric == RPL_WHOISSERVER) {
             builder.setServerInfo(params.get(2), params.get(3));
-        } else if (command == RPL_WHOISOPERATOR) {
+        } else if (numeric == RPL_WHOISOPERATOR) {
             builder.setOperator(true);
-        } else if (command == RPL_WHOISIDLE) {
+        } else if (numeric == RPL_WHOISIDLE) {
             builder.setIdle(Integer.parseInt(params.get(2)));
-        } else if (command == RPL_WHOISCHANNELS) {
+        } else if (numeric == RPL_WHOISCHANNELS) {
             for (String channel : params.get(2).split(" ")) {
                 // it should be acceptable to use a NickPrefixParser here to get the channel modes and then wrap it into
                 // a ChannelWithNickPrefixes
                 NickWithPrefix p = connection.getNickPrefixParser().parse(connection, channel);
                 builder.addChannel(new WhoisInfo.ChannelWithNickPrefixes(p.getNick(), p.getNickPrefixes()));
             }
-        } else if (command == RPL_WHOISACCOUNT) {
+        } else if (numeric == RPL_WHOISACCOUNT) {
             builder.setAccount(params.get(2));
-        } else if (command == RPL_WHOISSECURE) {
+        } else if (numeric == RPL_WHOISSECURE) {
             builder.setSecure(true);
-        } else if (command == RPL_ENDOFWHOIS) {
+        } else if (numeric == RPL_ENDOFWHOIS) {
             WhoisInfo info = builder.build();
             currentReply.remove(nick);
 
@@ -76,6 +83,11 @@ public class WhoisCommandHandler extends NumericCommandHandler {
                 }
             }
         }
+    }
+
+    @Override
+    public boolean onError(int commandId, List<String> params) {
+        return params.size() > 1 && onError(params.get(1), commandId, params.size() >= 2 ? params.get(2) : null, false);
     }
 
     public void onAwayMessage(String nick, String message) {

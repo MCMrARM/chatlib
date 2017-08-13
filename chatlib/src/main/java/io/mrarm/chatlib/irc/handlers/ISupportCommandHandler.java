@@ -7,7 +7,7 @@ import io.mrarm.chatlib.irc.*;
 import java.util.List;
 import java.util.Map;
 
-public class ISupportCommandHandler extends NumericCommandHandler {
+public class ISupportCommandHandler implements CommandHandler {
 
     public static final int RPL_ISUPPORT = 5;
 
@@ -16,12 +16,12 @@ public class ISupportCommandHandler extends NumericCommandHandler {
     public static final String PARAM_CHANMODES = "CHANMODES";
 
     @Override
-    public int[] getNumericHandledCommands() {
-        return new int[] { RPL_ISUPPORT };
+    public Object[] getHandledCommands() {
+        return new Object[] { RPL_ISUPPORT };
     }
 
     @Override
-    public void handle(ServerConnectionData connection, MessagePrefix sender, int command, List<String> params,
+    public void handle(ServerConnectionData connection, MessagePrefix sender, String command, List<String> params,
                        Map<String, String> tags)
             throws InvalidMessageException {
         int count = params.size() - 1;

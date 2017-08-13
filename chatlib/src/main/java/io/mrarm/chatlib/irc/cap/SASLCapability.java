@@ -1,5 +1,6 @@
 package io.mrarm.chatlib.irc.cap;
 
+import io.mrarm.chatlib.irc.CommandHandler;
 import io.mrarm.chatlib.irc.InvalidMessageException;
 import io.mrarm.chatlib.irc.MessagePrefix;
 import io.mrarm.chatlib.irc.ServerConnectionData;
@@ -14,8 +15,8 @@ import java.util.Map;
 public class SASLCapability extends Capability {
 
     public static final String CMD_AUTHENTICATE = "AUTHENTICATE";
-    public static final String RPL_SASLSUCCESS = "903";
-    public static final String ERR_SASLFAIL = "904";
+    public static final int RPL_SASLSUCCESS = 903;
+    public static final int ERR_SASLFAIL = 904;
 
     private SASLOptions[] options;
     private int currentTryOption = 0;
@@ -35,8 +36,8 @@ public class SASLCapability extends Capability {
     }
 
     @Override
-    public String[] getHandledCommands() {
-        return new String[] { CMD_AUTHENTICATE, RPL_SASLSUCCESS, ERR_SASLFAIL };
+    public Object[] getHandledCommands() {
+        return new Object[] { CMD_AUTHENTICATE, RPL_SASLSUCCESS, ERR_SASLFAIL };
     }
 
     @Override
@@ -48,15 +49,16 @@ public class SASLCapability extends Capability {
     @Override
     public void handle(ServerConnectionData connection, MessagePrefix sender, String command, List<String> params,
                        Map<String, String> tags) throws InvalidMessageException {
+        int numeric = CommandHandler.toNumeric(command);
         if (command.equals(CMD_AUTHENTICATE)) {
             if (params.size() == 1 && params.get(0).equals("+"))
                 continueAuthentication(connection);
-        } else if (command.equals(RPL_SASLSUCCESS)) {
+        } else if (numeric == RPL_SASLSUCCESS) {
             if (finishLock != -1) {
                 connection.getCapabilityManager().removeNegotationFinishLock(finishLock);
                 finishLock = -1;
             }
-        } else if (command.equals(ERR_SASLFAIL)) {
+        } else if (numeric == ERR_SASLFAIL) {
             if (currentTryOption + 1 < options.length) {
                 startAuthentication(connection, currentTryOption + 1);
             }

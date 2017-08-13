@@ -8,6 +8,7 @@ public class CommandHandlerList {
 
     private HashMap<String, CommandHandler> handlers = new HashMap<>();
     private static CommandHandlerList defaultHandlers;
+    private ErrorCommandHandler errorCommandHandler = new ErrorCommandHandler();
 
     public void addDefaultHandlers() {
         if (defaultHandlers == null) {
@@ -16,7 +17,6 @@ public class CommandHandlerList {
             defaultHandlers.registerHandler(new PartCommandHandler());
             defaultHandlers.registerHandler(new QuitCommandHandler());
             defaultHandlers.registerHandler(new MessageCommandHandler());
-            defaultHandlers.registerHandler(new NickCommandHandler());
             defaultHandlers.registerHandler(new ModeCommandHandler());
             defaultHandlers.registerHandler(new WelcomeCommandHandler());
             defaultHandlers.registerHandler(new ISupportCommandHandler());
@@ -27,31 +27,42 @@ public class CommandHandlerList {
         handlers.putAll(defaultHandlers.handlers);
 
         // per-connection handlers
+        registerHandler(new NickCommandHandler(errorCommandHandler));
+        registerHandler(new WhoisCommandHandler(errorCommandHandler));
         registerHandler(new NamesReplyCommandHandler());
         registerHandler(new MotdCommandHandler());
         registerHandler(new CapCommandHandler());
-        registerHandler(new WhoisCommandHandler());
         registerHandler(new ListCommandHandler());
     }
 
     public CommandHandler getHandlerFor(String command) throws InvalidMessageException {
-        if (!handlers.containsKey(command))
+        if (!handlers.containsKey(command)) {
+            if (errorCommandHandler.canHandle(command))
+                return errorCommandHandler;
             throw new InvalidMessageException("No such command found (" + command + ")");
+        }
         return handlers.get(command);
     }
 
     public void registerHandler(CommandHandler handler) {
-        for (String command : handler.getHandledCommands()) {
-            if (handlers.containsKey(command))
+        for (Object command : handler.getHandledCommands()) {
+            String s = getCommandString(command);
+            if (handlers.containsKey(s))
                 throw new RuntimeException("Handler registration name collision");
-            handlers.put(command, handler);
+            handlers.put(getCommandString(s), handler);
         }
     }
 
     public void unregisterHandler(CommandHandler handler) {
-        for (String command : handler.getHandledCommands()) {
-            handlers.remove(command);
+        for (Object command : handler.getHandledCommands()) {
+            handlers.remove(getCommandString(command));
         }
+    }
+
+    private String getCommandString(Object o) {
+        if (o instanceof Integer)
+            return String.format("%03d", (Integer) o);
+        return o.toString();
     }
 
     public <T> T getHandler(Class<? extends T> cl) {
@@ -60,6 +71,10 @@ public class CommandHandlerList {
                 return (T) handler;
         }
         return null;
+    }
+
+    public ErrorCommandHandler getErrorCommandHandler() {
+        return errorCommandHandler;
     }
 
 }

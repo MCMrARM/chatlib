@@ -16,16 +16,17 @@ public class TopicCommandHandler implements CommandHandler {
     public static final int RPL_TOPIC = 332;
 
     @Override
-    public String[] getHandledCommands() {
-        return new String[] { "TOPIC", String.valueOf(RPL_NOTOPIC), String.valueOf(RPL_TOPIC) };
+    public Object[] getHandledCommands() {
+        return new Object[] { "TOPIC", RPL_NOTOPIC, RPL_TOPIC };
     }
 
     @Override
     public void handle(ServerConnectionData connection, MessagePrefix sender, String command, List<String> params,
                        Map<String, String> tags) throws InvalidMessageException {
+        int numeric = CommandHandler.toNumeric(command);
         String topic = null;
         boolean isTopicCommand = command.equals("TOPIC");
-        if (command.equals(String.valueOf(RPL_TOPIC)))
+        if (numeric == RPL_TOPIC)
             topic = params.get(2);
         else if (isTopicCommand)
             topic = params.get(1);

@@ -17,8 +17,8 @@ public class CapCommandHandler implements CommandHandler {
     private List<String> ackEntries;
 
     @Override
-    public String[] getHandledCommands() {
-        return new String[] { "CAP" };
+    public Object[] getHandledCommands() {
+        return new Object[] { "CAP" };
     }
 
     @Override

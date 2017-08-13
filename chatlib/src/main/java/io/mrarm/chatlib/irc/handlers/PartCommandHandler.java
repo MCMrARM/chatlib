@@ -13,8 +13,8 @@ import java.util.concurrent.ExecutionException;
 public class PartCommandHandler implements CommandHandler {
 
     @Override
-    public String[] getHandledCommands() {
-        return new String[]{"PART"};
+    public Object[] getHandledCommands() {
+        return new Object[]{"PART"};
     }
 
     @Override

@@ -14,8 +14,8 @@ import java.util.concurrent.ExecutionException;
 public class MessageCommandHandler implements CommandHandler {
 
     @Override
-    public String[] getHandledCommands() {
-        return new String[] { "PRIVMSG", "NOTICE" };
+    public Object[] getHandledCommands() {
+        return new Object[] { "PRIVMSG", "NOTICE" };
     }
 
     @Override

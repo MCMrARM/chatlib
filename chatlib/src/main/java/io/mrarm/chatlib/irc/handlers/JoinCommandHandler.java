@@ -13,8 +13,8 @@ import java.util.concurrent.ExecutionException;
 public class JoinCommandHandler implements CommandHandler {
 
     @Override
-    public String[] getHandledCommands() {
-        return new String[] { "JOIN" };
+    public Object[] getHandledCommands() {
+        return new Object[] { "JOIN" };
     }
 
     @Override

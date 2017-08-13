@@ -13,8 +13,8 @@ import java.util.concurrent.ExecutionException;
 public class QuitCommandHandler implements CommandHandler {
 
     @Override
-    public String[] getHandledCommands() {
-        return new String[]{"QUIT"};
+    public Object[] getHandledCommands() {
+        return new Object[]{"QUIT"};
     }
 
     @Override

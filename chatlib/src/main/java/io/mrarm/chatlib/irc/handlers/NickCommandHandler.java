@@ -9,11 +9,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-public class NickCommandHandler implements CommandHandler {
+public class NickCommandHandler extends RequestResponseCommandHandler<String, NickCommandHandler.NickChangeCallback>
+        implements CommandHandler {
+
+    public static final int ERR_NONICKNAMEGIVEN = 431;
+    public static final int ERR_NICKNAMEINUSE = 433;
+
+    public NickCommandHandler(ErrorCommandHandler handler) {
+        super(handler);
+    }
 
     @Override
-    public String[] getHandledCommands() {
-        return new String[] { "NICK" };
+    public Object[] getHandledCommands() {
+        return new Object[] { "NICK" };
+    }
+
+    @Override
+    public int[] getHandledErrors() {
+        return new int[] { ERR_NONICKNAMEGIVEN, ERR_NICKNAMEINUSE };
     }
 
     @Override
@@ -21,8 +34,13 @@ public class NickCommandHandler implements CommandHandler {
                        Map<String, String> tags)
             throws InvalidMessageException {
         String newNick = params.get(0);
-        if (sender.getNick().equals(connection.getUserNick()))
+        if (sender.getNick().equals(connection.getUserNick())) {
             connection.setUserNick(newNick);
+
+            NickChangeCallback cb = requestResponseCallbacksFor(newNick);
+            if (cb != null)
+                cb.onNickChanged(newNick);
+        }
         try {
             UserInfo userInfo = connection.getUserInfoApi().getUser(sender.getNick(), sender.getUser(),
                     sender.getHost(), null, null).get();
@@ -42,6 +60,15 @@ public class NickCommandHandler implements CommandHandler {
         } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public boolean onError(int commandId, List<String> params) {
+        return params.size() > 1 && onError(params.get(1), commandId, params.size() >= 2 ? params.get(2) : null, false);
+    }
+
+    public interface NickChangeCallback {
+        void onNickChanged(String newNick);
     }
 
 }

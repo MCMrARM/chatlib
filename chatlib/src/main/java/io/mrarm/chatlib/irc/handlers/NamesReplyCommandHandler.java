@@ -4,12 +4,11 @@ import io.mrarm.chatlib.NoSuchChannelException;
 import io.mrarm.chatlib.dto.ModeList;
 import io.mrarm.chatlib.dto.NickWithPrefix;
 import io.mrarm.chatlib.irc.*;
-import io.mrarm.chatlib.user.UserInfo;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
-public class NamesReplyCommandHandler extends NumericCommandHandler {
+public class NamesReplyCommandHandler implements CommandHandler {
 
     public static final int RPL_NAMREPLY = 353;
     public static final int RPL_ENDOFNAMES = 366;
@@ -17,14 +16,15 @@ public class NamesReplyCommandHandler extends NumericCommandHandler {
     private Map<String, List<ChannelData.Member>> channelNamesList = new HashMap<>();
 
     @Override
-    public int[] getNumericHandledCommands() {
-        return new int[] { RPL_NAMREPLY, RPL_ENDOFNAMES };
+    public Object[] getHandledCommands() {
+        return new Object[] { RPL_NAMREPLY, RPL_ENDOFNAMES };
     }
 
     @Override
-    public void handle(ServerConnectionData connection, MessagePrefix sender, int command,
+    public void handle(ServerConnectionData connection, MessagePrefix sender, String command,
                        List<String> params, Map<String, String> tags) throws InvalidMessageException {
-        if (command == RPL_NAMREPLY) {
+        int numeric = CommandHandler.toNumeric(command);
+        if (numeric == RPL_NAMREPLY) {
             int paramId = 1;
             String channelName = params.get(paramId);
             // if the first argument is '=' or '*' or '@', skip it as it's the channel type which we don't really care
@@ -66,7 +66,7 @@ public class NamesReplyCommandHandler extends NumericCommandHandler {
                 list.add(new ChannelData.Member(uuid, prefixModes != null ? new ModeList(String.valueOf(prefixModes))
                         : null, nickWithPrefix.getNickPrefixes()));
             }
-        } else if (command == RPL_ENDOFNAMES) {
+        } else if (numeric == RPL_ENDOFNAMES) {
             String channelName = params.get(1);
             try {
                 connection.getJoinedChannelData(channelName).setMembers(channelNamesList.get(channelName));

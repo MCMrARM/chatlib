@@ -3,9 +3,9 @@ package io.mrarm.chatlib.irc.handlers;
 import io.mrarm.chatlib.ResponseCallback;
 import io.mrarm.chatlib.ResponseErrorCallback;
 import io.mrarm.chatlib.dto.ChannelList;
+import io.mrarm.chatlib.irc.CommandHandler;
 import io.mrarm.chatlib.irc.InvalidMessageException;
 import io.mrarm.chatlib.irc.MessagePrefix;
-import io.mrarm.chatlib.irc.NumericCommandHandler;
 import io.mrarm.chatlib.irc.ServerConnectionData;
 import io.mrarm.chatlib.util.SettableFuture;
 
@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.Future;
 
-public class ListCommandHandler extends NumericCommandHandler {
+public class ListCommandHandler implements CommandHandler {
 
     public static final int RPL_LISTSTART = 321;
     public static final int RPL_LIST = 322;
@@ -23,28 +23,29 @@ public class ListCommandHandler extends NumericCommandHandler {
     private final ArrayDeque<Request> requests = new ArrayDeque<>();
 
     @Override
-    public int[] getNumericHandledCommands() {
-        return new int[] { RPL_LISTSTART, RPL_LIST, RPL_LISTEND };
+    public Object[] getHandledCommands() {
+        return new Object[] { RPL_LISTSTART, RPL_LIST, RPL_LISTEND };
     }
 
     @Override
-    public void handle(ServerConnectionData connection, MessagePrefix sender, int command, List<String> params,
+    public void handle(ServerConnectionData connection, MessagePrefix sender, String command, List<String> params,
                        Map<String, String> tags) throws InvalidMessageException {
+        int numeric = CommandHandler.toNumeric(command);
         Request request;
         synchronized (requests) {
             request = currentRequest;
         }
         if (request == null)
             throw new InvalidMessageException("Channel list entry without a request context");
-        if (command == RPL_LISTSTART) {
+        if (numeric == RPL_LISTSTART) {
             request.entries = new ArrayList<>();
-        } else if (command == RPL_LISTEND) {
+        } else if (numeric == RPL_LISTEND) {
             ChannelList resp = new ChannelList(currentRequest.entries);
             request.retVal.set(resp);
             if (request.callback != null)
                 request.callback.onResponse(resp);
             handleNextRequest(connection);
-        } else if (command == RPL_LIST) {
+        } else if (numeric == RPL_LIST) {
             if (request.entries == null)
                 throw new InvalidMessageException("Channel list entry without a list start message");
             ChannelList.Entry entry = new ChannelList.Entry(params.get(1), Integer.parseInt(params.get(2)), params.get(3));
