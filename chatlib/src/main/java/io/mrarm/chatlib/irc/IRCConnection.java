@@ -6,6 +6,7 @@ import io.mrarm.chatlib.dto.MessageInfo;
 import io.mrarm.chatlib.dto.StatusMessageInfo;
 import io.mrarm.chatlib.dto.WhoisInfo;
 import io.mrarm.chatlib.irc.handlers.MessageCommandHandler;
+import io.mrarm.chatlib.irc.handlers.NickCommandHandler;
 import io.mrarm.chatlib.irc.handlers.WhoisCommandHandler;
 import io.mrarm.chatlib.message.SimpleMessageStorageApi;
 import io.mrarm.chatlib.user.SimpleUserInfoApi;
@@ -291,8 +292,7 @@ public class IRCConnection extends ServerConnectionApi {
         sendCommand(false, "CAP", false, "LS", "302");
         if (request.getServerPass() != null)
             sendCommand(false, "PASS", request.getServerPass().contains(" "), request.getServerPass());
-        sendCommand(false, "NICK", false, request.getNickList().get(0));
-        getServerConnectionData().setUserNick(request.getNickList().get(0));
+        connectRequestNick(request.getNickList(), 0);
         sendCommand("USER", true, request.getUser(), String.valueOf(request.getUserMode()), "*", request.getRealName());
         System.out.println("Sent inital commands");
 
@@ -302,6 +302,29 @@ public class IRCConnection extends ServerConnectionApi {
 
         if (!waitForMotd())
             throw new IOException("Failed to receive MOTD");
+
+        getServerConnectionData().getCommandHandlerList().getHandler(NickCommandHandler.class).cancel(
+                getServerConnectionData().getUserNick());
+    }
+
+    private void connectRequestNick(List<String> nickList, int index) throws IOException {
+        sendCommand(false, "NICK", false, nickList.get(index));
+        getServerConnectionData().setUserNick(nickList.get(index));
+        getServerConnectionData().getCommandHandlerList().getHandler(NickCommandHandler.class).onRequested(
+                nickList.get(0), null, (String n, int i, String err) -> {
+                    if (i == NickCommandHandler.ERR_NICKNAMEINUSE) {
+                        // Try next nickname
+                        if (index + 1 >= nickList.size()) {
+                            notifyMotdReceiveFailed();
+                            return;
+                        }
+                        try {
+                            connectRequestNick(nickList, index + 1);
+                        } catch (IOException e) {
+                            notifyMotdReceiveFailed();
+                        }
+                    }
+                });
     }
 
     public interface DisconnectListener {

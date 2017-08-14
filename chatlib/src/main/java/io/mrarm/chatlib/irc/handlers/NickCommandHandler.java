@@ -69,6 +69,10 @@ public class NickCommandHandler extends RequestResponseCommandHandler<String, Ni
         return params.size() > 1 && onError(params.get(1), commandId, params.size() > 2 ? params.get(2) : null, false);
     }
 
+    public void cancel(String nick) {
+        requestResponseCallbacksFor(nick);
+    }
+
     public interface NickChangeCallback {
         void onNickChanged(String newNick);
     }
