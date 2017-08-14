@@ -183,7 +183,7 @@ public class IRCConnection extends ServerConnectionApi {
     public Future<WhoisInfo> sendWhois(String nick, ResponseCallback<WhoisInfo> callback, ResponseErrorCallback errorCallback) {
         SettableFuture<WhoisInfo> ret = new SettableFuture<>();
         executor.queue(ret, () -> {
-            getServerConnectionData().getCommandHandlerList().getHandler(WhoisCommandHandler.class).onRequested(
+            if (getServerConnectionData().getCommandHandlerList().getHandler(WhoisCommandHandler.class).onRequested(
                     nick, (WhoisInfo info) -> {
                         executor.queue(() -> {
                             ret.set(info);
@@ -195,8 +195,8 @@ public class IRCConnection extends ServerConnectionApi {
                         if (errorCallback != null)
                             errorCallback.onError(exception);
                         ret.setExecutionException(exception);
-                    });
-            sendCommand("WHOIS", false, nick);
+                    }))
+                sendCommand("WHOIS", false, nick);
         }, errorCallback);
         return ret;
     }
@@ -246,7 +246,7 @@ public class IRCConnection extends ServerConnectionApi {
 
     @Override
     public Future<Void> sendCommand(String command, boolean isLastArgFullLine, String[] args,
-                                       ResponseCallback<Void> callback, ResponseErrorCallback errorCallback) {
+                                    ResponseCallback<Void> callback, ResponseErrorCallback errorCallback) {
         return executor.queue(() -> {
             sendCommand(command, isLastArgFullLine, args);
             return null;
@@ -308,7 +308,6 @@ public class IRCConnection extends ServerConnectionApi {
     }
 
     private void connectRequestNick(List<String> nickList, int index) throws IOException {
-        sendCommand(false, "NICK", false, nickList.get(index));
         getServerConnectionData().setUserNick(nickList.get(index));
         getServerConnectionData().getCommandHandlerList().getHandler(NickCommandHandler.class).onRequested(
                 nickList.get(0), null, (String n, int i, String err) -> {
@@ -325,6 +324,7 @@ public class IRCConnection extends ServerConnectionApi {
                         }
                     }
                 });
+        sendCommand(false, "NICK", false, nickList.get(index));
     }
 
     public interface DisconnectListener {

@@ -9,14 +9,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-public class NickCommandHandler extends RequestResponseCommandHandler<String, NickCommandHandler.NickChangeCallback>
-        implements CommandHandler {
+public class NickCommandHandler extends RequestResponseCommandHandler<String, String> implements CommandHandler {
 
     public static final int ERR_NONICKNAMEGIVEN = 431;
     public static final int ERR_NICKNAMEINUSE = 433;
 
     public NickCommandHandler(ErrorCommandHandler handler) {
-        super(handler);
+        super(handler, true);
     }
 
     @Override
@@ -36,10 +35,7 @@ public class NickCommandHandler extends RequestResponseCommandHandler<String, Ni
         String newNick = params.get(0);
         if (sender.getNick().equals(connection.getUserNick())) {
             connection.setUserNick(newNick);
-
-            NickChangeCallback cb = requestResponseCallbacksFor(newNick);
-            if (cb != null)
-                cb.onNickChanged(newNick);
+            onResponse(newNick, newNick);
         }
         try {
             UserInfo userInfo = connection.getUserInfoApi().getUser(sender.getNick(), sender.getUser(),
@@ -70,7 +66,7 @@ public class NickCommandHandler extends RequestResponseCommandHandler<String, Ni
     }
 
     public void cancel(String nick) {
-        requestResponseCallbacksFor(nick);
+        onCancelled(nick);
     }
 
     public interface NickChangeCallback {

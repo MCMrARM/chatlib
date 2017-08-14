@@ -1,59 +1,91 @@
 package io.mrarm.chatlib.irc;
 
-import io.mrarm.chatlib.ChatApiException;
-
 import java.util.*;
 
-public abstract class RequestResponseCommandHandler<RequestIdentifier, CallbackType> implements CommandHandler,
+public abstract class RequestResponseCommandHandler<RequestIdentifier, ResponseType> implements CommandHandler,
         ErrorCommandHandler.ErrorCallback {
 
     private final ErrorCommandHandler errorCommandHandler;
-    private final Map<RequestIdentifier, Queue<CallbackData<RequestIdentifier, CallbackType>>> callbacks = new HashMap<>();
+    private final Map<RequestIdentifier, Queue<CallbackData<RequestIdentifier, ResponseType>>> callbacks = new HashMap<>();
     private final int[] handledErrors;
+    private final boolean sharedResponseMode;
 
-    public RequestResponseCommandHandler(ErrorCommandHandler handler) {
+    public RequestResponseCommandHandler(ErrorCommandHandler handler, boolean sharedResponseMode) {
         errorCommandHandler = handler;
         handledErrors = getHandledErrors();
+        this.sharedResponseMode = sharedResponseMode;
     }
 
     public abstract int[] getHandledErrors();
 
-    public void onRequested(RequestIdentifier i, CallbackType callback, ErrorCallback<RequestIdentifier> errorCallback) {
+    public boolean onRequested(RequestIdentifier i, Callback<ResponseType> callback, ErrorCallback<RequestIdentifier> errorCallback) {
         synchronized (callbacks) {
-            if (!callbacks.containsKey(i))
+            boolean existed = true;
+            if (!callbacks.containsKey(i)) {
                 callbacks.put(i, new ArrayDeque<>());
+                existed = false;
+            }
             callbacks.get(i).add(new CallbackData<>(callback, errorCallback));
-            errorCommandHandler.addErrorCallback(handledErrors, this);
+            if (!sharedResponseMode || !existed)
+                errorCommandHandler.addErrorCallback(handledErrors, this);
+            return !sharedResponseMode || !existed;
         }
     }
 
     protected boolean onError(RequestIdentifier i, int commandId, String error, boolean unqueueErrorCallback) {
         synchronized (callbacks) {
             if (callbacks.containsKey(i)) {
-                Queue<CallbackData<RequestIdentifier, CallbackType>> l = callbacks.get(i);
-                ErrorCallback<RequestIdentifier> cb = l.remove().errorCallback;
+                Queue<CallbackData<RequestIdentifier, ResponseType>> l = callbacks.get(i);
                 if (unqueueErrorCallback)
                     errorCommandHandler.cancelErrorCallback(handledErrors, this);
-                if (l.size() == 0)
+                if (sharedResponseMode) {
                     callbacks.remove(i);
-                cb.onError(i, commandId, error);
+                    for (CallbackData<RequestIdentifier, ResponseType> it : l)
+                        it.errorCallback.onError(i, commandId, error);
+                } else {
+                    ErrorCallback<RequestIdentifier> cb = l.remove().errorCallback;
+                    if (l.size() == 0)
+                        callbacks.remove(i);
+                    cb.onError(i, commandId, error);
+                }
                 return true;
             }
         }
         return false;
     }
 
-    protected CallbackType requestResponseCallbacksFor(RequestIdentifier i) {
+    protected void onResponse(RequestIdentifier i, ResponseType resp) {
         synchronized (callbacks) {
             if (callbacks.containsKey(i)) {
-                Queue<CallbackData<RequestIdentifier, CallbackType>> l = callbacks.get(i);
-                CallbackType ret = l.remove().callback;
-                if (l.size() == 0)
-                    callbacks.remove(i);
+                Queue<CallbackData<RequestIdentifier, ResponseType>> l = callbacks.get(i);
                 errorCommandHandler.cancelErrorCallback(handledErrors, this);
-                return ret;
+                if (sharedResponseMode) {
+                    callbacks.remove(i);
+                    for (CallbackData<RequestIdentifier, ResponseType> it : l)
+                        it.callback.onResponse(resp);
+                } else {
+                    Callback<ResponseType> ret = l.remove().callback;
+                    if (l.size() == 0)
+                        callbacks.remove(i);
+                    ret.onResponse(resp);
+                }
             }
-            return null;
+        }
+    }
+
+    protected void onCancelled(RequestIdentifier i) {
+        synchronized (callbacks) {
+            if (callbacks.containsKey(i)) {
+                Queue<CallbackData<RequestIdentifier, ResponseType>> l = callbacks.get(i);
+                errorCommandHandler.cancelErrorCallback(handledErrors, this);
+                if (sharedResponseMode) {
+                    callbacks.remove(i);
+                } else {
+                    l.remove();
+                    if (l.size() == 0)
+                        callbacks.remove(i);
+                }
+            }
         }
     }
 
@@ -63,17 +95,23 @@ public abstract class RequestResponseCommandHandler<RequestIdentifier, CallbackT
         }
     }
 
+    public interface Callback<ResponseType> {
+
+        void onResponse(ResponseType type);
+
+    }
+
     public interface ErrorCallback<RequestIdentifier> {
 
         void onError(RequestIdentifier i, int errorCommandId, String errorMessage);
 
     }
 
-    private static class CallbackData<RequestIdentifier, CallbackType> {
-        CallbackType callback;
+    private static class CallbackData<RequestIdentifier, ResponseType> {
+        Callback<ResponseType> callback;
         ErrorCallback<RequestIdentifier> errorCallback;
 
-        CallbackData(CallbackType cb, ErrorCallback<RequestIdentifier> e) {
+        CallbackData(Callback<ResponseType> cb, ErrorCallback<RequestIdentifier> e) {
             this.callback = cb;
             this.errorCallback = e;
         }

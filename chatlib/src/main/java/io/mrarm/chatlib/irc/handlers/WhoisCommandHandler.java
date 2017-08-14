@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class WhoisCommandHandler extends RequestResponseCommandHandler<String, WhoisCommandHandler.WhoisCallback> {
+public class WhoisCommandHandler extends RequestResponseCommandHandler<String, WhoisInfo> {
 
     public static final int RPL_WHOISUSER = 311;
     public static final int RPL_WHOISSERVER = 312;
@@ -24,7 +24,7 @@ public class WhoisCommandHandler extends RequestResponseCommandHandler<String, W
     private final Map<String, WhoisInfo.Builder> currentReply = new HashMap<>();
 
     public WhoisCommandHandler(ErrorCommandHandler handler) {
-        super(handler);
+        super(handler, true);
     }
 
     @Override
@@ -72,12 +72,8 @@ public class WhoisCommandHandler extends RequestResponseCommandHandler<String, W
         } else if (numeric == RPL_WHOISSECURE) {
             builder.setSecure(true);
         } else if (numeric == RPL_ENDOFWHOIS) {
-            WhoisInfo info = builder.build();
             currentReply.remove(nick);
-
-            WhoisCallback cb = requestResponseCallbacksFor(nick);
-            if (cb != null)
-                cb.onWhoisInfoReceived(info);
+            onResponse(nick, builder.build());
         }
     }
 
@@ -92,12 +88,6 @@ public class WhoisCommandHandler extends RequestResponseCommandHandler<String, W
         WhoisInfo.Builder builder = currentReply.get(nick);
         if (builder != null)
             builder.setAway(message);
-    }
-
-    public interface WhoisCallback {
-
-        void onWhoisInfoReceived(WhoisInfo info);
-
     }
 
 }
