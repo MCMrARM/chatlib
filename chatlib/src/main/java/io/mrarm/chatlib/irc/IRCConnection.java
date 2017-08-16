@@ -108,7 +108,8 @@ public class IRCConnection extends ServerConnectionApi {
                 try {
                     inputHandler.handleLine(command);
                 } catch (InvalidMessageException e) {
-                    e.printStackTrace();
+                    getServerConnectionData().getServerStatusData().addMessage(new StatusMessageInfo(
+                            null, new Date(), StatusMessageInfo.MessageType.UNHANDLED_MESSAGE, command));
                 }
             }
         } catch (IOException e) {
