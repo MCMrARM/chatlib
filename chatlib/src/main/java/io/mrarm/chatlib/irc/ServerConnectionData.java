@@ -26,16 +26,16 @@ public class ServerConnectionData {
     private CapabilityManager capabilityManager = new CapabilityManager(this);
     private final List<ChannelListListener> channelListListeners = new ArrayList<>();
 
-    public ServerConnectionData() {
+    public ServerConnectionData(ServerConnectionApi api) {
         commandHandlerList.addDefaultHandlers();
         capabilityManager.addDefaultCapabilities();
     }
 
-    public void setUserNick(String nick) {
+    public synchronized void setUserNick(String nick) {
         userNick = nick;
     }
 
-    public String getUserNick() {
+    public synchronized String getUserNick() {
         return userNick;
     }
 
@@ -47,19 +47,19 @@ public class ServerConnectionData {
         this.api = api;
     }
 
-    public WritableUserInfoApi getUserInfoApi() {
+    public synchronized WritableUserInfoApi getUserInfoApi() {
         return userInfoApi;
     }
 
-    public void setUserInfoApi(WritableUserInfoApi api) {
+    public synchronized void setUserInfoApi(WritableUserInfoApi api) {
         this.userInfoApi = api;
     }
 
-    public WritableMessageStorageApi getMessageStorageApi() {
+    public synchronized WritableMessageStorageApi getMessageStorageApi() {
         return messageStorageApi;
     }
 
-    public void setMessageStorageApi(WritableMessageStorageApi messageStorageApi) {
+    public synchronized void setMessageStorageApi(WritableMessageStorageApi messageStorageApi) {
         this.messageStorageApi = messageStorageApi;
     }
 
