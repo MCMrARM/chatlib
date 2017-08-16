@@ -8,12 +8,12 @@ import io.mrarm.chatlib.irc.*;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
-public class NamesReplyCommandHandler implements CommandHandler {
+public class NamesReplyCommandHandler implements CommandDisconnectHandler {
 
     public static final int RPL_NAMREPLY = 353;
     public static final int RPL_ENDOFNAMES = 366;
 
-    private Map<String, List<ChannelData.Member>> channelNamesList = new HashMap<>();
+    private final Map<String, List<ChannelData.Member>> channelNamesList = new HashMap<>();
 
     @Override
     public Object[] getHandledCommands() {
@@ -75,5 +75,10 @@ public class NamesReplyCommandHandler implements CommandHandler {
             }
             channelNamesList.remove(channelName);
         }
+    }
+
+    @Override
+    public void onDisconnected() {
+        channelNamesList.clear();
     }
 }

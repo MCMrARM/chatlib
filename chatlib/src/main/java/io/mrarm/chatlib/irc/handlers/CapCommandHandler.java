@@ -1,6 +1,6 @@
 package io.mrarm.chatlib.irc.handlers;
 
-import io.mrarm.chatlib.irc.CommandHandler;
+import io.mrarm.chatlib.irc.CommandDisconnectHandler;
 import io.mrarm.chatlib.irc.InvalidMessageException;
 import io.mrarm.chatlib.irc.MessagePrefix;
 import io.mrarm.chatlib.irc.ServerConnectionData;
@@ -11,7 +11,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class CapCommandHandler implements CommandHandler {
+public class CapCommandHandler implements CommandDisconnectHandler {
 
     private List<CapabilityEntryPair> lsEntries;
     private List<String> ackEntries;
@@ -64,4 +64,11 @@ public class CapCommandHandler implements CommandHandler {
         }
     }
 
+    @Override
+    public void onDisconnected() {
+        if (lsEntries != null)
+            lsEntries = null;
+        if (ackEntries != null)
+            ackEntries = null;
+    }
 }

@@ -3,17 +3,14 @@ package io.mrarm.chatlib.irc.handlers;
 import io.mrarm.chatlib.ResponseCallback;
 import io.mrarm.chatlib.ResponseErrorCallback;
 import io.mrarm.chatlib.dto.ChannelList;
-import io.mrarm.chatlib.irc.CommandHandler;
-import io.mrarm.chatlib.irc.InvalidMessageException;
-import io.mrarm.chatlib.irc.MessagePrefix;
-import io.mrarm.chatlib.irc.ServerConnectionData;
+import io.mrarm.chatlib.irc.*;
 import io.mrarm.chatlib.util.SettableFuture;
 
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.Future;
 
-public class ListCommandHandler implements CommandHandler {
+public class ListCommandHandler implements CommandDisconnectHandler {
 
     public static final int RPL_LISTSTART = 321;
     public static final int RPL_LIST = 322;
@@ -55,6 +52,11 @@ public class ListCommandHandler implements CommandHandler {
         }
     }
 
+    @Override
+    public void onDisconnected() {
+        currentRequest = null;
+        requests.clear();
+    }
 
     public Future<ChannelList> addRequest(ServerConnectionData connection, ResponseCallback<ChannelList> callback,
                                           ResponseCallback<ChannelList.Entry> entryCallback,

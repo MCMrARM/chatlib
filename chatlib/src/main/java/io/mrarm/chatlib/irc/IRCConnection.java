@@ -117,6 +117,7 @@ public class IRCConnection extends ServerConnectionApi {
                 notifyMotdReceiveFailed();
             getServerConnectionData().addLocalMessageToAllChannels(new MessageInfo(null, new Date(), null, MessageInfo.MessageType.DISCONNECT_WARNING));
             getServerConnectionData().getServerStatusData().addMessage(new StatusMessageInfo(null, new Date(), StatusMessageInfo.MessageType.DISCONNECT_WARNING, null));
+            getServerConnectionData().getCommandHandlerList().notifyDisconnected();
             synchronized (disconnectListeners) {
                 for (DisconnectListener listener : disconnectListeners) {
                     listener.onDisconnected(this, e);

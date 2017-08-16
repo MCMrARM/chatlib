@@ -1,16 +1,13 @@
 package io.mrarm.chatlib.irc.handlers;
 
 import io.mrarm.chatlib.dto.StatusMessageInfo;
-import io.mrarm.chatlib.irc.CommandHandler;
-import io.mrarm.chatlib.irc.InvalidMessageException;
-import io.mrarm.chatlib.irc.MessagePrefix;
-import io.mrarm.chatlib.irc.ServerConnectionData;
+import io.mrarm.chatlib.irc.*;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-public class MotdCommandHandler implements CommandHandler {
+public class MotdCommandHandler implements CommandDisconnectHandler {
 
     public static final int RPL_MOTDSTART = 375;
     public static final int RPL_MOTD = 372;
@@ -52,4 +49,10 @@ public class MotdCommandHandler implements CommandHandler {
             }
         }
     }
+
+    @Override
+    public void onDisconnected() {
+        motdBuilder = null;
+    }
+
 }

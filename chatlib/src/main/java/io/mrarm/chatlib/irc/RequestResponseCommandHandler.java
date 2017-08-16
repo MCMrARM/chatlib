@@ -2,7 +2,7 @@ package io.mrarm.chatlib.irc;
 
 import java.util.*;
 
-public abstract class RequestResponseCommandHandler<RequestIdentifier, ResponseType> implements CommandHandler,
+public abstract class RequestResponseCommandHandler<RequestIdentifier, ResponseType> implements CommandDisconnectHandler,
         ErrorCommandHandler.ErrorCallback {
 
     private final ErrorCommandHandler errorCommandHandler;
@@ -89,9 +89,31 @@ public abstract class RequestResponseCommandHandler<RequestIdentifier, ResponseT
         }
     }
 
+    @Override
+    public void onDisconnected() {
+        synchronized (callbacks) {
+            for (Map.Entry<RequestIdentifier, Queue<CallbackData<RequestIdentifier, ResponseType>>> entry : callbacks.entrySet()) {
+                if (sharedResponseMode)
+                    errorCommandHandler.cancelErrorCallback(handledErrors, this);
+                for (CallbackData<RequestIdentifier, ResponseType> it : entry.getValue()) {
+                    if (!sharedResponseMode)
+                        errorCommandHandler.cancelErrorCallback(handledErrors, this);
+                    it.errorCallback.onError(entry.getKey(), -1, "Disconnected from server");
+                }
+            }
+            callbacks.clear();
+        }
+    }
+
     public boolean hasRequest(RequestIdentifier i) {
         synchronized (callbacks) {
             return callbacks.containsKey(i);
+        }
+    }
+
+    public void reset() {
+        synchronized (callbacks) {
+            callbacks.clear();
         }
     }
 

@@ -77,4 +77,11 @@ public class CommandHandlerList {
         return errorCommandHandler;
     }
 
+    public void notifyDisconnected() {
+        for (CommandHandler handler : handlers.values()) {
+            if (handler instanceof CommandDisconnectHandler)
+                ((CommandDisconnectHandler) handler).onDisconnected();
+        }
+    }
+
 }

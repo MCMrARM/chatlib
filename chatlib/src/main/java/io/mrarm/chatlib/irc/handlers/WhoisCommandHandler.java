@@ -84,6 +84,12 @@ public class WhoisCommandHandler extends RequestResponseCommandHandler<String, W
         return params.size() > 1 && onError(params.get(1), commandId, params.size() > 2 ? params.get(2) : null, false);
     }
 
+    @Override
+    public void onDisconnected() {
+        super.onDisconnected();
+        currentReply.clear();
+    }
+
     public void onAwayMessage(String nick, String message) {
         WhoisInfo.Builder builder = currentReply.get(nick);
         if (builder != null)
