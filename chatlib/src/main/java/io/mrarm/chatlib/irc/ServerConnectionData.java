@@ -26,7 +26,7 @@ public class ServerConnectionData {
     private CapabilityManager capabilityManager = new CapabilityManager(this);
     private final List<ChannelListListener> channelListListeners = new ArrayList<>();
 
-    public ServerConnectionData(ServerConnectionApi api) {
+    public ServerConnectionData() {
         commandHandlerList.addDefaultHandlers();
         capabilityManager.addDefaultCapabilities();
     }
