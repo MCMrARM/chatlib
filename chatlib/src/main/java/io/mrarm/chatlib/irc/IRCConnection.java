@@ -136,7 +136,7 @@ public class IRCConnection extends ServerConnectionApi {
 
     public void disconnect(boolean cleanly) {
         if (socket != null) {
-            if (cleanly && hasReceivedMotd()) {
+            if (cleanly) {
                 try {
                     socketInputStream.close();
                     socketOutputStream.close();
