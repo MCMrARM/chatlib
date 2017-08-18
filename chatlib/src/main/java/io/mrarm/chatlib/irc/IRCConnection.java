@@ -255,22 +255,34 @@ public class IRCConnection extends ServerConnectionApi {
         }, callback, errorCallback);
     }
 
-    @Override
-    public Future<Void> sendMessage(String channel, String message, ResponseCallback<Void> callback,
-                                    ResponseErrorCallback errorCallback) {
+    private Future<Void> sendMessage(String channel, String message, boolean notice, ResponseCallback<Void> callback,
+                                     ResponseErrorCallback errorCallback) {
         return executor.queue(() -> {
+            String cmd = notice ? "NOTICE" : "PRIVMSG";
             try {
                 List<String> params = new ArrayList<>();
                 params.add(channel);
                 params.add(message);
-                selfMessageHandler.handle(getServerConnectionData(), new MessagePrefix(getServerConnectionData().getUserNick()), "PRIVMSG", params, null);
+                selfMessageHandler.handle(getServerConnectionData(), new MessagePrefix(getServerConnectionData().getUserNick()), cmd, params, null);
             } catch (Exception ignored) {
                 // it failed, but we don't really care - the message might have been sent to a channel which we have not
                 // joined, which is perfectly valid but will cause the code above to raise an exception
             }
-            sendCommand("PRIVMSG", true, channel, message);
+            sendCommand(cmd, true, channel, message);
             return null;
         }, callback, errorCallback);
+    }
+
+    @Override
+    public Future<Void> sendMessage(String channel, String message, ResponseCallback<Void> callback,
+                                    ResponseErrorCallback errorCallback) {
+        return sendMessage(channel, message, false, callback, errorCallback);
+    }
+
+    @Override
+    public Future<Void> sendNotice(String channel, String message, ResponseCallback<Void> callback,
+                                   ResponseErrorCallback errorCallback) {
+        return sendMessage(channel, message, true, callback, errorCallback);
     }
 
     public void connectSync(IRCConnectionRequest request) throws IOException {

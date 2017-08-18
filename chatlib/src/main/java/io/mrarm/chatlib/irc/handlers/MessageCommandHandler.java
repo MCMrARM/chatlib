@@ -13,9 +13,21 @@ import java.util.concurrent.ExecutionException;
 
 public class MessageCommandHandler implements CommandHandler {
 
+    private long ctcpLastReplySeconds = 0L;
+    private int ctcpSecondReplyCount = 0;
+    private String ctcpVersionReply = "Chatlib:unknown:unknown";
+
     @Override
     public Object[] getHandledCommands() {
         return new Object[] { "PRIVMSG", "NOTICE" };
+    }
+
+    public void setCtcpVersionReply(String str) {
+        ctcpVersionReply = str;
+    }
+
+    public void setCtcpVersionReply(String clientName, String clientVersion, String system) {
+        setCtcpVersionReply(clientName + ":" + clientVersion + ":" + system);
     }
 
     @Override
@@ -38,7 +50,7 @@ public class MessageCommandHandler implements CommandHandler {
             int ctcpE = text.lastIndexOf('\01');
             if (ctcpS != -1 && ctcpE != -1 && sender != null) {
                 for (String ctcpCommand : text.substring(ctcpS, ctcpE).split("\01"))
-                    processCtcp(connection, sender, userUUID, targetChannels, ctcpCommand.indexOf('\134') == -1 ? ctcpCommand : ctcpDequote(ctcpCommand), tags);
+                    processCtcp(connection, sender, userUUID, targetChannels, ctcpCommand.indexOf('\134') == -1 ? ctcpCommand : ctcpDequote(ctcpCommand), type == MessageInfo.MessageType.NOTICE, tags);
                 if (ctcpS == 0 && ctcpE == text.length() - 1)
                     return;
                 text = text.substring(0, ctcpS) + text.substring(ctcpE + 1, text.length());
@@ -71,7 +83,7 @@ public class MessageCommandHandler implements CommandHandler {
         }
     }
 
-    private void processCtcp(ServerConnectionData connection, MessagePrefix sender, UUID userUUID, String[] targetChannels, String data, Map<String, String> tags) throws InterruptedException, ExecutionException {
+    private void processCtcp(ServerConnectionData connection, MessagePrefix sender, UUID userUUID, String[] targetChannels, String data, boolean notice, Map<String, String> tags) throws InterruptedException, ExecutionException {
         int iof = data.indexOf(' ');
         String command = iof == -1 ? data : data.substring(0, iof);
         String args = data.substring(iof + 1);
@@ -82,8 +94,28 @@ public class MessageCommandHandler implements CommandHandler {
                     continue;
                 channelData.addMessage(new MessageInfo.Builder(sender.toSenderInfo(userUUID, channelData), args, MessageInfo.MessageType.ME), tags);
             }
+        } else if (command.equals("PING") && !notice) {
+            if (!rateLimitCtcpCommand() || args.contains("\r") || args.contains("\n") || args.length() > 32)
+                return;
+            connection.getServerStatusData().addMessage(new StatusMessageInfo(sender.getNick(), new Date(), StatusMessageInfo.MessageType.CTCP_PING, null));
+            connection.getApi().sendNotice(sender.getNick(), "\01PING " + args + "\01", null, null);
+        } else if (command.equals("VERSION") && !notice) {
+            if (!rateLimitCtcpCommand())
+                return;
+            connection.getServerStatusData().addMessage(new StatusMessageInfo(sender.getNick(), new Date(), StatusMessageInfo.MessageType.CTCP_VERSION, null));
+            connection.getApi().sendNotice(sender.getNick(), "\01VERSION " + ctcpVersionReply + "\01", null, null);
         }
         // TODO: Implement other CTCP commands
+    }
+
+    private boolean rateLimitCtcpCommand() {
+        long t = System.currentTimeMillis() / 1000L;
+        if (t != ctcpLastReplySeconds) {
+            ctcpLastReplySeconds = t;
+            ctcpSecondReplyCount = 1;
+            return true;
+        }
+        return (++ctcpSecondReplyCount <= 3);
     }
 
     private ChannelData getChannelData(ServerConnectionData connection, MessagePrefix sender, String channel) {

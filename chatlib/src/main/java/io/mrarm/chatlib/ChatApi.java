@@ -29,6 +29,9 @@ public interface ChatApi {
     Future<Void> sendMessage(String channel, String message, ResponseCallback<Void> callback,
                              ResponseErrorCallback errorCallback);
 
+    Future<Void> sendNotice(String channel, String message, ResponseCallback<Void> callback,
+                            ResponseErrorCallback errorCallback);
+
     Future<ChannelList> listChannels(ResponseCallback<ChannelList> callback,
                                      ResponseCallback<ChannelList.Entry> entryCallback,
                                      ResponseErrorCallback errorCallback);

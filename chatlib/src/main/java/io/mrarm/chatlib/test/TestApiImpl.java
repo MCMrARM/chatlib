@@ -81,6 +81,11 @@ public class TestApiImpl extends ServerConnectionApi {
     }
 
     @Override
+    public Future<Void> sendNotice(String channel, String message, ResponseCallback<Void> callback, ResponseErrorCallback errorCallback) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void sendCommand(String command, boolean isLastArgFullLine, String... args) throws IOException {
     }
 
