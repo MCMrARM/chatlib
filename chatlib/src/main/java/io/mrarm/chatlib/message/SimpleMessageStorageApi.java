@@ -2,15 +2,13 @@ package io.mrarm.chatlib.message;
 
 import io.mrarm.chatlib.ResponseCallback;
 import io.mrarm.chatlib.ResponseErrorCallback;
+import io.mrarm.chatlib.dto.MessageFilterOptions;
 import io.mrarm.chatlib.dto.MessageInfo;
 import io.mrarm.chatlib.dto.MessageList;
 import io.mrarm.chatlib.dto.MessageListAfterIdentifier;
 import io.mrarm.chatlib.util.SimpleRequestExecutor;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Future;
 
 public class SimpleMessageStorageApi implements WritableMessageStorageApi {
@@ -45,9 +43,19 @@ public class SimpleMessageStorageApi implements WritableMessageStorageApi {
         }, callback, errorCallback);
     }
 
+    public static boolean isMessageIncludedInFilter(MessageInfo msg, MessageFilterOptions filter) {
+        if (filter == null)
+            return true;
+        if (filter.excludeMessageTypes != null && filter.excludeMessageTypes.contains(msg.getType()))
+            return false;
+        if (filter.restrictToMessageTypes != null && !filter.restrictToMessageTypes.contains(msg.getType()))
+            return false;
+        return true;
+    }
+
     @Override
-    public Future<MessageList> getMessages(String channelName, int count, MessageListAfterIdentifier after,
-                                           ResponseCallback<MessageList> callback,
+    public Future<MessageList> getMessages(String channelName, int count, MessageFilterOptions filter,
+                                           MessageListAfterIdentifier after, ResponseCallback<MessageList> callback,
                                            ResponseErrorCallback errorCallback) {
         return SimpleRequestExecutor.run(() -> {
             synchronized (channels) {
@@ -57,21 +65,44 @@ public class SimpleMessageStorageApi implements WritableMessageStorageApi {
                 if (after != null && after instanceof SimpleMessageListAfterIdentifier)
                     end = ((SimpleMessageListAfterIdentifier) after).getIndex();
                 int start = Math.max(end - count, 0);
-                for (int i = start; i < end; i++)
-                    ret.add(data.messages.get(i));
+                if (filter == null) {
+                    for (int i = start; i < end; i++)
+                        ret.add(data.messages.get(i));
+                } else {
+                    ret = new ArrayList<>();
+                    int n = count;
+                    for (start = end - 1; start >= 0; --start) {
+                        if (!isMessageIncludedInFilter(data.messages.get(start), filter))
+                            continue;
+                        ret.add(data.messages.get(start));
+                        if (--n == 0)
+                            break;
+                    }
+                    Collections.reverse(ret);
+                }
                 return new MessageList(ret, new SimpleMessageListAfterIdentifier(start));
             }
         }, callback, errorCallback);
     }
 
     @Override
-    public MessageListAfterIdentifier getMessageListAfterIdentifier(String channelName, int count, MessageListAfterIdentifier after) {
+    public MessageListAfterIdentifier getMessageListAfterIdentifier(String channelName, int count,
+                                                                    MessageFilterOptions filter,
+                                                                    MessageListAfterIdentifier after) {
         synchronized (channels) {
             ChannelData data = getChannelData(channelName);
             int end = data.messages.size();
             if (after != null && after instanceof SimpleMessageListAfterIdentifier)
                 end = ((SimpleMessageListAfterIdentifier) after).getIndex();
             int start = Math.max(end - count, 0);
+            if (filter != null) {
+                for (start = end - 1; start >= 0; --start) {
+                    if (!isMessageIncludedInFilter(data.messages.get(start), filter))
+                        continue;
+                    if (--count == 0)
+                        break;
+                }
+            }
             return new SimpleMessageListAfterIdentifier(start);
         }
     }

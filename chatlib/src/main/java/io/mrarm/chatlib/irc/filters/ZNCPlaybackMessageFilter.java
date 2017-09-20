@@ -1,9 +1,6 @@
 package io.mrarm.chatlib.irc.filters;
 
-import io.mrarm.chatlib.dto.BatchInfo;
-import io.mrarm.chatlib.dto.MessageInfo;
-import io.mrarm.chatlib.dto.MessageList;
-import io.mrarm.chatlib.dto.MessageListAfterIdentifier;
+import io.mrarm.chatlib.dto.*;
 import io.mrarm.chatlib.irc.MessageFilter;
 import io.mrarm.chatlib.irc.ServerConnectionData;
 import io.mrarm.chatlib.irc.cap.BatchCapability;
@@ -18,11 +15,7 @@ public class ZNCPlaybackMessageFilter implements MessageFilter, BatchCapability.
 
     private static final String ZNC_PLAYBACK_BATCH = "znc.in/playback";
 
-    // Request this many additional messages when getting the channel log in order to prevent having to do more calls
-    // (we aren't interested in all channel messages, we'll discard all event messages so to account for the messages
-    // we will discard we will use this variable)
-    private static final int REQUEST_EXTRA_MESSAGE_COUNT = 50;
-
+    private final static MessageFilterOptions messagesOnlyFilter;
     private final Map<String, List<MessageInfo>> channelData = new HashMap<>();
     private boolean passthru = false;
 
@@ -48,27 +41,12 @@ public class ZNCPlaybackMessageFilter implements MessageFilter, BatchCapability.
     }
 
     private List<MessageInfo> getChannelMessageLog(ServerConnectionData connection, String channel, int count) {
-        List<MessageInfo> ret = new ArrayList<>();
         try {
-            MessageListAfterIdentifier afterId = null;
-            List<MessageInfo> filtered = new ArrayList<>();
-            while (true) {
-                filtered.clear();
-                MessageList list = connection.getMessageStorageApi().getMessages(channel, count - ret.size() + REQUEST_EXTRA_MESSAGE_COUNT, afterId, null, null).get();
-                for (MessageInfo msg : list.getMessages()) {
-                    if (msg.getType() == MessageInfo.MessageType.NORMAL || msg.getType() == MessageInfo.MessageType.ME)
-                        filtered.add(msg);
-                }
-                ret.addAll(0, filtered);
-                if (ret.size() >= count)
-                    return ret;
-                afterId = list.getAfterIdentifier();
-                if (afterId == null)
-                    break;
-            }
+            MessageList list = connection.getMessageStorageApi().getMessages(channel, count, messagesOnlyFilter, null, null, null).get();
+            return list.getMessages();
         } catch (Exception ignored) {
         }
-        return ret;
+        return null;
     }
 
     @Override
@@ -77,7 +55,7 @@ public class ZNCPlaybackMessageFilter implements MessageFilter, BatchCapability.
         for (Map.Entry<String, List<MessageInfo>> entry : channelData.entrySet()) {
             List<MessageInfo> currentMessages = getChannelMessageLog(connection, entry.getKey(), entry.getValue().size());
             int i;
-            for (i = Math.min(entry.getValue().size(), currentMessages.size()); i >= 1; i--) {
+            for (i = Math.min(entry.getValue().size(), currentMessages != null ? currentMessages.size() : 0); i >= 1; i--) {
                 boolean matched = true;
                 for (int j = 0; j < i; j++) {
                     MessageInfo l = entry.getValue().get(j);
@@ -103,6 +81,13 @@ public class ZNCPlaybackMessageFilter implements MessageFilter, BatchCapability.
         }
         passthru = false;
         channelData.clear();
+    }
+
+    static {
+        messagesOnlyFilter = new MessageFilterOptions();
+        messagesOnlyFilter.restrictToMessageTypes = new ArrayList<>();
+        messagesOnlyFilter.restrictToMessageTypes.add(MessageInfo.MessageType.NORMAL);
+        messagesOnlyFilter.restrictToMessageTypes.add(MessageInfo.MessageType.ME);
     }
 
 }
