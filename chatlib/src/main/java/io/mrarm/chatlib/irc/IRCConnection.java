@@ -1,5 +1,6 @@
 package io.mrarm.chatlib.irc;
 
+import io.mrarm.chatlib.ChatApiException;
 import io.mrarm.chatlib.ResponseCallback;
 import io.mrarm.chatlib.ResponseErrorCallback;
 import io.mrarm.chatlib.dto.MessageInfo;
@@ -30,6 +31,8 @@ public class IRCConnection extends ServerConnectionApi {
     private InputStream socketInputStream;
     private OutputStream socketOutputStream;
     private MessageHandler inputHandler;
+    private ResponseCallback<Void> connectCallback;
+    private ResponseErrorCallback connectErrorCallback;
     private final List<DisconnectListener> disconnectListeners = new ArrayList<>();
 
     private SimpleRequestExecutor executor = new SimpleRequestExecutor();
@@ -114,8 +117,8 @@ public class IRCConnection extends ServerConnectionApi {
             }
         } catch (IOException e) {
             e.printStackTrace();
-            if (!hasReceivedMotd())
-                notifyMotdReceiveFailed();
+            if (connectErrorCallback != null)
+                connectErrorCallback.onError(e);
             getServerConnectionData().addLocalMessageToAllChannels(new MessageInfo(null, new Date(), null, MessageInfo.MessageType.DISCONNECT_WARNING));
             getServerConnectionData().getServerStatusData().addMessage(new StatusMessageInfo(null, new Date(), StatusMessageInfo.MessageType.DISCONNECT_WARNING, null));
             getServerConnectionData().getCommandHandlerList().notifyDisconnected();
@@ -129,10 +132,28 @@ public class IRCConnection extends ServerConnectionApi {
 
     public Future<Void> connect(IRCConnectionRequest request, ResponseCallback<Void> callback,
                                 ResponseErrorCallback errorCallback) {
-        return executor.queue(() -> {
-            connectSync(request);
-            return null;
-        }, callback, errorCallback);
+        SettableFuture<Void> f = new SettableFuture<>();
+        executor.queue(() -> {
+            try {
+                synchronized (this) {
+                    if (socket != null)
+                        throw new RuntimeException("Already connected");
+                    connectCallback = (Void v) -> {
+                        f.set(v);
+                        callback.onResponse(v);
+                    };
+                    connectErrorCallback = (Exception e) -> {
+                        f.setExecutionException(e);
+                        errorCallback.onError(e);
+                    };
+                    connectSync(request);
+                }
+            } catch (Exception exception) {
+                errorCallback.onError(exception);
+                f.setExecutionException(exception);
+            }
+        });
+        return f;
     }
 
     public void disconnect(boolean cleanly) {
@@ -285,8 +306,7 @@ public class IRCConnection extends ServerConnectionApi {
         return sendMessage(channel, message, true, callback, errorCallback);
     }
 
-    public void connectSync(IRCConnectionRequest request) throws IOException {
-        resetMotdStatus();
+    private void connectSync(IRCConnectionRequest request) throws IOException {
         getServerConnectionData().reset();
         if (request.isUsingSSL()) {
             socket = request.getSSLSocketFactory().createSocket(request.getServerIP(), request.getServerPort());
@@ -313,12 +333,17 @@ public class IRCConnection extends ServerConnectionApi {
         Thread thread = new Thread(this::handleInput);
         thread.setName("IRC Connection Handler");
         thread.start();
+    }
 
-        if (!waitForMotd())
-            throw new IOException("Failed to receive MOTD");
-
+    @Override
+    public void notifyMotdReceived() {
+        super.notifyMotdReceived();
         getServerConnectionData().getCommandHandlerList().getHandler(NickCommandHandler.class).cancel(
                 getServerConnectionData().getUserNick());
+        if (connectCallback != null)
+            connectCallback.onResponse(null);
+        connectCallback = null;
+        connectErrorCallback = null;
     }
 
     private void connectRequestNick(List<String> nickList, int index) throws IOException {
@@ -328,13 +353,15 @@ public class IRCConnection extends ServerConnectionApi {
                     if (i == NickCommandHandler.ERR_NICKNAMEINUSE) {
                         // Try next nickname
                         if (index + 1 >= nickList.size()) {
-                            notifyMotdReceiveFailed();
+                            if (connectErrorCallback != null)
+                                connectErrorCallback.onError(new ChatApiException("No available nickname"));
                             return;
                         }
                         try {
                             connectRequestNick(nickList, index + 1);
                         } catch (IOException e) {
-                            notifyMotdReceiveFailed();
+                            if (connectErrorCallback != null)
+                                connectErrorCallback.onError(new ChatApiException("Failed to request nickname"));
                         }
                     }
                 });

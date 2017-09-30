@@ -15,9 +15,6 @@ import java.util.concurrent.Future;
 public abstract class ServerConnectionApi implements ChatApi {
 
     private ServerConnectionData serverConnectionData;
-    private final Object motdReceiveLock = new Object();
-    private boolean motdReceived = false;
-    private boolean motdReceiveFailed = false;
 
     public ServerConnectionApi(ServerConnectionData serverConnectionData) {
         this.serverConnectionData = serverConnectionData;
@@ -38,45 +35,9 @@ public abstract class ServerConnectionApi implements ChatApi {
         return serverConnectionData.getMessageStorageApi();
     }
 
-    protected void resetMotdStatus() {
-        synchronized (motdReceiveLock) {
-            motdReceived = false;
-            motdReceiveFailed = false;
-        }
-    }
-
     public void notifyMotdReceived() {
-        synchronized (motdReceiveLock) {
-            motdReceived = true;
-            motdReceiveLock.notifyAll();
-        }
+        // stub
     }
-
-    public void notifyMotdReceiveFailed() {
-        synchronized (motdReceiveLock) {
-            motdReceiveFailed = true;
-            motdReceiveLock.notifyAll();
-        }
-    }
-
-    protected boolean hasReceivedMotd() {
-        synchronized (motdReceiveLock) {
-            return motdReceived;
-        }
-    }
-
-    protected boolean waitForMotd() {
-        synchronized (motdReceiveLock) {
-            while (!motdReceived && !motdReceiveFailed) {
-                try {
-                    motdReceiveLock.wait();
-                } catch (InterruptedException ignored) {
-                }
-            }
-            return motdReceived && !motdReceiveFailed;
-        }
-    }
-
 
     public abstract Future<Void> sendCommand(String command, boolean isLastArgFullLine, String[] args,
                                              ResponseCallback<Void> callback, ResponseErrorCallback errorCallback);
