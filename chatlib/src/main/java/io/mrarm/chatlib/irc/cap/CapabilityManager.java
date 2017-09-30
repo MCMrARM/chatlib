@@ -107,7 +107,7 @@ public class CapabilityManager {
         for (String capability : capabilities) {
             if (supportedCapabilities.containsKey(capability)) {
                 Capability s = supportedCapabilities.get(capability).get(0);
-                if (s != null)
+                if (s != null && !newCapabilities.contains(s))
                     newCapabilities.add(s);
             }
         }
