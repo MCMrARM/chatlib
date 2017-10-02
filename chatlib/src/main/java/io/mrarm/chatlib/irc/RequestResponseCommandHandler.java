@@ -40,13 +40,16 @@ public abstract class RequestResponseCommandHandler<RequestIdentifier, ResponseT
                     errorCommandHandler.cancelErrorCallback(handledErrors, this);
                 if (sharedResponseMode) {
                     callbacks.remove(i);
-                    for (CallbackData<RequestIdentifier, ResponseType> it : l)
-                        it.errorCallback.onError(i, commandId, error);
+                    for (CallbackData<RequestIdentifier, ResponseType> it : l) {
+                        if (it.errorCallback != null)
+                            it.errorCallback.onError(i, commandId, error);
+                    }
                 } else {
                     ErrorCallback<RequestIdentifier> cb = l.remove().errorCallback;
                     if (l.size() == 0)
                         callbacks.remove(i);
-                    cb.onError(i, commandId, error);
+                    if (cb != null)
+                        cb.onError(i, commandId, error);
                 }
                 return true;
             }
@@ -61,13 +64,16 @@ public abstract class RequestResponseCommandHandler<RequestIdentifier, ResponseT
                 errorCommandHandler.cancelErrorCallback(handledErrors, this);
                 if (sharedResponseMode) {
                     callbacks.remove(i);
-                    for (CallbackData<RequestIdentifier, ResponseType> it : l)
-                        it.callback.onResponse(resp);
+                    for (CallbackData<RequestIdentifier, ResponseType> it : l) {
+                        if (it.callback != null)
+                            it.callback.onResponse(resp);
+                    }
                 } else {
                     Callback<ResponseType> ret = l.remove().callback;
                     if (l.size() == 0)
                         callbacks.remove(i);
-                    ret.onResponse(resp);
+                    if (ret != null)
+                        ret.onResponse(resp);
                 }
             }
         }
@@ -98,7 +104,8 @@ public abstract class RequestResponseCommandHandler<RequestIdentifier, ResponseT
                 for (CallbackData<RequestIdentifier, ResponseType> it : entry.getValue()) {
                     if (!sharedResponseMode)
                         errorCommandHandler.cancelErrorCallback(handledErrors, this);
-                    it.errorCallback.onError(entry.getKey(), -1, "Disconnected from server");
+                    if (it.errorCallback != null)
+                        it.errorCallback.onError(entry.getKey(), -1, "Disconnected from server");
                 }
             }
             callbacks.clear();
