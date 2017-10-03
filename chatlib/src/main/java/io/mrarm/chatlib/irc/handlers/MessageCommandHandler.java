@@ -174,7 +174,7 @@ public class MessageCommandHandler implements CommandHandler {
         for (int i = 0; i < text.length(); i++) {
             char c = text.charAt(i);
             if (c == '\134') {
-                if (text.charAt(i + 1) == 'a') {
+                if (i + 1 < text.length() && text.charAt(i + 1) == 'a') {
                     outpBuilder.append('\01');
                     i++;
                 }
