@@ -40,7 +40,8 @@ public class WelcomeCommandHandler implements CommandHandler {
             case RPL_MYINFO: {
                 type = StatusMessageInfo.MessageType.HOST_INFO;
                 connection.getServerStatusData().addMessage(new HostInfoMessageInfo(sender.getServerName(), new Date(),
-                        type, params.get(1), params.get(2), params.get(3), params.get(4)));
+                        type, params.get(1), params.get(2), params.size() > 3 ? params.get(3) : null,
+                        params.size() > 4 ? params.get(4) : null));
                 return;
             }
             case RPL_BOUNCE:
