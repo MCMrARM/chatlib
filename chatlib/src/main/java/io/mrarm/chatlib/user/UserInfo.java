@@ -48,4 +48,8 @@ public class UserInfo {
             channels.remove(channel);
     }
 
+    void clearChannelPresences() {
+        channels.clear();
+    }
+
 }

@@ -149,4 +149,17 @@ public class SimpleUserInfoApi implements WritableUserInfoApi {
             return null;
         }, callback, errorCallback);
     }
+
+    @Override
+    public Future<Void> clearAllUsersChannelPresences(ResponseCallback<Void> callback,
+                                                      ResponseErrorCallback errorCallback) {
+        return SimpleRequestExecutor.run(() -> {
+            synchronized (SimpleUserInfoApi.this) {
+                for (UserInfo userInfo : uuidToUserInfo.values())
+                    userInfo.clearChannelPresences();
+            }
+            return null;
+        }, callback, errorCallback);
+    }
+
 }

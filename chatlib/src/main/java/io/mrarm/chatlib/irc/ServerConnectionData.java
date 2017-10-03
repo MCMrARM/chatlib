@@ -3,6 +3,7 @@ package io.mrarm.chatlib.irc;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import io.mrarm.chatlib.ChannelListListener;
 import io.mrarm.chatlib.NoSuchChannelException;
@@ -142,6 +143,11 @@ public class ServerConnectionData {
             joinedChannels.clear();
         }
         getCapabilityManager().reset();
+        try {
+            getUserInfoApi().clearAllUsersChannelPresences(null, null).get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void addLocalMessageToAllChannels(MessageInfo messageInfo) {
