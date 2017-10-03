@@ -143,8 +143,7 @@ public class CapabilityManager {
         }
         try {
             connection.getApi().sendCommand("CAP", true, "REQ", capsBuilder.toString());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (IOException ignored) {
         }
     }
 
@@ -157,8 +156,7 @@ public class CapabilityManager {
         negotiationFinishWaitingForLocks = false;
         try {
             connection.getApi().sendCommand("CAP", false, "END");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (IOException ignored) {
         }
     }
 

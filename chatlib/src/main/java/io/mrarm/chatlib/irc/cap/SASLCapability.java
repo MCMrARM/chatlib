@@ -79,8 +79,7 @@ public class SASLCapability extends Capability {
             throw new InvalidParameterException("Invalid auth method");
         try {
             connection.getApi().sendCommand("AUTHENTICATE", false, method);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (IOException ignored) {
         }
     }
 
@@ -95,8 +94,7 @@ public class SASLCapability extends Capability {
         String dataStr = Base64Util.encode(data.toString().getBytes());
         try {
             connection.getApi().sendCommand("AUTHENTICATE", false, dataStr);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (IOException ignored) {
         }
     }
 
