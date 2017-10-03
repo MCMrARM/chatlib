@@ -53,7 +53,7 @@ public class WhoisCommandHandler extends RequestResponseCommandHandler<String, W
             }
         }
         if (numeric == RPL_WHOISUSER) {
-            builder.setUserInfo(nick, params.get(2), params.get(3), params.get(5));
+            builder.setUserInfo(nick, params.get(2), params.get(3), params.size() > 5 ? params.get(5) : null);
         } else if (numeric == RPL_WHOISSERVER) {
             builder.setServerInfo(params.get(2), params.get(3));
         } else if (numeric == RPL_WHOISOPERATOR) {
