@@ -312,28 +312,33 @@ public class IRCConnection extends ServerConnectionApi {
     }
 
     private void connectSync(IRCConnectionRequest request) throws IOException {
-        getServerConnectionData().reset();
-        if (request.isUsingSSL()) {
-            socket = request.getSSLSocketFactory().createSocket(request.getServerIP(), request.getServerPort());
-            HostnameVerifier hostnameVerifier = request.getSSLHostnameVerifier();
-            if (hostnameVerifier != null) {
-                SSLSocket sslSocket = (SSLSocket) socket;
-                sslSocket.setUseClientMode(true);
-                sslSocket.startHandshake();
-                if (!hostnameVerifier.verify(request.getServerIP(), sslSocket.getSession()))
-                    throw new IOException("Failed to verify hostname: " + request.getServerIP());
+        try {
+            getServerConnectionData().reset();
+            if (request.isUsingSSL()) {
+                socket = request.getSSLSocketFactory().createSocket(request.getServerIP(), request.getServerPort());
+                HostnameVerifier hostnameVerifier = request.getSSLHostnameVerifier();
+                if (hostnameVerifier != null) {
+                    SSLSocket sslSocket = (SSLSocket) socket;
+                    sslSocket.setUseClientMode(true);
+                    sslSocket.startHandshake();
+                    if (!hostnameVerifier.verify(request.getServerIP(), sslSocket.getSession()))
+                        throw new IOException("Failed to verify hostname: " + request.getServerIP());
+                }
+            } else {
+                socket = new Socket(request.getServerIP(), request.getServerPort());
             }
-        } else {
-            socket = new Socket(request.getServerIP(), request.getServerPort());
+            socketInputStream = socket.getInputStream();
+            socketOutputStream = socket.getOutputStream();
+            sendCommand(false, "CAP", false, "LS", "302");
+            if (request.getServerPass() != null)
+                sendCommand(false, "PASS", request.getServerPass().contains(" "), request.getServerPass());
+            connectRequestNick(request.getNickList(), 0);
+            sendCommand("USER", true, request.getUser(), String.valueOf(request.getUserMode()), "*", request.getRealName());
+            System.out.println("Sent inital commands");
+        } catch (Throwable t) {
+            socket = null;
+            throw t;
         }
-        socketInputStream = socket.getInputStream();
-        socketOutputStream = socket.getOutputStream();
-        sendCommand(false, "CAP", false, "LS", "302");
-        if (request.getServerPass() != null)
-            sendCommand(false, "PASS", request.getServerPass().contains(" "), request.getServerPass());
-        connectRequestNick(request.getNickList(), 0);
-        sendCommand("USER", true, request.getUser(), String.valueOf(request.getUserMode()), "*", request.getRealName());
-        System.out.println("Sent inital commands");
 
         Thread thread = new Thread(this::handleInput);
         thread.setName("IRC Connection Handler");
