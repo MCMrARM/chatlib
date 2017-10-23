@@ -52,7 +52,7 @@ public class SettableFuture<V> implements Future<V> {
 
     public void set(V value) {
         synchronized (this) {
-            value = value;
+            this.value = value;
             valueSet = true;
             notifyAll();
         }
@@ -60,7 +60,7 @@ public class SettableFuture<V> implements Future<V> {
 
     public void setExecutionException(Exception exception) {
         synchronized (this) {
-            exception = exception;
+            this.exception = exception;
             valueSet = true;
             notifyAll();
         }
