@@ -165,8 +165,10 @@ public class IRCConnection extends ServerConnectionApi {
         if (socket != null) {
             if (cleanly) {
                 try {
-                    socketInputStream.close();
-                    socketOutputStream.close();
+                    if (socketInputStream != null)
+                        socketInputStream.close();
+                    if (socketOutputStream != null)
+                        socketOutputStream.close();
                 } catch (IOException ignored) {
                 }
             }
@@ -336,7 +338,10 @@ public class IRCConnection extends ServerConnectionApi {
             sendCommand("USER", true, request.getUser(), String.valueOf(request.getUserMode()), "*", request.getRealName());
             System.out.println("Sent inital commands");
         } catch (Throwable t) {
+            disconnect(false);
             socket = null;
+            socketInputStream = null;
+            socketOutputStream = null;
             throw t;
         }
 
