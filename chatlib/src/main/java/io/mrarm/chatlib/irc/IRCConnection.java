@@ -333,7 +333,9 @@ public class IRCConnection extends ServerConnectionApi {
             socketOutputStream = socket.getOutputStream();
             sendCommand(false, "CAP", false, "LS", "302");
             if (request.getServerPass() != null)
-                sendCommand(false, "PASS", request.getServerPass().contains(" "), request.getServerPass());
+                sendCommand(false, "PASS", request.getServerPass().contains(" ") ||
+                        request.getServerPass().length() == 0 || request.getServerPass().startsWith(":"),
+                        request.getServerPass());
             connectRequestNick(request.getNickList(), 0);
             sendCommand("USER", true, request.getUser(), String.valueOf(request.getUserMode()), "*", request.getRealName());
             System.out.println("Sent inital commands");
