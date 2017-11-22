@@ -2,28 +2,17 @@ package io.mrarm.chatlib.dto;
 
 import java.util.UUID;
 
-public class MessageSenderInfo {
+public class MessageSenderInfo extends NickWithPrefix {
 
-    private String nick;
     private String user;
     private String host;
-    private NickPrefixList nickPrefixes;
     private UUID userUUID;
 
     public MessageSenderInfo(String nick, String user, String host, NickPrefixList nickPrefixes, UUID userUUID) {
-        this.nick = nick;
+        super(nick, nickPrefixes);
         this.user = user;
         this.host = host;
-        this.nickPrefixes = nickPrefixes;
         this.userUUID = userUUID;
-    }
-
-    public String getNick() {
-        return nick;
-    }
-
-    public NickPrefixList getNickPrefixes() {
-        return nickPrefixes;
     }
 
     public String getUser() {
