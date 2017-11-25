@@ -37,7 +37,7 @@ public class ModeCommandHandler implements CommandHandler {
                 // TODO: user modes
             }
         } catch (NoSuchChannelException e) {
-            throw new InvalidMessageException("Invalid channel specified in a JOIN message", e);
+            throw new InvalidMessageException("Invalid channel specified in a MODE message", e);
         } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException(e);
         }

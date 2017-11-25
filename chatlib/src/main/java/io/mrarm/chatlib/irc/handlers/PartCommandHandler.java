@@ -37,7 +37,7 @@ public class PartCommandHandler implements CommandHandler {
                 channelData.addMessage(new MessageInfo.Builder(senderInfo, message, MessageInfo.MessageType.PART), tags);
             }
         } catch (NoSuchChannelException e) {
-            throw new InvalidMessageException("Invalid channel specified in a JOIN message", e);
+            throw new InvalidMessageException("Invalid channel specified in a PART message", e);
         } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException(e);
         }

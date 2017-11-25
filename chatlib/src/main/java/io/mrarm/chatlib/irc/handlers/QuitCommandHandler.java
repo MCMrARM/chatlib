@@ -31,7 +31,9 @@ public class QuitCommandHandler implements CommandHandler {
                 channelData.removeMember(channelData.getMember(userInfo.getUUID()));
                 channelData.addMessage(new MessageInfo.Builder(senderInfo, params.get(0), MessageInfo.MessageType.QUIT), tags);
             }
-        } catch (InterruptedException | ExecutionException | NoSuchChannelException e) {
+        } catch (NoSuchChannelException e) {
+            throw new InvalidMessageException("Invalid channel specified in a QUIT message", e);
+        } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException(e);
         }
     }
