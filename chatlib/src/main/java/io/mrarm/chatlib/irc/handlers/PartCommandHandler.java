@@ -33,7 +33,9 @@ public class PartCommandHandler implements CommandHandler {
             String message = params.size() > 1 ? params.get(1) : null;
             for (String channel : params.get(0).split(",")) {
                 ChannelData channelData = connection.getJoinedChannelData(channel);
-                channelData.removeMember(channelData.getMember(userUUID));
+                ChannelData.Member member = channelData.getMember(userUUID);
+                if (member != null)
+                    channelData.removeMember(member);
                 channelData.addMessage(new MessageInfo.Builder(senderInfo, message, MessageInfo.MessageType.PART), tags);
             }
         } catch (NoSuchChannelException e) {
