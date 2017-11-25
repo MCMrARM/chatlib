@@ -69,7 +69,8 @@ public class NamesReplyCommandHandler implements CommandDisconnectHandler {
         } else if (numeric == RPL_ENDOFNAMES) {
             String channelName = params.get(1);
             try {
-                connection.getJoinedChannelData(channelName).setMembers(channelNamesList.get(channelName));
+                connection.getJoinedChannelData(channelName).setMembers(channelNamesList.containsKey(channelName)
+                        ? channelNamesList.get(channelName) : new ArrayList<>());
             } catch (NoSuchChannelException e) {
                 throw new InvalidMessageException("Invalid channel name", e);
             }
