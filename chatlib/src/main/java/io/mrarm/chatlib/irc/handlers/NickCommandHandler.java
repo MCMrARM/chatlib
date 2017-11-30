@@ -61,8 +61,8 @@ public class NickCommandHandler extends RequestResponseCommandHandler<String, St
     @Override
     public boolean onError(int commandId, List<String> params) {
         if (commandId == NickCommandHandler.ERR_NONICKNAMEGIVEN)
-            return onError(null, commandId, params.get(1), false);
-        return params.size() > 1 && onError(params.get(1), commandId, params.size() > 2 ? params.get(2) : null, false);
+            return onError(null, commandId, CommandHandler.getParamOrNull(params, 1), false);
+        return params.size() > 1 && onError(params.get(1), commandId, CommandHandler.getParamOrNull(params, 2), false);
     }
 
     public void cancel(String nick) {
