@@ -2,6 +2,7 @@ package io.mrarm.chatlib.irc.cap;
 
 import io.mrarm.chatlib.dto.BatchInfo;
 import io.mrarm.chatlib.dto.MessageInfo;
+import io.mrarm.chatlib.irc.CommandHandler;
 import io.mrarm.chatlib.irc.InvalidMessageException;
 import io.mrarm.chatlib.irc.MessagePrefix;
 import io.mrarm.chatlib.irc.ServerConnectionData;
@@ -42,10 +43,10 @@ public class BatchCapability extends Capability {
     @Override
     public void handle(ServerConnectionData connection, MessagePrefix sender, String command, List<String> params,
                        Map<String, String> tags) throws InvalidMessageException {
-        String name = params.get(0);
+        String name = CommandHandler.getParamWithCheck(params, 0);
         if (name.startsWith("+")) {
             name = name.substring(1);
-            BatchInfo batch = new BatchInfo(UUID.randomUUID(), params.get(1),
+            BatchInfo batch = new BatchInfo(UUID.randomUUID(), CommandHandler.getParamWithCheck(params, 1),
                     params.subList(1, params.size()).toArray(new String[params.size() - 1]), getBatchForTags(tags));
             batches.put(name, batch);
             if (batchListeners.containsKey(batch.getType())) {

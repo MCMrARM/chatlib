@@ -26,12 +26,12 @@ public class NamesReplyCommandHandler implements CommandDisconnectHandler {
         int numeric = CommandHandler.toNumeric(command);
         if (numeric == RPL_NAMREPLY) {
             int paramId = 1;
-            String channelName = params.get(paramId);
+            String channelName = CommandHandler.getParamWithCheck(params, paramId);
             // if the first argument is '=' or '*' or '@', skip it as it's the channel type which we don't really care
             // about for now
             if (channelName.length() == 1 && (channelName.charAt(0) == '=' || channelName.charAt(0) == '*' ||
                     channelName.charAt(0) == '@'))
-                channelName = params.get(++paramId);
+                channelName = CommandHandler.getParamWithCheck(params, ++paramId);
 
             List<ChannelData.Member> list = channelNamesList.get(channelName);
             if (list == null) {
@@ -40,7 +40,7 @@ public class NamesReplyCommandHandler implements CommandDisconnectHandler {
             }
             List<NickWithPrefix> nicksWithPrefixes = new ArrayList<>();
             List<String> uuidRequestList = new ArrayList<>();
-            for (String rawNick : params.get(++paramId).split(" ")) {
+            for (String rawNick : CommandHandler.getParamWithCheck(params, ++paramId).split(" ")) {
                 NickWithPrefix nickWithPrefix = connection.getNickPrefixParser().parse(connection, rawNick);
                 nicksWithPrefixes.add(nickWithPrefix);
                 uuidRequestList.add(nickWithPrefix.getNick());
@@ -67,7 +67,7 @@ public class NamesReplyCommandHandler implements CommandDisconnectHandler {
                         : null, nickWithPrefix.getNickPrefixes()));
             }
         } else if (numeric == RPL_ENDOFNAMES) {
-            String channelName = params.get(1);
+            String channelName = CommandHandler.getParamWithCheck(params, 1);
             try {
                 connection.getJoinedChannelData(channelName).setMembers(channelNamesList.containsKey(channelName)
                         ? channelNamesList.get(channelName) : new ArrayList<>());

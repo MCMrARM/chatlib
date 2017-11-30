@@ -45,7 +45,14 @@ public class ListCommandHandler implements CommandDisconnectHandler {
         } else if (numeric == RPL_LIST) {
             if (request.entries == null)
                 throw new InvalidMessageException("Channel list entry without a list start message");
-            ChannelList.Entry entry = new ChannelList.Entry(params.get(1), Integer.parseInt(params.get(2)), params.get(3));
+            ChannelList.Entry entry;
+            try {
+                entry = new ChannelList.Entry(CommandHandler.getParamWithCheck(params, 1),
+                        Integer.parseInt(CommandHandler.getParamWithCheck(params, 2)),
+                        CommandHandler.getParamWithCheck(params, 3));
+            } catch (NumberFormatException e) {
+                throw new InvalidMessageException();
+            }
             request.entries.add(entry);
             if (request.entryCallback != null)
                 request.entryCallback.onResponse(entry);

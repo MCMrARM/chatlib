@@ -26,8 +26,7 @@ public class WelcomeCommandHandler implements CommandHandler {
 
     @Override
     public void handle(ServerConnectionData connection, MessagePrefix sender, String command, List<String> params,
-                       Map<String, String> tags)
-            throws InvalidMessageException {
+                       Map<String, String> tags) throws InvalidMessageException {
         int numeric = CommandHandler.toNumeric(command);
         StatusMessageInfo.MessageType type = StatusMessageInfo.MessageType.WELCOME_TEXT;
         switch (numeric) {
@@ -40,8 +39,10 @@ public class WelcomeCommandHandler implements CommandHandler {
             case RPL_MYINFO: {
                 type = StatusMessageInfo.MessageType.HOST_INFO;
                 connection.getServerStatusData().addMessage(new HostInfoMessageInfo(sender.getServerName(), new Date(),
-                        type, params.get(1), params.get(2), params.size() > 3 ? params.get(3) : null,
-                        params.size() > 4 ? params.get(4) : null));
+                        type,  CommandHandler.getParamWithCheck(params, 1),
+                        CommandHandler.getParamWithCheck(params, 2),
+                        CommandHandler.getParamOrNull(params, 3),
+                        CommandHandler.getParamOrNull(params, 4)));
                 return;
             }
             case RPL_BOUNCE:
@@ -49,6 +50,6 @@ public class WelcomeCommandHandler implements CommandHandler {
                 break;
         }
         connection.getServerStatusData().addMessage(new StatusMessageInfo(sender.getServerName(), new Date(), type,
-                params.get(1)));
+                CommandHandler.getParamWithCheck(params, 1)));
     }
 }

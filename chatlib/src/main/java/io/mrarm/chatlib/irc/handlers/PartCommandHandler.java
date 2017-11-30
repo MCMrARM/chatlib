@@ -21,8 +21,9 @@ public class PartCommandHandler implements CommandHandler {
     public void handle(ServerConnectionData connection, MessagePrefix sender, String command, List<String> params,
                        Map<String, String> tags)
             throws InvalidMessageException {
+        String[] channels = CommandHandler.getParamWithCheck(params, 0).split(",");
         if (sender.getNick().equals(connection.getUserNick())) {
-            for (String channel : params.get(0).split(","))
+            for (String channel : channels)
                 connection.onChannelLeft(channel);
         }
         try {
@@ -30,8 +31,8 @@ public class PartCommandHandler implements CommandHandler {
                     sender.getHost(), null, null).get();
             MessageSenderInfo senderInfo = new MessageSenderInfo(sender.getNick(), sender.getUser(), sender.getHost(),
                     null, userUUID);
-            String message = params.size() > 1 ? params.get(1) : null;
-            for (String channel : params.get(0).split(",")) {
+            String message = CommandHandler.getParamOrNull(params, 1);
+            for (String channel : channels) {
                 ChannelData channelData = connection.getJoinedChannelData(channel);
                 ChannelData.Member member = channelData.getMember(userUUID);
                 if (member != null)

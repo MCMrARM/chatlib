@@ -27,11 +27,12 @@ public class TopicCommandHandler implements CommandHandler {
         String topic = null;
         boolean isTopicCommand = command.equals("TOPIC");
         if (numeric == RPL_TOPIC)
-            topic = params.get(2);
+            topic = CommandHandler.getParamWithCheck(params, 2);
         else if (isTopicCommand)
-            topic = params.get(1);
+            topic = CommandHandler.getParamWithCheck(params, 1);
         try {
-            ChannelData channelData = connection.getJoinedChannelData(params.get(isTopicCommand ? 0 : 1));
+            ChannelData channelData = connection.getJoinedChannelData(CommandHandler.getParamWithCheck(params,
+                    isTopicCommand ? 0 : 1));
 
             MessageSenderInfo senderInfo = null;
             if (command.equals("TOPIC")) {

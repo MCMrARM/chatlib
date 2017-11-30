@@ -51,7 +51,7 @@ public class SASLCapability extends Capability {
                        Map<String, String> tags) throws InvalidMessageException {
         int numeric = CommandHandler.toNumeric(command);
         if (command.equals(CMD_AUTHENTICATE)) {
-            if (params.size() == 1 && params.get(0).equals("+"))
+            if (params.size() == 1 && CommandHandler.getParamWithCheck(params, 0).equals("+"))
                 continueAuthentication(connection);
         } else if (numeric == RPL_SASLSUCCESS) {
             if (finishLock != -1) {

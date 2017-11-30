@@ -42,7 +42,7 @@ public class WhoisCommandHandler extends RequestResponseCommandHandler<String, W
     public void handle(ServerConnectionData connection, MessagePrefix sender, String command, List<String> params,
                        Map<String, String> tags) throws InvalidMessageException {
         int numeric = CommandHandler.toNumeric(command);
-        String nick = params.get(1);
+        String nick = CommandHandler.getParamWithCheck(params, 1);
         WhoisInfo.Builder builder = currentReply.get(nick);
         if (builder == null) {
             if (numeric == RPL_WHOISUSER) {
@@ -53,22 +53,28 @@ public class WhoisCommandHandler extends RequestResponseCommandHandler<String, W
             }
         }
         if (numeric == RPL_WHOISUSER) {
-            builder.setUserInfo(nick, params.get(2), params.get(3), params.size() > 5 ? params.get(5) : null);
+            builder.setUserInfo(nick, CommandHandler.getParamWithCheck(params, 2),
+                    CommandHandler.getParamWithCheck(params, 3), CommandHandler.getParamOrNull(params, 5));
         } else if (numeric == RPL_WHOISSERVER) {
-            builder.setServerInfo(params.get(2), params.get(3));
+            builder.setServerInfo(CommandHandler.getParamWithCheck(params, 2),
+                    CommandHandler.getParamWithCheck(params, 3));
         } else if (numeric == RPL_WHOISOPERATOR) {
             builder.setOperator(true);
         } else if (numeric == RPL_WHOISIDLE) {
-            builder.setIdle(Integer.parseInt(params.get(2)));
+            try {
+                builder.setIdle(Integer.parseInt(CommandHandler.getParamWithCheck(params, 2)));
+            } catch (NumberFormatException e) {
+                throw new InvalidMessageException("Bad idle time");
+            }
         } else if (numeric == RPL_WHOISCHANNELS) {
-            for (String channel : params.get(2).split(" ")) {
+            for (String channel : CommandHandler.getParamWithCheck(params, 2).split(" ")) {
                 // it should be acceptable to use a NickPrefixParser here to get the channel modes and then wrap it into
                 // a ChannelWithNickPrefixes
                 NickWithPrefix p = connection.getNickPrefixParser().parse(connection, channel);
                 builder.addChannel(new WhoisInfo.ChannelWithNickPrefixes(p.getNick(), p.getNickPrefixes()));
             }
         } else if (numeric == RPL_WHOISACCOUNT) {
-            builder.setAccount(params.get(2));
+            builder.setAccount(CommandHandler.getParamWithCheck(params, 2));
         } else if (numeric == RPL_WHOISSECURE) {
             builder.setSecure(true);
         } else if (numeric == RPL_ENDOFWHOIS) {

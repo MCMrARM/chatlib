@@ -27,7 +27,7 @@ public class ModeCommandHandler implements CommandHandler {
             UUID userUUID = connection.getUserInfoApi().resolveUser(sender.getNick(), sender.getUser(),
                     sender.getHost(), null, null).get();
 
-            String target = params.get(0);
+            String target = CommandHandler.getParamWithCheck(params, 0);
             boolean isChannelTarget = connection.getSupportList().getSupportedChannelTypes().contains(target.charAt(0));
             if (isChannelTarget) {
                 ChannelData channelData = connection.getJoinedChannelData(target);
@@ -46,7 +46,7 @@ public class ModeCommandHandler implements CommandHandler {
     private void handleChannelModes(ServerConnectionData connection, MessageSenderInfo senderInfo,
                                     ChannelData channelData, List<String> params, Map<String, String> tags) throws InvalidMessageException {
         int argIndex = 1;
-        String modes = params.get(argIndex++);
+        String modes = CommandHandler.getParamWithCheck(params, argIndex++);
         List<ChannelModeMessageInfo.Entry> log = new ArrayList<>();
         boolean add = true;
         for (int i = 0; i < modes.length(); i++) {
@@ -56,7 +56,7 @@ public class ModeCommandHandler implements CommandHandler {
             } else if (c == '-') {
                 add = false;
             } else if (connection.getSupportList().getSupportedNickPrefixModes().contains(c)) {
-                String nick = params.get(argIndex++);
+                String nick = CommandHandler.getParamWithCheck(params, argIndex++);
                 ChannelData.Member member = getUser(connection, channelData, nick);
                 char prefix = connection.getSupportList().getSupportedNickPrefixes().get(
                         connection.getSupportList().getSupportedNickPrefixModes().find(c));
@@ -72,21 +72,21 @@ public class ModeCommandHandler implements CommandHandler {
                 channelData.setFlagMode(c, add);
                 log.add(new ChannelModeMessageInfo.Entry(ChannelModeMessageInfo.EntryType.FLAG, c, null, !add));
             } else if (connection.getSupportList().getSupportedListChannelModes().contains(c)) {
-                String p = params.get(argIndex++);
+                String p = CommandHandler.getParamWithCheck(params, argIndex++);
                 if (add)
                     channelData.addListMode(c, p);
                 else
                     channelData.removeListMode(c, p);
                 log.add(new ChannelModeMessageInfo.Entry(ChannelModeMessageInfo.EntryType.LIST, c, p, !add));
             } else if (connection.getSupportList().getSupportedValueExactUnsetChannelModes().contains(c)) {
-                String p = params.get(argIndex++);
+                String p = CommandHandler.getParamWithCheck(params, argIndex++);
                 if (add)
                     channelData.setValueExactUnsetMode(c, p);
                 else
                     channelData.removeValueExactUnsetMode(c);
                 log.add(new ChannelModeMessageInfo.Entry(ChannelModeMessageInfo.EntryType.VALUE_EXACT_UNSET, c, p, !add));
             } else if (connection.getSupportList().getSupportedValueChannelModes().contains(c)) {
-                String p = (add ? params.get(argIndex++) : null);
+                String p = (add ? CommandHandler.getParamWithCheck(params, argIndex++) : null);
                 if (add)
                     channelData.setValueMode(c, p);
                 else

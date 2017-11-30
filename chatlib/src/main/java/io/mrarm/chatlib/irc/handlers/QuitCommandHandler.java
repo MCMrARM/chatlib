@@ -26,10 +26,12 @@ public class QuitCommandHandler implements CommandHandler {
                     sender.getHost(), null, null).get();
             MessageSenderInfo senderInfo = new MessageSenderInfo(sender.getNick(), sender.getUser(), sender.getHost(),
                     null, userInfo.getUUID());
+            String message = CommandHandler.getParamOrNull(params, 0);
             for (String channel : userInfo.getChannels()) {
                 ChannelData channelData = connection.getJoinedChannelData(channel);
                 channelData.removeMember(channelData.getMember(userInfo.getUUID()));
-                channelData.addMessage(new MessageInfo.Builder(senderInfo, params.get(0), MessageInfo.MessageType.QUIT), tags);
+                channelData.addMessage(new MessageInfo.Builder(senderInfo, message, MessageInfo.MessageType.QUIT),
+                        tags);
             }
         } catch (NoSuchChannelException e) {
             throw new InvalidMessageException("Invalid channel specified in a QUIT message", e);

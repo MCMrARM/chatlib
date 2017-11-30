@@ -21,8 +21,9 @@ public class JoinCommandHandler implements CommandHandler {
     public void handle(ServerConnectionData connection, MessagePrefix sender, String command, List<String> params,
                        Map<String, String> tags)
             throws InvalidMessageException {
+        String[] channels = CommandHandler.getParamWithCheck(params, 0).split(",");
         if (sender.getNick().equals(connection.getUserNick())) {
-            for (String channel : params.get(0).split(","))
+            for (String channel : channels)
                 connection.onChannelJoined(channel);
         }
         try {
@@ -30,7 +31,7 @@ public class JoinCommandHandler implements CommandHandler {
                     sender.getHost(), null, null).get();
             MessageSenderInfo senderInfo = new MessageSenderInfo(sender.getNick(), sender.getUser(), sender.getHost(),
                     null, userUUID);
-            for (String channel : params.get(0).split(",")) {
+            for (String channel : channels) {
                 ChannelData channelData = connection.getJoinedChannelData(channel);
                 channelData.addMember(new ChannelData.Member(userUUID, null, null));
                 channelData.addMessage(new MessageInfo.Builder(senderInfo, null, MessageInfo.MessageType.JOIN), tags);

@@ -32,7 +32,7 @@ public class NickCommandHandler extends RequestResponseCommandHandler<String, St
     public void handle(ServerConnectionData connection, MessagePrefix sender, String command, List<String> params,
                        Map<String, String> tags)
             throws InvalidMessageException {
-        String newNick = params.get(0);
+        String newNick = CommandHandler.getParamWithCheck(params, 0);
         if (sender.getNick().equals(connection.getUserNick())) {
             connection.setUserNick(newNick);
             onResponse(newNick, newNick);
@@ -42,8 +42,8 @@ public class NickCommandHandler extends RequestResponseCommandHandler<String, St
                     sender.getHost(), null, null).get();
             MessageSenderInfo senderInfo = new MessageSenderInfo(sender.getNick(), sender.getUser(), sender.getHost(),
                     null, userInfo.getUUID());
-            connection.getUserInfoApi().setUserNick(userInfo.getUUID(), params.get(0), null, null)
-                    .get();
+            connection.getUserInfoApi().setUserNick(userInfo.getUUID(),
+                    CommandHandler.getParamWithCheck(params, 0), null, null).get();
             for (String channel : userInfo.getChannels()) {
                 try {
                     ChannelData channelData = connection.getJoinedChannelData(channel);

@@ -41,9 +41,9 @@ public class MessageCommandHandler implements CommandHandler {
             if (sender != null)
                 userUUID = connection.getUserInfoApi().resolveUser(sender.getNick(), sender.getUser(), sender.getHost(),
                         null, null).get();
-            String[] targetChannels = params.get(0).split(",");
+            String[] targetChannels = CommandHandler.getParamWithCheck(params, 0).split(",");
 
-            String text = params.get(1);
+            String text = CommandHandler.getParamWithCheck(params, 1);
             if (text.indexOf('\20') != -1)
                 text = lowDequote(text);
             int ctcpS = text.indexOf('\01');
@@ -64,8 +64,7 @@ public class MessageCommandHandler implements CommandHandler {
                 }
                 if (sender == null || (channelData == null && sender.getUser() == null && sender.getHost() == null)) {
                     connection.getServerStatusData().addMessage(new StatusMessageInfo(sender != null ?
-                            sender.getServerName() : null, new Date(), StatusMessageInfo.MessageType.NOTICE,
-                            params.get(1)));
+                            sender.getServerName() : null, new Date(), StatusMessageInfo.MessageType.NOTICE, text));
                     continue;
                 }
 

@@ -21,7 +21,8 @@ public class PingCommandHandler implements CommandHandler {
                        Map<String, String> tags)
             throws InvalidMessageException {
         try {
-            connection.getApi().sendCommand("PONG", true, params.get(0));
+            connection.getApi().sendCommand("PONG", true,
+                    CommandHandler.getParamWithCheck(params, 0));
         } catch (IOException ignored) {
         }
     }
