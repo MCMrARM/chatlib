@@ -60,12 +60,14 @@ public class ModeCommandHandler implements CommandHandler {
                 ChannelData.Member member = getUser(connection, channelData, nick);
                 char prefix = connection.getSupportList().getSupportedNickPrefixes().get(
                         connection.getSupportList().getSupportedNickPrefixModes().find(c));
-                if (add) {
-                    addMode(channelData, member, c);
-                    addPrefix(connection, channelData, member, prefix);
-                } else {
-                    removeMode(channelData, member, c);
-                    removePrefix(channelData, member, prefix);
+                if (member != null) {
+                    if (add) {
+                        addMode(channelData, member, c);
+                        addPrefix(connection, channelData, member, prefix);
+                    } else {
+                        removeMode(channelData, member, c);
+                        removePrefix(channelData, member, prefix);
+                    }
                 }
                 log.add(new ChannelModeMessageInfo.Entry(ChannelModeMessageInfo.EntryType.NICK_FLAG, c, nick, !add));
             } else if (connection.getSupportList().getSupportedFlagChannelModes().contains(c)) {
