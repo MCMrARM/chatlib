@@ -117,16 +117,18 @@ public class IRCConnection extends ServerConnectionApi {
             }
         } catch (IOException e) {
             e.printStackTrace();
+            socketInputStream = null;
             synchronized (socketOutputStream) {
-                socket = null;
-                socketInputStream = null;
                 socketOutputStream = null;
             }
-            if (connectErrorCallback != null)
-                connectErrorCallback.onError(e);
             getServerConnectionData().addLocalMessageToAllChannels(new MessageInfo(null, new Date(), null, MessageInfo.MessageType.DISCONNECT_WARNING));
             getServerConnectionData().getServerStatusData().addMessage(new StatusMessageInfo(null, new Date(), StatusMessageInfo.MessageType.DISCONNECT_WARNING, null));
             getServerConnectionData().getCommandHandlerList().notifyDisconnected();
+            synchronized (this) {
+                socket = null;
+                if (connectErrorCallback != null)
+                    connectErrorCallback.onError(e);
+            }
             synchronized (disconnectListeners) {
                 for (DisconnectListener listener : disconnectListeners) {
                     listener.onDisconnected(this, e);
