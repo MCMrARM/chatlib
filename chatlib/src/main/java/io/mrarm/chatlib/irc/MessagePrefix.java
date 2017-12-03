@@ -19,7 +19,7 @@ public class MessagePrefix {
         if (iof != -1 || iof2 != -1)
             this.nick = prefix.substring(0, (iof != -1 ? iof : iof2));
         if (iof != -1)
-            this.user = prefix.substring(iof + 1, (iof2 == -1 ? prefix.length() - iof - 1 : iof2));
+            this.user = prefix.substring(iof + 1, (iof2 == -1 ? prefix.length() : iof2));
         if (iof2 != -1)
             this.host = prefix.substring(iof2 + 1);
     }
