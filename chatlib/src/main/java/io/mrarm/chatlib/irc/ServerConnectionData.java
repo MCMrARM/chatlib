@@ -89,26 +89,29 @@ public class ServerConnectionData {
     }
 
     public ChannelData getJoinedChannelData(String channelName) throws NoSuchChannelException {
+        String lChannelName = channelName.toLowerCase();
         synchronized (joinedChannels) {
-            if (!joinedChannels.containsKey(channelName))
+            if (!joinedChannels.containsKey(lChannelName))
                 throw new NoSuchChannelException();
-            return joinedChannels.get(channelName);
+            return joinedChannels.get(lChannelName);
         }
     }
 
     public List<String> getJoinedChannelList() {
         synchronized (joinedChannels) {
             ArrayList<String> list = new ArrayList<>();
-            list.addAll(joinedChannels.keySet());
+            for (ChannelData cdata : joinedChannels.values())
+                list.add(cdata.getName());
             return list;
         }
     }
 
     public void onChannelJoined(String channelName) {
+        String lChannelName = channelName.toLowerCase();
         synchronized (joinedChannels) {
-            if (joinedChannels.containsKey(channelName))
+            if (joinedChannels.containsKey(lChannelName))
                 return;
-            joinedChannels.put(channelName, new ChannelData(this, channelName));
+            joinedChannels.put(lChannelName, new ChannelData(this, channelName));
         }
         synchronized (channelListListeners) {
             if (channelListListeners.size() > 0) {
@@ -122,10 +125,11 @@ public class ServerConnectionData {
     }
 
     public void onChannelLeft(String channelName) {
+        String lChannelName = channelName.toLowerCase();
         synchronized (joinedChannels) {
-            if (!joinedChannels.containsKey(channelName))
+            if (!joinedChannels.containsKey(lChannelName))
                 return;
-            joinedChannels.remove(channelName);
+            joinedChannels.remove(lChannelName);
         }
         synchronized (channelListListeners) {
             if (channelListListeners.size() > 0) {
