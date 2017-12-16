@@ -35,7 +35,7 @@ public class TopicCommandHandler implements CommandHandler {
                     isTopicCommand ? 0 : 1));
 
             MessageSenderInfo senderInfo = null;
-            if (command.equals("TOPIC")) {
+            if (command.equals("TOPIC") && sender != null) {
                 try {
                     UUID userUUID = connection.getUserInfoApi().resolveUser(sender.getNick(), sender.getUser(),
                             sender.getHost(), null, null).get();

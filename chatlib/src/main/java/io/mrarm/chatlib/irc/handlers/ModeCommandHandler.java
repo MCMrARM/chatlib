@@ -24,14 +24,14 @@ public class ModeCommandHandler implements CommandHandler {
                        Map<String, String> tags)
             throws InvalidMessageException {
         try {
-            UUID userUUID = connection.getUserInfoApi().resolveUser(sender.getNick(), sender.getUser(),
-                    sender.getHost(), null, null).get();
+            UUID userUUID = sender != null ? connection.getUserInfoApi().resolveUser(sender.getNick(), sender.getUser(),
+                    sender.getHost(), null, null).get() : null;
 
             String target = CommandHandler.getParamWithCheck(params, 0);
             boolean isChannelTarget = connection.getSupportList().getSupportedChannelTypes().contains(target.charAt(0));
             if (isChannelTarget) {
                 ChannelData channelData = connection.getJoinedChannelData(target);
-                MessageSenderInfo senderInfo = sender.toSenderInfo(userUUID, channelData);
+                MessageSenderInfo senderInfo = sender != null ? sender.toSenderInfo(userUUID, channelData) : null;
                 handleChannelModes(connection, senderInfo, channelData, params, tags);
             } else {
                 // TODO: user modes

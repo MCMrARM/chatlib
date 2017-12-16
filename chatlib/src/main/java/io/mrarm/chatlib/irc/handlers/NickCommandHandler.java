@@ -32,6 +32,12 @@ public class NickCommandHandler extends RequestResponseCommandHandler<String, St
     public void handle(ServerConnectionData connection, MessagePrefix sender, String command, List<String> params,
                        Map<String, String> tags)
             throws InvalidMessageException {
+        if (sender == null) {
+            // Apparently some broken IRCd or bouncers can send us messages without a prefix. We assume those are meant
+            // to be processed as our client.
+            sender = new MessagePrefix(connection.getUserNick());
+        }
+
         String newNick = CommandHandler.getParamWithCheck(params, 0);
         if (sender.getNick().equals(connection.getUserNick())) {
             connection.setUserNick(newNick);

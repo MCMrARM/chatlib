@@ -21,6 +21,12 @@ public class QuitCommandHandler implements CommandHandler {
     public void handle(ServerConnectionData connection, MessagePrefix sender, String command, List<String> params,
                        Map<String, String> tags)
             throws InvalidMessageException {
+        if (sender == null) {
+            // Apparently some broken IRCd or bouncers can send us messages without a prefix. We assume those are meant
+            // to be processed as our client.
+            sender = new MessagePrefix(connection.getUserNick());
+        }
+
         try {
             UserInfo userInfo = connection.getUserInfoApi().getUser(sender.getNick(), sender.getUser(),
                     sender.getHost(), null, null).get();

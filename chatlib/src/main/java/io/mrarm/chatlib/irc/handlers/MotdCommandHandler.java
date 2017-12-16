@@ -47,7 +47,8 @@ public class MotdCommandHandler implements CommandDisconnectHandler {
                 String motd = (numeric == ERR_NOMOTD ? CommandHandler.getParamWithCheck(params, 1)
                         : motdBuilder.toString());
                 connection.getServerStatusData().setMotd(motd);
-                connection.getServerStatusData().addMessage(new StatusMessageInfo(sender.getServerName(), new Date(),
+                connection.getServerStatusData().addMessage(new StatusMessageInfo(
+                        sender != null ? sender.getServerName() : null, new Date(),
                         StatusMessageInfo.MessageType.MOTD, motd));
                 motdBuilder = null;
                 connection.getApi().notifyMotdReceived();

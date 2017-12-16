@@ -38,8 +38,9 @@ public class WelcomeCommandHandler implements CommandHandler {
                 break;
             case RPL_MYINFO: {
                 type = StatusMessageInfo.MessageType.HOST_INFO;
-                connection.getServerStatusData().addMessage(new HostInfoMessageInfo(sender.getServerName(), new Date(),
-                        type,  CommandHandler.getParamWithCheck(params, 1),
+                connection.getServerStatusData().addMessage(new HostInfoMessageInfo(sender != null ?
+                        sender.getServerName() : null, new Date(), type,
+                        CommandHandler.getParamWithCheck(params, 1),
                         CommandHandler.getParamWithCheck(params, 2),
                         CommandHandler.getParamOrNull(params, 3),
                         CommandHandler.getParamOrNull(params, 4)));
@@ -49,7 +50,7 @@ public class WelcomeCommandHandler implements CommandHandler {
                 type = StatusMessageInfo.MessageType.REDIR_TEXT;
                 break;
         }
-        connection.getServerStatusData().addMessage(new StatusMessageInfo(sender.getServerName(), new Date(), type,
-                CommandHandler.getParamWithCheck(params, 1)));
+        connection.getServerStatusData().addMessage(new StatusMessageInfo(sender != null ?
+                sender.getServerName() : null, new Date(), type, CommandHandler.getParamWithCheck(params, 1)));
     }
 }
