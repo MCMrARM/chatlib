@@ -51,6 +51,17 @@ public class ChannelData {
         synchronized (this) {
             this.topic = topic;
         }
+        calTopicChanged();
+    }
+
+    public void calTopicChanged() {
+        if (infoListeners.size() > 0) {
+            String topic = getTopic();
+            synchronized (infoListeners) {
+                for (ChannelInfoListener listener : infoListeners)
+                    listener.onTopicChanged(topic);
+            }
+        }
     }
 
     public List<Member> getMembers() {

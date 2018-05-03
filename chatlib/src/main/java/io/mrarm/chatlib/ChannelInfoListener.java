@@ -8,4 +8,6 @@ public interface ChannelInfoListener {
 
     void onMemberListChanged(List<NickWithPrefix> newMembers);
 
+    void onTopicChanged(String newTopic);
+
 }

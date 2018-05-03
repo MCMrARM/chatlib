@@ -45,7 +45,7 @@ public class TopicCommandHandler implements CommandHandler {
             }
 
             channelData.addMessage(new MessageInfo.Builder(senderInfo, topic, MessageInfo.MessageType.TOPIC), tags);
-            channelData.callMemberListChanged();
+            channelData.setTopic(topic);
         } catch (NoSuchChannelException e) {
             throw new InvalidMessageException("Invalid channel specified in a topic message", e);
         }
