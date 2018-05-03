@@ -29,6 +29,22 @@ public class ChannelData {
         this.name = name;
     }
 
+    public void loadFromStoredData() {
+        ChannelDataStorage storage = connection.getChannelDataStorage();
+        if (storage == null)
+            return;
+        try {
+            ChannelDataStorage.StoredData data = storage.getOrCreateChannelData(getName()).get();
+            if (data != null)
+                loadFromStoredData(data);
+        } catch (InterruptedException | ExecutionException ignored) {
+        }
+    }
+
+    public void loadFromStoredData(ChannelDataStorage.StoredData data) {
+        topic = data.getTopic();
+    }
+
     public String getName() {
         synchronized (this) {
             return name;
@@ -51,10 +67,13 @@ public class ChannelData {
         synchronized (this) {
             this.topic = topic;
         }
-        calTopicChanged();
+        ChannelDataStorage storage = connection.getChannelDataStorage();
+        if (storage != null)
+            storage.updateTopic(getName(), getTopic());
+        callTopicChanged();
     }
 
-    public void calTopicChanged() {
+    public void callTopicChanged() {
         if (infoListeners.size() > 0) {
             String topic = getTopic();
             synchronized (infoListeners) {

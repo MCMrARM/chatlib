@@ -20,6 +20,7 @@ public class ServerConnectionData {
     private ServerStatusData serverStatusData = new ServerStatusData();
     private WritableUserInfoApi userInfoApi;
     private WritableMessageStorageApi messageStorageApi;
+    private ChannelDataStorage channelDataStorage;
     private NickPrefixParser nickPrefixParser = OneCharNickPrefixParser.getInstance();
     private final ServerSupportList supportList = new ServerSupportList();
     private final MessageFilterList messageFilterList = new MessageFilterList();
@@ -62,6 +63,14 @@ public class ServerConnectionData {
 
     public synchronized void setMessageStorageApi(WritableMessageStorageApi messageStorageApi) {
         this.messageStorageApi = messageStorageApi;
+    }
+
+    public synchronized ChannelDataStorage getChannelDataStorage() {
+        return channelDataStorage;
+    }
+
+    public synchronized void setChannelDataStorage(ChannelDataStorage channelDataStorage) {
+        this.channelDataStorage = channelDataStorage;
     }
 
     public NickPrefixParser getNickPrefixParser() {
@@ -111,7 +120,9 @@ public class ServerConnectionData {
         synchronized (joinedChannels) {
             if (joinedChannels.containsKey(lChannelName))
                 return;
-            joinedChannels.put(lChannelName, new ChannelData(this, channelName));
+            ChannelData data = new ChannelData(this, channelName);
+            data.loadFromStoredData();
+            joinedChannels.put(lChannelName, data);
         }
         synchronized (channelListListeners) {
             if (channelListListeners.size() > 0) {
