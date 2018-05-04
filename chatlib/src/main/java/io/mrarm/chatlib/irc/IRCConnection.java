@@ -18,8 +18,8 @@ import javax.net.ssl.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.Socket;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.Future;
 
@@ -27,6 +27,7 @@ public class IRCConnection extends ServerConnectionApi {
 
     private static final MessageCommandHandler selfMessageHandler = new MessageCommandHandler();
 
+    private Charset charset;
     private Socket socket;
     private InputStream socketInputStream;
     private OutputStream socketOutputStream;
@@ -46,17 +47,13 @@ public class IRCConnection extends ServerConnectionApi {
 
     private void sendCommandRaw(String string, boolean flush) throws IOException {
         synchronized (socketOutputStream) {
-            try {
-                byte[] data = (string + '\n').getBytes("UTF-8");
-                if (data.length > 512)
-                    throw new IOException("Too long message");
-                socketOutputStream.write(data);
-                System.out.println("Sent: " + string);
-                if (flush)
-                    socketOutputStream.flush();
-            } catch (UnsupportedEncodingException e) {
-                throw new RuntimeException(e);
-            }
+            byte[] data = (string + '\n').getBytes(charset);
+            if (data.length > 512)
+                throw new IOException("Too long message");
+            socketOutputStream.write(data);
+            System.out.println("Sent: " + string);
+            if (flush)
+                socketOutputStream.flush();
         }
     }
 
@@ -100,7 +97,7 @@ public class IRCConnection extends ServerConnectionApi {
             }
             buf[i] = (byte) v;
         }
-        return new String(buf, 0, i, "UTF-8");
+        return new String(buf, 0, i, charset);
     }
 
     private void handleInput() {
@@ -318,6 +315,7 @@ public class IRCConnection extends ServerConnectionApi {
     private void connectSync(IRCConnectionRequest request) throws IOException {
         try {
             getServerConnectionData().reset();
+            charset = request.getCharset();
             if (request.isUsingSSL()) {
                 socket = request.getSSLSocketFactory().createSocket(request.getServerIP(), request.getServerPort());
                 HostnameVerifier hostnameVerifier = request.getSSLHostnameVerifier();

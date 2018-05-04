@@ -2,6 +2,7 @@ package io.mrarm.chatlib.irc;
 
 import javax.net.SocketFactory;
 import javax.net.ssl.HostnameVerifier;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,6 +13,7 @@ public class IRCConnectionRequest {
     private boolean serverSSL = false;
     private SocketFactory sslSocketFactory;
     private HostnameVerifier sslHostnameVerifier;
+    private Charset charset = Charset.forName("UTF-8");
     private String serverPass;
     private String user;
     private int userMode;
@@ -36,6 +38,15 @@ public class IRCConnectionRequest {
 
     public HostnameVerifier getSSLHostnameVerifier() {
         return sslHostnameVerifier;
+    }
+
+    public Charset getCharset() {
+        return charset;
+    }
+
+    public IRCConnectionRequest setCharset(Charset charset) {
+        this.charset = charset;
+        return this;
     }
 
     public String getServerPass() {
