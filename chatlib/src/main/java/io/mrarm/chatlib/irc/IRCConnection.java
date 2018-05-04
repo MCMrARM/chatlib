@@ -8,6 +8,7 @@ import io.mrarm.chatlib.dto.StatusMessageInfo;
 import io.mrarm.chatlib.dto.WhoisInfo;
 import io.mrarm.chatlib.irc.handlers.MessageCommandHandler;
 import io.mrarm.chatlib.irc.handlers.NickCommandHandler;
+import io.mrarm.chatlib.irc.handlers.PongCommandHandler;
 import io.mrarm.chatlib.irc.handlers.WhoisCommandHandler;
 import io.mrarm.chatlib.message.SimpleMessageStorageApi;
 import io.mrarm.chatlib.user.SimpleUserInfoApi;
@@ -206,6 +207,28 @@ public class IRCConnection extends ServerConnectionApi {
             disconnect(true);
             return null;
         }, callback, errorCallback);
+    }
+
+    public Future<Void> sendPing(ResponseCallback<Void> callback, ResponseErrorCallback errorCallback) {
+        final String pingId = UUID.randomUUID().toString();
+        SettableFuture<Void> ret = new SettableFuture<>();
+        executor.queue(ret, () -> {
+            if (getServerConnectionData().getCommandHandlerList().getHandler(PongCommandHandler.class).onRequested(
+                    pingId, (Void v) -> {
+                        executor.queue(() -> {
+                            ret.set(v);
+                            if (callback != null)
+                                callback.onResponse(v);
+                        });
+                    }, (String s, int i, String e) -> {
+                        NumericReplyException exception = new NumericReplyException(i, e);
+                        if (errorCallback != null)
+                            errorCallback.onError(exception);
+                        ret.setExecutionException(exception);
+                    }))
+                sendCommand("PING", true, pingId);
+        }, errorCallback);
+        return ret;
     }
 
     @Override

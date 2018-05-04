@@ -27,6 +27,7 @@ public class CommandHandlerList {
         handlers.putAll(defaultHandlers.handlers);
 
         // per-connection handlers
+        registerHandler(new PongCommandHandler(errorCommandHandler));
         registerHandler(new NickCommandHandler(errorCommandHandler));
         registerHandler(new WhoisCommandHandler(errorCommandHandler));
         registerHandler(new NamesReplyCommandHandler());
