@@ -28,6 +28,9 @@ public class IRCConnection extends ServerConnectionApi {
 
     private static final MessageCommandHandler selfMessageHandler = new MessageCommandHandler();
 
+    private static final String[] AUTH_COMMAND_PREFIXES = new String[] { "PASS ", "OPER", "PRIVMSG NickServ :IDENTIFY ",
+            "NICKSERV IDENTIFY " };
+
     private Charset charset;
     private Socket socket;
     private InputStream socketInputStream;
@@ -52,7 +55,14 @@ public class IRCConnection extends ServerConnectionApi {
             if (data.length > 512)
                 throw new IOException("Too long message");
             socketOutputStream.write(data);
-            System.out.println("Sent: " + string);
+            String printStr = string;
+            for (String s : AUTH_COMMAND_PREFIXES) {
+                if (string.regionMatches(true, 0, s, 0, s.length())) {
+                    printStr = s + "***";
+                    break;
+                }
+            }
+            System.out.println("Sent: " + printStr);
             if (flush)
                 socketOutputStream.flush();
         }
