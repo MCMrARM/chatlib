@@ -42,7 +42,7 @@ public class KickCommandHandler implements CommandHandler {
             UUID kickedUUID = connection.getUserInfoApi().resolveUser(kicked, null, null, null, null).get();
             MessageSenderInfo senderInfo = new MessageSenderInfo(sender.getNick(), sender.getUser(), sender.getHost(),
                     null, senderUUID);
-            String message = CommandHandler.getParamOrNull(params, 1);
+            String message = CommandHandler.getParamOrNull(params, 2);
 
             ChannelData channelData = connection.getJoinedChannelData(channel);
             ChannelData.Member member = channelData.getMember(kickedUUID);
