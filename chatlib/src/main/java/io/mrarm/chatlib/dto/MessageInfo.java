@@ -6,7 +6,7 @@ public class MessageInfo {
 
     public enum MessageType {
         NORMAL(0), NOTICE(1), ME(2), JOIN(3), PART(4), QUIT(5), NICK_CHANGE(6), MODE(7), TOPIC(8),
-        DISCONNECT_WARNING(100);
+        KICK(9), DISCONNECT_WARNING(100);
 
         private final int intValue;
         MessageType(int i) {
