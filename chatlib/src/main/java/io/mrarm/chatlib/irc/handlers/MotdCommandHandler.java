@@ -39,13 +39,8 @@ public class MotdCommandHandler implements CommandDisconnectHandler {
                 break;
             case ERR_NOMOTD:
             case RPL_ENDOFMOTD: {
-                if (numeric != ERR_NOMOTD) {
-                    if (motdBuilder == null)
-                        throw new InvalidMessageException();
-                    motdBuilder.append(CommandHandler.getParamWithCheck(params, 1));
-                }
-                String motd = (numeric == ERR_NOMOTD ? CommandHandler.getParamWithCheck(params, 1)
-                        : motdBuilder.toString());
+                String motd = (motdBuilder == null ? CommandHandler.getParamWithCheck(params, 1) :
+                        motdBuilder.toString());
                 connection.getServerStatusData().setMotd(motd);
                 connection.getServerStatusData().addMessage(new StatusMessageInfo(
                         sender != null ? sender.getServerName() : null, new Date(),
