@@ -29,8 +29,14 @@ public class TopicWhoTimeCommandHandler implements CommandHandler {
         try {
             ChannelData channelData = connection.getJoinedChannelData(CommandHandler.getParamWithCheck(params, 1));
 
-            if (!who.equals(channelData.getTopicSetBy()) || !when.equals(channelData.getTopicSetOn())) {
-                MessagePrefix prefix = new MessagePrefix(who);
+            MessagePrefix prefix = new MessagePrefix(who);
+            MessageSenderInfo oldSetBy = channelData.getTopicSetBy();
+            if (oldSetBy == null || !prefix.getNick().equals(oldSetBy.getNick()) ||
+                    (prefix.getUser() != null ? !prefix.getUser().equals(oldSetBy.getUser()) :
+                            (oldSetBy.getUser() != null)) ||
+                    (prefix.getHost() != null ? !prefix.getHost().equals(oldSetBy.getHost()) :
+                            (oldSetBy.getHost() != null)) ||
+                    !when.equals(channelData.getTopicSetOn())) {
                 UUID userUUID = null;
                 try {
                     userUUID = connection.getUserInfoApi().resolveUser(
