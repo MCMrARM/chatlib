@@ -47,7 +47,7 @@ public class TopicCommandHandler implements CommandHandler {
             String oldTopic = channelData.getTopic();
             if (oldTopic == null || !oldTopic.equals(topic)) {
                 channelData.addMessage(new MessageInfo.Builder(senderInfo, topic, MessageInfo.MessageType.TOPIC), tags);
-                channelData.setTopic(topic);
+                channelData.setTopic(topic, null, null);
             }
         } catch (NoSuchChannelException e) {
             throw new InvalidMessageException("Invalid channel specified in a topic message", e);

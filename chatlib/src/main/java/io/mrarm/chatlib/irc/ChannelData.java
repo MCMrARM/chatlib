@@ -15,6 +15,8 @@ public class ChannelData {
     private ServerConnectionData connection;
     private String name;
     private String topic;
+    private String topicSetBy;
+    private Date topicSetOn;
     private List<Member> members = new ArrayList<>();
     private Map<UUID, Member> membersMap = new HashMap<>();
     private final Object membersLock = new Object();
@@ -43,6 +45,8 @@ public class ChannelData {
 
     public void loadFromStoredData(ChannelDataStorage.StoredData data) {
         topic = data.getTopic();
+        topicSetOn = data.getTopicSetOn();
+        topicSetBy = data.getTopicSetBy();
     }
 
     public String getName() {
@@ -57,28 +61,48 @@ public class ChannelData {
         }
     }
 
-    public String getTopic() {
-        synchronized (this) {
-            return topic;
-        }
+    public synchronized String getTopic() {
+        return topic;
     }
 
-    public void setTopic(String topic) {
+    public synchronized String getTopicSetBy() {
+        return topicSetBy;
+    }
+
+    public synchronized Date getTopicSetOn() {
+        return topicSetOn;
+    }
+
+    public void setTopic(String topic, String setBy, Date setOn) {
         synchronized (this) {
             this.topic = topic;
+            this.topicSetBy = setBy;
+            this.topicSetOn = setOn;
         }
         ChannelDataStorage storage = connection.getChannelDataStorage();
-        if (storage != null)
-            storage.updateTopic(getName(), getTopic());
+        if (storage != null) {
+            synchronized (this) {
+                topic = this.topic;
+                setBy = this.topicSetBy;
+                setOn = this.topicSetOn;
+            }
+            storage.updateTopic(getName(), topic, setBy, setOn);
+        }
         callTopicChanged();
     }
 
     public void callTopicChanged() {
         if (infoListeners.size() > 0) {
-            String topic = getTopic();
+            String topic, topicSetBy;
+            Date topicSetOn;
+            synchronized (this) {
+                topic = this.topic;
+                topicSetBy = this.topicSetBy;
+                topicSetOn = this.topicSetOn;
+            }
             synchronized (infoListeners) {
                 for (ChannelInfoListener listener : infoListeners)
-                    listener.onTopicChanged(topic);
+                    listener.onTopicChanged(topic, topicSetBy, topicSetOn);
             }
         }
     }
