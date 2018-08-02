@@ -31,21 +31,26 @@ public class TopicWhoTimeCommandHandler implements CommandHandler {
 
             MessagePrefix prefix = new MessagePrefix(who);
             MessageSenderInfo oldSetBy = channelData.getTopicSetBy();
+            boolean setByChanged = false;
             if (oldSetBy == null || !prefix.getNick().equals(oldSetBy.getNick()) ||
                     (prefix.getUser() != null ? !prefix.getUser().equals(oldSetBy.getUser()) :
                             (oldSetBy.getUser() != null)) ||
                     (prefix.getHost() != null ? !prefix.getHost().equals(oldSetBy.getHost()) :
-                            (oldSetBy.getHost() != null)) ||
-                    !when.equals(channelData.getTopicSetOn())) {
+                            (oldSetBy.getHost() != null)))
+                setByChanged = true;
+            if (setByChanged || !when.equals(channelData.getTopicSetOn())) {
                 UUID userUUID = null;
                 try {
                     userUUID = connection.getUserInfoApi().resolveUser(
                             prefix.getNick(), prefix.getUser(), prefix.getHost(), null, null).get();
                 } catch (Exception ignored) {
                 }
-                channelData.addMessage(new TopicWhoTimeMessageInfo.Builder(null,
-                        prefix.toSenderInfo(userUUID, null), when), tags);
+                if (setByChanged) { // do not add a channel message if only time has changed
+                    channelData.addMessage(new TopicWhoTimeMessageInfo.Builder(null,
+                            prefix.toSenderInfo(userUUID, null), when), tags);
+                }
                 channelData.setTopic(channelData.getTopic(), prefix.toSenderInfo(userUUID, null), when);
+
             }
         } catch (NoSuchChannelException e) {
             throw new InvalidMessageException("Invalid channel specified in a topic message", e);
