@@ -65,7 +65,8 @@ public abstract class ServerConnectionApi implements ChatApi {
                                               ResponseErrorCallback errorCallback) {
         return SimpleRequestExecutor.run(() -> {
             ChannelData data = getChannelData(channelName);
-            return new ChannelInfo(data.getName(), data.getTopic(), data.getMembersAsNickPrefixList());
+            return new ChannelInfo(data.getName(), data.getTopic(), data.getTopicSetBy(), data.getTopicSetOn(),
+                    data.getMembersAsNickPrefixList());
         }, callback, errorCallback);
     }
 

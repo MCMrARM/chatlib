@@ -30,8 +30,16 @@ public class TopicWhoTimeCommandHandler implements CommandHandler {
             ChannelData channelData = connection.getJoinedChannelData(CommandHandler.getParamWithCheck(params, 1));
 
             if (!who.equals(channelData.getTopicSetBy()) || !when.equals(channelData.getTopicSetOn())) {
-                channelData.addMessage(new TopicWhoTimeMessageInfo.Builder(null, who, when), tags);
-                channelData.setTopic(channelData.getTopic(), who, when);
+                MessagePrefix prefix = new MessagePrefix(who);
+                UUID userUUID = null;
+                try {
+                    userUUID = connection.getUserInfoApi().resolveUser(
+                            prefix.getNick(), prefix.getUser(), prefix.getHost(), null, null).get();
+                } catch (Exception ignored) {
+                }
+                channelData.addMessage(new TopicWhoTimeMessageInfo.Builder(null,
+                        prefix.toSenderInfo(userUUID, null), when), tags);
+                channelData.setTopic(channelData.getTopic(), prefix.toSenderInfo(userUUID, null), when);
             }
         } catch (NoSuchChannelException e) {
             throw new InvalidMessageException("Invalid channel specified in a topic message", e);

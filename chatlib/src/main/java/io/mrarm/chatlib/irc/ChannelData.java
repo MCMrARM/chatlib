@@ -4,10 +4,7 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 import io.mrarm.chatlib.ChannelInfoListener;
-import io.mrarm.chatlib.dto.MessageInfo;
-import io.mrarm.chatlib.dto.ModeList;
-import io.mrarm.chatlib.dto.NickWithPrefix;
-import io.mrarm.chatlib.dto.NickPrefixList;
+import io.mrarm.chatlib.dto.*;
 import io.mrarm.chatlib.irc.cap.Capability;
 
 public class ChannelData {
@@ -15,7 +12,7 @@ public class ChannelData {
     private ServerConnectionData connection;
     private String name;
     private String topic;
-    private String topicSetBy;
+    private MessageSenderInfo topicSetBy;
     private Date topicSetOn;
     private List<Member> members = new ArrayList<>();
     private Map<UUID, Member> membersMap = new HashMap<>();
@@ -65,7 +62,7 @@ public class ChannelData {
         return topic;
     }
 
-    public synchronized String getTopicSetBy() {
+    public synchronized MessageSenderInfo getTopicSetBy() {
         return topicSetBy;
     }
 
@@ -73,7 +70,7 @@ public class ChannelData {
         return topicSetOn;
     }
 
-    public void setTopic(String topic, String setBy, Date setOn) {
+    public void setTopic(String topic, MessageSenderInfo setBy, Date setOn) {
         synchronized (this) {
             this.topic = topic;
             this.topicSetBy = setBy;
@@ -93,7 +90,8 @@ public class ChannelData {
 
     public void callTopicChanged() {
         if (infoListeners.size() > 0) {
-            String topic, topicSetBy;
+            String topic;
+            MessageSenderInfo topicSetBy;
             Date topicSetOn;
             synchronized (this) {
                 topic = this.topic;

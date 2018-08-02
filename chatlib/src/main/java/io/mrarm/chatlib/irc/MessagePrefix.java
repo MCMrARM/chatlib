@@ -30,7 +30,7 @@ public class MessagePrefix {
     }
 
     public MessageSenderInfo toSenderInfo(UUID userUUID, ChannelData channelData) {
-        ChannelData.Member memberInfo = channelData.getMember(userUUID);
+        ChannelData.Member memberInfo = channelData != null && userUUID != null ? channelData.getMember(userUUID) : null;
         return new MessageSenderInfo(getNick(), getUser(), getHost(),
                 memberInfo != null ? memberInfo.getNickPrefixes() : null, userUUID);
     }

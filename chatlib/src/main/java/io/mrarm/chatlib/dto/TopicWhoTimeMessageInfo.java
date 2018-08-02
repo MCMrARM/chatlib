@@ -4,16 +4,16 @@ import java.util.Date;
 
 public class TopicWhoTimeMessageInfo extends MessageInfo {
 
-    private String who;
+    private MessageSenderInfo who;
     private Date when;
 
-    public TopicWhoTimeMessageInfo(MessageSenderInfo sender, Date date, String who, Date when) {
+    public TopicWhoTimeMessageInfo(MessageSenderInfo sender, Date date, MessageSenderInfo who, Date when) {
         super(sender, date, null, MessageType.TOPIC_WHOTIME);
         this.who = who;
         this.when = when;
     }
 
-    public String getSetByNick() {
+    public MessageSenderInfo getSetBy() {
         return who;
     }
 
@@ -23,7 +23,7 @@ public class TopicWhoTimeMessageInfo extends MessageInfo {
 
     public static class Builder extends MessageInfo.Builder {
 
-        public Builder(MessageSenderInfo sender, String who, Date when) {
+        public Builder(MessageSenderInfo sender, MessageSenderInfo who, Date when) {
             messageInfo = new TopicWhoTimeMessageInfo(sender, new Date(), who, when);
         }
 

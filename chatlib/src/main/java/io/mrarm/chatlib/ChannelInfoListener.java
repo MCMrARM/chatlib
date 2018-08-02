@@ -1,5 +1,6 @@
 package io.mrarm.chatlib;
 
+import io.mrarm.chatlib.dto.MessageSenderInfo;
 import io.mrarm.chatlib.dto.NickWithPrefix;
 
 import java.util.Date;
@@ -9,6 +10,6 @@ public interface ChannelInfoListener {
 
     void onMemberListChanged(List<NickWithPrefix> newMembers);
 
-    void onTopicChanged(String newTopic, String newTopicSetBy, Date newTopicSetOn);
+    void onTopicChanged(String newTopic, MessageSenderInfo newTopicSetBy, Date newTopicSetOn);
 
 }

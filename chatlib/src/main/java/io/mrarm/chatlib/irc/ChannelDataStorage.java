@@ -1,5 +1,7 @@
 package io.mrarm.chatlib.irc;
 
+import io.mrarm.chatlib.dto.MessageSenderInfo;
+
 import java.util.Date;
 import java.util.concurrent.Future;
 
@@ -8,10 +10,10 @@ public interface ChannelDataStorage {
     class StoredData {
 
         private String topic;
-        private String topicSetBy;
+        private MessageSenderInfo topicSetBy;
         private Date topicSetOn;
 
-        public StoredData(String topic, String topicSetBy, Date topicSetOn) {
+        public StoredData(String topic, MessageSenderInfo topicSetBy, Date topicSetOn) {
             this.topic = topic;
             this.topicSetBy = topicSetBy;
             this.topicSetOn = topicSetOn;
@@ -21,7 +23,7 @@ public interface ChannelDataStorage {
             return topic;
         }
 
-        public String getTopicSetBy() {
+        public MessageSenderInfo getTopicSetBy() {
             return topicSetBy;
         }
 
@@ -33,6 +35,6 @@ public interface ChannelDataStorage {
 
     Future<StoredData> getOrCreateChannelData(String channel);
 
-    Future<Void> updateTopic(String channel, String topic, String setBy, Date setOn);
+    Future<Void> updateTopic(String channel, String topic, MessageSenderInfo setBy, Date setOn);
 
 }
