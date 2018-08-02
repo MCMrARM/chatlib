@@ -5,6 +5,7 @@ import io.mrarm.chatlib.dto.MessageInfo;
 import io.mrarm.chatlib.dto.MessageSenderInfo;
 import io.mrarm.chatlib.irc.*;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -47,7 +48,7 @@ public class TopicCommandHandler implements CommandHandler {
             String oldTopic = channelData.getTopic();
             if (oldTopic == null || !oldTopic.equals(topic)) {
                 channelData.addMessage(new MessageInfo.Builder(senderInfo, topic, MessageInfo.MessageType.TOPIC), tags);
-                channelData.setTopic(topic, null, null);
+                channelData.setTopic(topic, senderInfo, senderInfo != null ? new Date() : null);
             }
         } catch (NoSuchChannelException e) {
             throw new InvalidMessageException("Invalid channel specified in a topic message", e);
