@@ -16,6 +16,8 @@ public class ServerConnectionData {
 
     private ServerConnectionApi api;
     private String userNick;
+    private String userUser;
+    private String userHost;
     private final HashMap<String, ChannelData> joinedChannels = new HashMap<>();
     private ServerStatusData serverStatusData = new ServerStatusData();
     private WritableUserInfoApi userInfoApi;
@@ -39,6 +41,19 @@ public class ServerConnectionData {
 
     public synchronized String getUserNick() {
         return userNick;
+    }
+
+    public synchronized void setUserExtraInfo(String user, String host) {
+        userUser = user;
+        userHost = host;
+    }
+
+    public synchronized String getUserUser() {
+        return userUser;
+    }
+
+    public synchronized String getUserHost() {
+        return userHost;
     }
 
     public ServerConnectionApi getApi() {
