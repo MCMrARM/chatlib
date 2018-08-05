@@ -5,6 +5,8 @@ import java.util.List;
 
 public class MessageSplitHelper {
 
+    public static final int MAX_SPACE_LOOKUP_N = 10;
+
     private static class FormattingState {
         int fg = 99, bg = 99;
         boolean bold, italic, underline;
@@ -60,6 +62,16 @@ public class MessageSplitHelper {
             int len = Math.min(maxLength - (messagePrefix != null ? messagePrefix.length() : 0)
                     - (messageSuffix != null ? messageSuffix.length() : 0)
                     - (colorPrefix != null ? colorPrefix.length() : 0), message.length() - i);
+            if (i + len != message.length()) {
+                int slen = Math.max(len - MAX_SPACE_LOOKUP_N, 0);
+                for (int nlen = len; nlen >= slen; --nlen) {
+                    if (message.charAt(nlen - 1) == ' ') {
+                        len = nlen;
+                        break;
+                    }
+                }
+            }
+
             if (colorPrefix  != null)
                 ret.add(colorPrefix + message.substring(i, i + len));
             else
