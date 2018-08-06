@@ -2,8 +2,10 @@ package io.mrarm.chatlib.irc.handlers;
 
 import io.mrarm.chatlib.dto.NickWithPrefix;
 import io.mrarm.chatlib.dto.WhoisInfo;
+import io.mrarm.chatlib.dto.WhoisStatusMessageInfo;
 import io.mrarm.chatlib.irc.*;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -79,7 +81,11 @@ public class WhoisCommandHandler extends RequestResponseCommandHandler<String, W
             builder.setSecure(true);
         } else if (numeric == RPL_ENDOFWHOIS) {
             currentReply.remove(nick);
-            onResponse(nick, builder.build());
+
+            WhoisInfo whoisInfo = builder.build();
+            onResponse(nick, whoisInfo);
+            connection.getServerStatusData().addMessage(new WhoisStatusMessageInfo(
+                    sender != null ? sender.getServerName() : null, new Date(), whoisInfo));
         }
     }
 
