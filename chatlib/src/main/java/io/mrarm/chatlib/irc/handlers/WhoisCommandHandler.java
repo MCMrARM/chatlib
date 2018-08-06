@@ -42,7 +42,7 @@ public class WhoisCommandHandler extends RequestResponseCommandHandler<String, W
     public void handle(ServerConnectionData connection, MessagePrefix sender, String command, List<String> params,
                        Map<String, String> tags) throws InvalidMessageException {
         int numeric = CommandHandler.toNumeric(command);
-        String nick = CommandHandler.getParamWithCheck(params, 1);
+        String nick = CommandHandler.getParamWithCheck(params, 1).toLowerCase();
         WhoisInfo.Builder builder = currentReply.get(nick);
         if (builder == null) {
             if (numeric == RPL_WHOISUSER) {
@@ -87,13 +87,19 @@ public class WhoisCommandHandler extends RequestResponseCommandHandler<String, W
     public boolean onError(int commandId, List<String> params) {
         if (commandId == NickCommandHandler.ERR_NONICKNAMEGIVEN)
             return onError(null, commandId, CommandHandler.getParamOrNull(params, 1), false);
-        return params.size() > 1 && onError(params.get(1), commandId, CommandHandler.getParamOrNull(params, 2), false);
+        return params.size() > 1 && onError(params.get(1).toLowerCase(), commandId,
+                CommandHandler.getParamOrNull(params, 2), false);
     }
 
     @Override
     public void onDisconnected() {
         super.onDisconnected();
         currentReply.clear();
+    }
+
+    @Override
+    public boolean onRequested(String i, Callback<WhoisInfo> callback, ErrorCallback<String> errorCallback) {
+        return super.onRequested(i.toLowerCase(), callback, errorCallback);
     }
 
     public void onAwayMessage(String nick, String message) {
