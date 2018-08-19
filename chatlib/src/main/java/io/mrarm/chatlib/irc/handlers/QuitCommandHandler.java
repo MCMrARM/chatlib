@@ -35,7 +35,9 @@ public class QuitCommandHandler implements CommandHandler {
             String message = CommandHandler.getParamOrNull(params, 0);
             for (String channel : userInfo.getChannels()) {
                 ChannelData channelData = connection.getJoinedChannelData(channel);
-                channelData.removeMember(channelData.getMember(userInfo.getUUID()));
+                ChannelData.Member member = channelData.getMember(userInfo.getUUID());
+                if (member != null)
+                    channelData.removeMember(member);
                 channelData.addMessage(new MessageInfo.Builder(senderInfo, message, MessageInfo.MessageType.QUIT),
                         tags);
             }
