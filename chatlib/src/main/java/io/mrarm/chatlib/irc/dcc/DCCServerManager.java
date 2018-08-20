@@ -1,6 +1,7 @@
 package io.mrarm.chatlib.irc.dcc;
 
 import java.io.File;
+import java.io.FileDescriptor;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,8 +21,7 @@ public class DCCServerManager {
         this(DEFAULT_SOCKET_LIMIT);
     }
 
-    public UploadEntry startUpload(String user, String filename, File file) throws IOException {
-        DCCServer server = new DCCServer(file, socketLimit);
+    private UploadEntry startUpload(String user, String filename, DCCServer server) throws IOException {
         int port;
         try {
             port = server.createServerSocket();
@@ -36,9 +36,17 @@ public class DCCServerManager {
             throw e;
         }
         UploadKey key = new UploadKey(user, filename, port);
-        UploadEntry ent = new UploadEntry(key, file, server);
+        UploadEntry ent = new UploadEntry(key, server);
         uploads.put(key, ent);
         return ent;
+    }
+
+    public UploadEntry startUpload(String user, String filename, File file) throws IOException {
+        return startUpload(user, filename, new DCCServer(file, socketLimit));
+    }
+
+    public UploadEntry startUpload(String user, String filename, FileDescriptor file) throws IOException {
+        return startUpload(user, filename, new DCCServer(file, socketLimit));
     }
 
     public void cancelUpload(UploadEntry upload) {
@@ -55,12 +63,10 @@ public class DCCServerManager {
     public static class UploadEntry {
 
         private UploadKey key;
-        private File file;
         private DCCServer server;
 
-        UploadEntry(UploadKey key, File file, DCCServer server) {
+        UploadEntry(UploadKey key, DCCServer server) {
             this.key = key;
-            this.file = file;
             this.server = server;
         }
 

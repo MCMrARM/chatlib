@@ -1,9 +1,6 @@
 package io.mrarm.chatlib.irc.dcc;
 
-import java.io.Closeable;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -16,12 +13,18 @@ import java.util.List;
 public class DCCServer implements Closeable {
 
     private File file;
+    private FileDescriptor fileDescriptor;
     private ServerSocketChannel serverSocket;
     private int socketLimit;
     private List<UploadSession> sessions = new ArrayList<>();
 
     public DCCServer(File file, int socketLimit) {
         this.file = file;
+        this.socketLimit = socketLimit;
+    }
+
+    public DCCServer(FileDescriptor fd, int socketLimit) {
+        this.fileDescriptor = fd;
         this.socketLimit = socketLimit;
     }
 
@@ -55,7 +58,14 @@ public class DCCServer implements Closeable {
         SocketChannel socket = serverSocket.accept();
         if (socket == null)
             return;
-        new UploadSession(file, socket);
+        new UploadSession(openInputStream(), socket);
+    }
+
+    private FileChannel openInputStream() throws IOException {
+        if (file != null)
+            return new FileInputStream(file).getChannel();
+        else
+            return new FileInputStream(fileDescriptor).getChannel();
     }
 
 
@@ -67,9 +77,9 @@ public class DCCServer implements Closeable {
         private SelectionKey selectionKey;
         SocketChannel socket;
 
-        UploadSession(File file, SocketChannel socket) throws IOException {
+        UploadSession(FileChannel file, SocketChannel socket) throws IOException {
             try {
-                this.file = new FileInputStream(file).getChannel();
+                this.file = file;
                 this.socket = socket;
                 socket.configureBlocking(false);
                 selectionKey = DCCIOHandler.getInstance().addUploadSession(this);
