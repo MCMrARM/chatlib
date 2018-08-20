@@ -1,10 +1,7 @@
 package io.mrarm.chatlib.irc.dcc;
 
 import java.io.IOException;
-import java.nio.channels.ClosedChannelException;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.*;
 
 public class DCCIOHandler extends Thread {
 
@@ -47,6 +44,13 @@ public class DCCIOHandler extends Thread {
         return ret;
     }
 
+    public void unregister(SelectionKey key) {
+        synchronized (selectorLock) {
+            selector.wakeup();
+            key.cancel();
+        }
+    }
+
     private void handleSelectionKey(SelectionKey k) throws IOException {
         if (k.isAcceptable())
             ((DCCServer) k.attachment()).doAccept();
@@ -54,10 +58,12 @@ public class DCCIOHandler extends Thread {
         if (k.attachment() instanceof DCCServer.UploadSession) {
             if (k.isReadable())
                 ((DCCServer.UploadSession) k.attachment()).doRead();
+            if (!k.isValid()) {
+                ((DCCServer.UploadSession) k.attachment()).close();
+                return;
+            }
             if (k.isWritable())
                 ((DCCServer.UploadSession) k.attachment()).doWrite();
-            if (!k.isValid())
-                ((DCCServer.UploadSession) k.attachment()).close();
         }
     }
 
