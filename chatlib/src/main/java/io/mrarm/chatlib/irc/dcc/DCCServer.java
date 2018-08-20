@@ -109,7 +109,8 @@ public class DCCServer implements Closeable {
         }
 
         void doRead() throws IOException {
-            while (socket.read(readBuffer) > 0) {
+            int r;
+            while ((r = socket.read(readBuffer)) > 0) {
                 readBuffer.flip();
                 while (readBuffer.remaining() >= 4) {
                     long cnt = readBuffer.getInt() & 0xffffffffL;
@@ -120,6 +121,8 @@ public class DCCServer implements Closeable {
                 }
                 readBuffer.compact();
             }
+            if (r < 0)
+                close();
         }
 
         private int readFile(ByteBuffer buffer) {

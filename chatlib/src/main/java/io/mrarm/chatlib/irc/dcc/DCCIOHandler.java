@@ -56,7 +56,7 @@ public class DCCIOHandler extends Thread {
             ((DCCServer) k.attachment()).doAccept();
 
         if (k.attachment() instanceof DCCServer.UploadSession) {
-            if (k.isReadable())
+            if ((k.readyOps() & SelectionKey.OP_READ) != 0)
                 ((DCCServer.UploadSession) k.attachment()).doRead();
             if (!k.isValid()) {
                 ((DCCServer.UploadSession) k.attachment()).close();
