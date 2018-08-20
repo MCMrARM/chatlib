@@ -8,14 +8,16 @@ import java.nio.channels.ServerSocketChannel;
 
 public class DCCIOHandler extends Thread {
 
-    private Selector selector;
-
     private static final DCCIOHandler instanceSingleton = new DCCIOHandler();
-    private boolean running = false;
 
     public static DCCIOHandler getInstance() {
         return instanceSingleton;
     }
+
+
+    private Selector selector;
+    private final Object selectorLock = new Object();
+    private boolean running = false;
 
     public DCCIOHandler() {
         try {
@@ -26,16 +28,22 @@ public class DCCIOHandler extends Thread {
     }
 
     SelectionKey addServer(DCCServer server, ServerSocketChannel channel) throws ClosedChannelException {
-        SelectionKey ret = channel.register(selector, SelectionKey.OP_ACCEPT, server);
+        SelectionKey ret;
+        synchronized (selectorLock) {
+            selector.wakeup();
+            ret = channel.register(selector, SelectionKey.OP_ACCEPT, server);
+        }
         startIfNeeded();
-        selector.wakeup();
         return ret;
     }
 
     SelectionKey addUploadSession(DCCServer.UploadSession session) throws ClosedChannelException {
-        SelectionKey ret = session.socket.register(selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE, session);
+        SelectionKey ret;
+        synchronized (selectorLock) {
+            selector.wakeup();
+            ret = session.socket.register(selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE, session);
+        }
         startIfNeeded();
-        selector.wakeup();
         return ret;
     }
 
@@ -56,7 +64,7 @@ public class DCCIOHandler extends Thread {
     @Override
     public void run() {
         while (true) {
-            synchronized (this) {
+            synchronized (selectorLock) {
                 if (selector.keys().size() <= 0) {
                     running = false;
                     break;
@@ -81,7 +89,7 @@ public class DCCIOHandler extends Thread {
 
 
     void startIfNeeded() {
-        synchronized (this) {
+        synchronized (selectorLock) {
             if (running)
                 return;
             running = true;
