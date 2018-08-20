@@ -35,6 +35,12 @@ public class DCCServer implements Closeable {
         return serverSocket.socket().getLocalPort();
     }
 
+    public int getPort() {
+        if (serverSocket == null)
+            return -1;
+        return serverSocket.socket().getLocalPort();
+    }
+
     @Override
     public void close() throws IOException {
         if (serverSocket != null)
