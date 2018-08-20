@@ -72,6 +72,7 @@ public class DCCIOHandler extends Thread {
                     handleSelectionKey(k);
                 } catch (IOException err) {
                     err.printStackTrace();
+                    throw new RuntimeException(err);
                 }
             }
         }
