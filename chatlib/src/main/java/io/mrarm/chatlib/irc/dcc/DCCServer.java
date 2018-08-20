@@ -16,6 +16,7 @@ public class DCCServer implements Closeable {
     private ServerSocketChannel serverSocket;
     private int socketLimit;
     private List<UploadSession> sessions = new ArrayList<>();
+    private long offset = 0;
 
     public DCCServer(FileChannelFactory fileFactory, int socketLimit) {
         this.fileFactory = fileFactory;
@@ -38,6 +39,10 @@ public class DCCServer implements Closeable {
         return serverSocket.socket().getLocalPort();
     }
 
+    public void setFileOffset(long offset) {
+        this.offset = offset;
+    }
+
     @Override
     public void close() throws IOException {
         if (serverSocket != null)
@@ -53,7 +58,7 @@ public class DCCServer implements Closeable {
         if (socket == null)
             return;
         System.out.println("Accepted DCC connection from: " + socket.getRemoteAddress().toString());
-        new UploadSession(fileFactory.open(), socket);
+        new UploadSession(fileFactory.open(), socket, offset);
     }
 
 
@@ -66,8 +71,11 @@ public class DCCServer implements Closeable {
         private long totalSize;
         SocketChannel socket;
 
-        UploadSession(FileChannel file, SocketChannel socket) throws IOException {
+        UploadSession(FileChannel file, SocketChannel socket, long startPos) throws IOException {
             try {
+                totalSize += startPos;
+                if (startPos != 0)
+                    file.position(startPos);
                 this.file = file;
                 this.socket = socket;
                 socket.configureBlocking(false);

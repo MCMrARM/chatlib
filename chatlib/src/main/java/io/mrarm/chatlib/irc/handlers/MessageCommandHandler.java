@@ -4,6 +4,8 @@ import io.mrarm.chatlib.NoSuchChannelException;
 import io.mrarm.chatlib.dto.MessageInfo;
 import io.mrarm.chatlib.dto.StatusMessageInfo;
 import io.mrarm.chatlib.irc.*;
+import io.mrarm.chatlib.irc.dcc.DCCServerManager;
+import io.mrarm.chatlib.irc.dcc.DCCUtils;
 
 import java.util.Date;
 import java.util.List;
@@ -16,6 +18,7 @@ public class MessageCommandHandler implements CommandHandler {
     private long ctcpLastReplySeconds = 0L;
     private int ctcpSecondReplyCount = 0;
     private String ctcpVersionReply = "Chatlib:unknown:unknown";
+    private DCCServerManager dccServerManager;
 
     @Override
     public Object[] getHandledCommands() {
@@ -28,6 +31,10 @@ public class MessageCommandHandler implements CommandHandler {
 
     public void setCtcpVersionReply(String clientName, String clientVersion, String system) {
         setCtcpVersionReply(clientName + ":" + clientVersion + ":" + system);
+    }
+
+    public void setDCCServerManager(DCCServerManager dccServerManager) {
+        this.dccServerManager = dccServerManager;
     }
 
     @Override
@@ -101,6 +108,18 @@ public class MessageCommandHandler implements CommandHandler {
                 return;
             connection.getServerStatusData().addMessage(new StatusMessageInfo(sender.getNick(), new Date(), StatusMessageInfo.MessageType.CTCP_VERSION, null));
             connection.getApi().sendNotice(sender.getNick(), "\01VERSION " + ctcpVersionReply + "\01", null, null);
+        } else if (command.equals("DCC")) {
+            if (args.startsWith("RESUME ") && dccServerManager != null && rateLimitCtcpCommand()) {
+                args = args.substring(7);
+                int filenameLen = DCCUtils.getFilenameLength(args);
+                String filename = args.substring(0, filenameLen);
+                String[] otherArgs = args.substring(filenameLen + (args.charAt(filenameLen) == ' ' ? 1 : 0)).split(" ");
+                if (dccServerManager.continueUpload(sender.getNick(), filename, Integer.parseInt(otherArgs[0]),
+                        Long.parseLong(otherArgs[1]))) {
+                    connection.getApi().sendMessage(sender.getNick(), "\01DCC ACCEPT " + filename + " " +
+                            otherArgs[0] + " " + otherArgs[1] + "\01", null, null);
+                }
+            }
         }
         // TODO: Implement other CTCP commands
     }

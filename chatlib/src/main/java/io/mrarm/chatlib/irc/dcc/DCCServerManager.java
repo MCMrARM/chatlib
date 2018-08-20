@@ -34,10 +34,18 @@ public class DCCServerManager {
             }
             throw e;
         }
-        UploadKey key = new UploadKey(user, filename, port);
+        UploadKey key = new UploadKey(user.toLowerCase(), filename, port);
         UploadEntry ent = new UploadEntry(key, server);
         uploads.put(key, ent);
         return ent;
+    }
+
+    public boolean continueUpload(String user, String filename, int port, long offset) {
+        UploadEntry entry = uploads.get(new UploadKey(user.toLowerCase(), filename, port));
+        if (entry == null)
+            return false;
+        entry.server.setFileOffset(offset);
+        return true;
     }
 
     public void cancelUpload(UploadEntry upload) {
