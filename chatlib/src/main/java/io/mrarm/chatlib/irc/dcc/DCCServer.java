@@ -96,7 +96,8 @@ public class DCCServer implements Closeable {
         private ByteBuffer readBuffer = ByteBuffer.allocateDirect(1024);
         private FileChannel file;
         private SelectionKey selectionKey;
-        private AtomicLong totalSize = new AtomicLong();
+        private AtomicLong ackedSize = new AtomicLong();
+        private long totalSize;
         private SocketChannel socket;
 
         private DCCIOHandler.SelectHandler selectionKeyHandler = (SelectionKey k) -> {
@@ -112,9 +113,11 @@ public class DCCServer implements Closeable {
 
         UploadSession(FileChannel file, SocketChannel socket, long startPos) throws IOException {
             try {
-                totalSize.addAndGet(startPos);
+                totalSize = file.size();
+                ackedSize.addAndGet(startPos);
                 if (startPos != 0)
                     file.position(startPos);
+
                 this.file = file;
                 this.socket = socket;
                 socket.configureBlocking(false);
@@ -132,8 +135,12 @@ public class DCCServer implements Closeable {
             }
         }
 
-        public long getUploadedSize() {
-            return totalSize.get();
+        public long getTotalSize() {
+            return totalSize;
+        }
+
+        public long getAcknowledgedSize() {
+            return ackedSize.get();
         }
 
         @Override
@@ -168,7 +175,8 @@ public class DCCServer implements Closeable {
                 readBuffer.flip();
                 while (readBuffer.remaining() >= 4) {
                     long cnt = readBuffer.getInt() & 0xffffffffL;
-                    if (file == null && cnt >= totalSize.get()) {
+                    ackedSize.set(cnt);
+                    if (file == null && cnt >= totalSize) {
                         close();
                         return;
                     }
@@ -195,8 +203,6 @@ public class DCCServer implements Closeable {
                 } catch (IOException ignored) {
                 }
                 file = null;
-            } else {
-                totalSize.addAndGet(r);
             }
             return r;
         }
