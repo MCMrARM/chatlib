@@ -4,6 +4,7 @@ import io.mrarm.chatlib.NoSuchChannelException;
 import io.mrarm.chatlib.dto.MessageInfo;
 import io.mrarm.chatlib.dto.StatusMessageInfo;
 import io.mrarm.chatlib.irc.*;
+import io.mrarm.chatlib.irc.dcc.DCCClientManager;
 import io.mrarm.chatlib.irc.dcc.DCCServerManager;
 import io.mrarm.chatlib.irc.dcc.DCCUtils;
 
@@ -19,6 +20,7 @@ public class MessageCommandHandler implements CommandHandler {
     private int ctcpSecondReplyCount = 0;
     private String ctcpVersionReply = "Chatlib:unknown:unknown";
     private DCCServerManager dccServerManager;
+    private DCCClientManager dccClientManager;
 
     @Override
     public Object[] getHandledCommands() {
@@ -35,6 +37,10 @@ public class MessageCommandHandler implements CommandHandler {
 
     public void setDCCServerManager(DCCServerManager dccServerManager) {
         this.dccServerManager = dccServerManager;
+    }
+
+    public void setDCCClientManager(DCCClientManager dccClientManager) {
+        this.dccClientManager = dccClientManager;
     }
 
     @Override
@@ -119,6 +125,20 @@ public class MessageCommandHandler implements CommandHandler {
                     connection.getApi().sendMessage(sender.getNick(), "\01DCC ACCEPT " + filename + " " +
                             otherArgs[0] + " " + otherArgs[1] + "\01", null, null);
                 }
+            }
+            if (args.startsWith("SEND ") && dccClientManager != null) {
+                args = args.substring(5);
+                int filenameLen = DCCUtils.getFilenameLength(args);
+                String filename = args.substring(0, filenameLen);
+                String[] otherArgs = args.substring(filenameLen + (args.charAt(filenameLen) == ' ' ? 1 : 0)).split(" ");
+                long size = -1;
+                try {
+                    size = Long.parseLong(otherArgs[2]);
+                } catch (Exception ignored) { // NumberFormatException or NPE
+                }
+
+                dccClientManager.onFileOffered(connection, sender, filename,
+                        DCCUtils.convertIPFromCommand(otherArgs[0]), Integer.parseInt(otherArgs[1]), size);
             }
         }
         // TODO: Implement other CTCP commands
