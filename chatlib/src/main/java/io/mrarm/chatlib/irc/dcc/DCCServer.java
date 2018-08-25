@@ -67,8 +67,8 @@ public class DCCServer implements Closeable {
 
     class UploadSession implements Closeable {
 
-        private ByteBuffer buffer = ByteBuffer.allocate(1024 * 1024);
-        private ByteBuffer readBuffer = ByteBuffer.allocate(1024);
+        private ByteBuffer buffer = ByteBuffer.allocateDirect(1024 * 1024);
+        private ByteBuffer readBuffer = ByteBuffer.allocateDirect(1024);
         private FileChannel file;
         private SelectionKey selectionKey;
         private long totalSize;
@@ -165,8 +165,11 @@ public class DCCServer implements Closeable {
         void doWrite() throws IOException {
             while (readFile(buffer) > 0 || buffer.position() > 0) {
                 buffer.flip();
-                socket.write(buffer);
-                buffer.compact();
+                try {
+                    socket.write(buffer);
+                } finally {
+                    buffer.compact();
+                }
             }
         }
 
