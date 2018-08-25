@@ -40,33 +40,45 @@ public class DCCServerManager {
         }
         UploadKey key = new UploadKey(connection, user.toLowerCase(), filename, port);
         UploadEntry ent = new UploadEntry(key, server);
-        uploads.put(key, ent);
+        synchronized (this) {
+            uploads.put(key, ent);
+        }
         return ent;
     }
 
     public UploadEntry addReverseUpload(ServerConnectionData connection, String user, String filename,
                                         DCCServer.FileChannelFactory factory) {
         DCCServer server = new DCCServer(factory, socketLimit);
-        int id = getReverseUploadId();
-        UploadKey key = new UploadKey(connection, user.toLowerCase(), filename, id);
-        UploadEntry ent = new UploadEntry(key, server, id);
-        reverseUploadIds.add(id);
-        reverseUploads.put(key, ent);
-        return ent;
+        synchronized (this) {
+            int id = getReverseUploadId();
+            UploadKey key = new UploadKey(connection, user.toLowerCase(), filename, id);
+            UploadEntry ent = new UploadEntry(key, server, id);
+            reverseUploadIds.add(id);
+            reverseUploads.put(key, ent);
+            return ent;
+        }
+    }
+
+    public synchronized UploadEntry getUploadEntry(UploadKey key) {
+        return uploads.get(key);
     }
 
     public boolean continueUpload(ServerConnectionData connection, String user, String filename, int port,
                                   long offset) {
-        UploadEntry entry = uploads.get(new UploadKey(connection, user.toLowerCase(), filename, port));
+        UploadEntry entry = getUploadEntry(new UploadKey(connection, user.toLowerCase(), filename, port));
         if (entry == null)
             return false;
         entry.server.setFileOffset(offset);
         return true;
     }
 
+    public synchronized UploadEntry getReverseUploadEntry(UploadKey key) {
+        return reverseUploads.get(key);
+    }
+
     public void handleReverseUploadResponse(ServerConnectionData connection, String user, String filename, int uploadId,
                                             String ip, int port) {
-        UploadEntry entry = reverseUploads.get(new UploadKey(connection, user.toLowerCase(), filename, uploadId));
+        UploadEntry entry = getReverseUploadEntry(new UploadKey(connection, user.toLowerCase(), filename, uploadId));
         if (entry == null)
             return;
         try {
@@ -77,8 +89,12 @@ public class DCCServerManager {
     }
 
     public void cancelUpload(UploadEntry upload) {
-        uploads.remove(upload.key);
-        reverseUploads.remove(upload.key);
+        synchronized (this) {
+            uploads.remove(upload.key);
+            if (upload.reverseId != -1 && reverseUploads.remove(upload.key) != null) {
+                reverseUploadIds.remove(upload.reverseId);
+            }
+        }
         if (upload.server != null) {
             try {
                 upload.server.close();
@@ -88,7 +104,7 @@ public class DCCServerManager {
         }
     }
 
-    private int getReverseUploadId() {
+    private synchronized int getReverseUploadId() {
         Random random = new Random();
         while (true) {
             int rand = random.nextInt() & Integer.MAX_VALUE;
