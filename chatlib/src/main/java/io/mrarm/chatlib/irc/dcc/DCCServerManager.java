@@ -1,5 +1,7 @@
 package io.mrarm.chatlib.irc.dcc;
 
+import io.mrarm.chatlib.irc.ServerConnectionData;
+
 import java.io.IOException;
 import java.util.*;
 
@@ -20,8 +22,8 @@ public class DCCServerManager {
         this(DEFAULT_SOCKET_LIMIT);
     }
 
-    public UploadEntry startUpload(String user, String filename, DCCServer.FileChannelFactory factory)
-            throws IOException {
+    public UploadEntry startUpload(ServerConnectionData connection, String user, String filename,
+                                   DCCServer.FileChannelFactory factory) throws IOException {
         DCCServer server = new DCCServer(factory, socketLimit);
         int port;
         try {
@@ -36,32 +38,35 @@ public class DCCServerManager {
             }
             throw e;
         }
-        UploadKey key = new UploadKey(user.toLowerCase(), filename, port);
+        UploadKey key = new UploadKey(connection, user.toLowerCase(), filename, port);
         UploadEntry ent = new UploadEntry(key, server);
         uploads.put(key, ent);
         return ent;
     }
 
-    public UploadEntry addReverseUpload(String user, String filename, DCCServer.FileChannelFactory factory) {
+    public UploadEntry addReverseUpload(ServerConnectionData connection, String user, String filename,
+                                        DCCServer.FileChannelFactory factory) {
         DCCServer server = new DCCServer(factory, socketLimit);
         int id = getReverseUploadId();
-        UploadKey key = new UploadKey(user.toLowerCase(), filename, id);
+        UploadKey key = new UploadKey(connection, user.toLowerCase(), filename, id);
         UploadEntry ent = new UploadEntry(key, server, id);
         reverseUploadIds.add(id);
         reverseUploads.put(key, ent);
         return ent;
     }
 
-    public boolean continueUpload(String user, String filename, int port, long offset) {
-        UploadEntry entry = uploads.get(new UploadKey(user.toLowerCase(), filename, port));
+    public boolean continueUpload(ServerConnectionData connection, String user, String filename, int port,
+                                  long offset) {
+        UploadEntry entry = uploads.get(new UploadKey(connection, user.toLowerCase(), filename, port));
         if (entry == null)
             return false;
         entry.server.setFileOffset(offset);
         return true;
     }
 
-    public void handleReverseUploadResponse(String user, String filename, int uploadId, String ip, int port) {
-        UploadEntry entry = reverseUploads.get(new UploadKey(user.toLowerCase(), filename, uploadId));
+    public void handleReverseUploadResponse(ServerConnectionData connection, String user, String filename, int uploadId,
+                                            String ip, int port) {
+        UploadEntry entry = reverseUploads.get(new UploadKey(connection, user.toLowerCase(), filename, uploadId));
         if (entry == null)
             return;
         try {
@@ -120,11 +125,13 @@ public class DCCServerManager {
 
     private static class UploadKey {
 
+        final ServerConnectionData connection;
         final String user;
         final String fileName;
         final int portOrId;
 
-        public UploadKey(String user, String fileName, int portOrId) {
+        public UploadKey(ServerConnectionData connection, String user, String fileName, int portOrId) {
+            this.connection = connection;
             this.user = user;
             this.fileName = fileName;
             this.portOrId = portOrId;
@@ -135,12 +142,13 @@ public class DCCServerManager {
             return o != null && o instanceof UploadKey &&
                     this.user.equals(((UploadKey) o).user) &&
                     this.fileName.equals(((UploadKey) o).fileName) &&
-                    this.portOrId == ((UploadKey) o).portOrId;
+                    this.portOrId == ((UploadKey) o).portOrId &&
+                    this.connection == ((UploadKey) o).connection;
         }
 
         @Override
         public int hashCode() {
-            return 31 * user.hashCode() + 7 * fileName.hashCode() + portOrId;
+            return 31 * connection.hashCode() + 11 * user.hashCode() + 7 * fileName.hashCode() + portOrId;
         }
 
     }

@@ -120,8 +120,8 @@ public class MessageCommandHandler implements CommandHandler {
                 int filenameLen = DCCUtils.getFilenameLength(args);
                 String filename = args.substring(0, filenameLen);
                 String[] otherArgs = args.substring(filenameLen + (args.charAt(filenameLen) == ' ' ? 1 : 0)).split(" ");
-                if (dccServerManager.continueUpload(sender.getNick(), filename, Integer.parseInt(otherArgs[0]),
-                        Long.parseLong(otherArgs[1]))) {
+                if (dccServerManager.continueUpload(connection, sender.getNick(), filename,
+                        Integer.parseInt(otherArgs[0]), Long.parseLong(otherArgs[1]))) {
                     connection.getApi().sendMessage(sender.getNick(), "\01DCC ACCEPT " + filename + " " +
                             otherArgs[0] + " " + otherArgs[1] + "\01", null, null);
                 }
@@ -141,7 +141,8 @@ public class MessageCommandHandler implements CommandHandler {
                 if (otherArgs.length > 3) { // Reverse DCC
                     int reverseId = Integer.parseInt(otherArgs[3]);
                     if (dccServerManager != null) // no need to rate limit, as we limit the count of uploads in that part of code anyways
-                        dccServerManager.handleReverseUploadResponse(sender.getNick(), filename, reverseId, ip, port);
+                        dccServerManager.handleReverseUploadResponse(connection, sender.getNick(), filename, reverseId,
+                                ip, port);
                     return;
                 }
 
