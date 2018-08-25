@@ -22,9 +22,13 @@ public class DCCServerManager {
         this(DEFAULT_SOCKET_LIMIT);
     }
 
+    protected DCCServer createServer(DCCServer.FileChannelFactory fileFactory, int socketLimit) {
+        return new DCCServer(fileFactory, socketLimit);
+    }
+
     public UploadEntry startUpload(ServerConnectionData connection, String user, String filename,
                                    DCCServer.FileChannelFactory factory) throws IOException {
-        DCCServer server = new DCCServer(factory, socketLimit);
+        DCCServer server = createServer(factory, socketLimit);
         int port;
         try {
             port = server.createServerSocket();
@@ -48,7 +52,7 @@ public class DCCServerManager {
 
     public UploadEntry addReverseUpload(ServerConnectionData connection, String user, String filename,
                                         DCCServer.FileChannelFactory factory) {
-        DCCServer server = new DCCServer(factory, socketLimit);
+        DCCServer server = createServer(factory, socketLimit);
         synchronized (this) {
             int id = getReverseUploadId();
             UploadKey key = new UploadKey(connection, user.toLowerCase(), filename, id);

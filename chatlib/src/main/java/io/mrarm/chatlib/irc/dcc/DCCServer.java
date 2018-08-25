@@ -9,18 +9,32 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class DCCServer implements Closeable {
 
-    private FileChannelFactory fileFactory;
+    private final FileChannelFactory fileFactory;
     private ServerSocketChannel serverSocket;
-    private int socketLimit;
-    private List<UploadSession> sessions = new ArrayList<>();
+    private final List<SessionListener> sessionListeners = new ArrayList<>();
+    private final int socketLimit;
+    private final List<UploadSession> sessions = new ArrayList<>();
     private long offset = 0;
 
     public DCCServer(FileChannelFactory fileFactory, int socketLimit) {
         this.fileFactory = fileFactory;
         this.socketLimit = socketLimit;
+    }
+
+    public void addSessionListener(SessionListener listener) {
+        synchronized (sessionListeners) {
+            sessionListeners.add(listener);
+        }
+    }
+
+    public void removeSessionListener(SessionListener listener) {
+        synchronized (sessionListeners) {
+            sessionListeners.remove(listener);
+        }
     }
 
     public int createServerSocket() throws IOException {
@@ -76,13 +90,13 @@ public class DCCServer implements Closeable {
     }
 
 
-    class UploadSession implements Closeable {
+    public class UploadSession implements Closeable {
 
         private ByteBuffer buffer = ByteBuffer.allocateDirect(1024 * 1024);
         private ByteBuffer readBuffer = ByteBuffer.allocateDirect(1024);
         private FileChannel file;
         private SelectionKey selectionKey;
-        private long totalSize;
+        private AtomicLong totalSize = new AtomicLong();
         private SocketChannel socket;
 
         private DCCIOHandler.SelectHandler selectionKeyHandler = (SelectionKey k) -> {
@@ -98,7 +112,7 @@ public class DCCServer implements Closeable {
 
         UploadSession(FileChannel file, SocketChannel socket, long startPos) throws IOException {
             try {
-                totalSize += startPos;
+                totalSize.addAndGet(startPos);
                 if (startPos != 0)
                     file.position(startPos);
                 this.file = file;
@@ -106,11 +120,20 @@ public class DCCServer implements Closeable {
                 socket.configureBlocking(false);
                 selectionKey = DCCIOHandler.getInstance().register(socket,
                         SelectionKey.OP_READ | SelectionKey.OP_WRITE, selectionKeyHandler);
-                sessions.add(this);
             } catch (IOException e) {
                 close();
                 throw e;
             }
+
+            sessions.add(this);
+            synchronized (sessionListeners) {
+                for (SessionListener listener : sessionListeners)
+                    listener.onSessionCreated(DCCServer.this, this);
+            }
+        }
+
+        public long getUploadedSize() {
+            return totalSize.get();
         }
 
         @Override
@@ -132,15 +155,20 @@ public class DCCServer implements Closeable {
             } catch (IOException ignored) {
             }
             file = null;
+
+            synchronized (sessionListeners) {
+                for (SessionListener listener : sessionListeners)
+                    listener.onSessionDestroyed(DCCServer.this, this);
+            }
         }
 
-        void doRead() throws IOException {
+        private void doRead() throws IOException {
             int r;
             while ((r = socket.read(readBuffer)) > 0) {
                 readBuffer.flip();
                 while (readBuffer.remaining() >= 4) {
                     long cnt = readBuffer.getInt() & 0xffffffffL;
-                    if (file == null && cnt >= totalSize) {
+                    if (file == null && cnt >= totalSize.get()) {
                         close();
                         return;
                     }
@@ -168,12 +196,12 @@ public class DCCServer implements Closeable {
                 }
                 file = null;
             } else {
-                totalSize += r;
+                totalSize.addAndGet(r);
             }
             return r;
         }
 
-        void doWrite() throws IOException {
+        private void doWrite() throws IOException {
             while (readFile(buffer) > 0 || buffer.position() > 0) {
                 buffer.flip();
                 try {
@@ -189,6 +217,14 @@ public class DCCServer implements Closeable {
     public interface FileChannelFactory {
 
         FileChannel open() throws IOException;
+
+    }
+
+    public interface SessionListener {
+
+        void onSessionCreated(DCCServer server, UploadSession session);
+
+        void onSessionDestroyed(DCCServer server, UploadSession session);
 
     }
 
