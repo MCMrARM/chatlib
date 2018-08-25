@@ -2,6 +2,7 @@ package io.mrarm.chatlib.irc.dcc;
 
 import java.io.IOException;
 import java.nio.channels.*;
+import java.nio.channels.spi.AbstractSelectableChannel;
 
 public class DCCIOHandler extends Thread {
 
@@ -24,21 +25,12 @@ public class DCCIOHandler extends Thread {
         }
     }
 
-    SelectionKey addServer(DCCServer server, ServerSocketChannel channel) throws ClosedChannelException {
+    public SelectionKey register(AbstractSelectableChannel channel, int ops, SelectHandler callback)
+            throws ClosedChannelException {
         SelectionKey ret;
         synchronized (selectorLock) {
             selector.wakeup();
-            ret = channel.register(selector, SelectionKey.OP_ACCEPT, server);
-        }
-        startIfNeeded();
-        return ret;
-    }
-
-    SelectionKey addUploadSession(DCCServer.UploadSession session) throws ClosedChannelException {
-        SelectionKey ret;
-        synchronized (selectorLock) {
-            selector.wakeup();
-            ret = session.socket.register(selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE, session);
+            ret = channel.register(selector, ops, callback);
         }
         startIfNeeded();
         return ret;
@@ -48,22 +40,6 @@ public class DCCIOHandler extends Thread {
         synchronized (selectorLock) {
             selector.wakeup();
             key.cancel();
-        }
-    }
-
-    private void handleSelectionKey(SelectionKey k) throws IOException {
-        if (k.isAcceptable())
-            ((DCCServer) k.attachment()).doAccept();
-
-        if (k.attachment() instanceof DCCServer.UploadSession) {
-            if ((k.readyOps() & SelectionKey.OP_READ) != 0)
-                ((DCCServer.UploadSession) k.attachment()).doRead();
-            if (!k.isValid()) {
-                ((DCCServer.UploadSession) k.attachment()).close();
-                return;
-            }
-            if (k.isWritable())
-                ((DCCServer.UploadSession) k.attachment()).doWrite();
         }
     }
 
@@ -83,7 +59,7 @@ public class DCCIOHandler extends Thread {
             }
             for (SelectionKey k : selector.selectedKeys()) {
                 try {
-                    handleSelectionKey(k);
+                    ((SelectHandler) k.attachment()).onSelect(k);
                 } catch (IOException err) {
                     err.printStackTrace();
                 }
@@ -106,6 +82,13 @@ public class DCCIOHandler extends Thread {
             }
         }
         start();
+    }
+
+
+    public interface SelectHandler {
+
+        void onSelect(SelectionKey key) throws IOException;
+
     }
 
 }

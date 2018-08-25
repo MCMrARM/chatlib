@@ -28,7 +28,10 @@ public class DCCServer implements Closeable {
             serverSocket = ServerSocketChannel.open();
             serverSocket.socket().bind(new InetSocketAddress(0));
             serverSocket.configureBlocking(false);
-            DCCIOHandler.getInstance().addServer(this, serverSocket);
+            DCCIOHandler.getInstance().register(serverSocket, SelectionKey.OP_ACCEPT, (SelectionKey k) -> {
+                if (k.isAcceptable())
+                    doAccept();
+            });
         }
         return serverSocket.socket().getLocalPort();
     }
@@ -69,7 +72,18 @@ public class DCCServer implements Closeable {
         private FileChannel file;
         private SelectionKey selectionKey;
         private long totalSize;
-        SocketChannel socket;
+        private SocketChannel socket;
+
+        private DCCIOHandler.SelectHandler selectionKeyHandler = (SelectionKey k) -> {
+            if ((k.readyOps() & SelectionKey.OP_READ) != 0)
+                doRead();
+            if (!k.isValid()) {
+                close();
+                return;
+            }
+            if (k.isWritable())
+                doWrite();
+        };
 
         UploadSession(FileChannel file, SocketChannel socket, long startPos) throws IOException {
             try {
@@ -79,7 +93,8 @@ public class DCCServer implements Closeable {
                 this.file = file;
                 this.socket = socket;
                 socket.configureBlocking(false);
-                selectionKey = DCCIOHandler.getInstance().addUploadSession(this);
+                selectionKey = DCCIOHandler.getInstance().register(socket,
+                        SelectionKey.OP_READ | SelectionKey.OP_WRITE, selectionKeyHandler);
                 sessions.add(this);
             } catch (IOException e) {
                 close();
@@ -161,6 +176,6 @@ public class DCCServer implements Closeable {
 
         FileChannel open() throws IOException;
 
-    };
+    }
 
 }
