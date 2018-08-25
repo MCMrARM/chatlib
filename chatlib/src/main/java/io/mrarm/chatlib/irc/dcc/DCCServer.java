@@ -64,6 +64,17 @@ public class DCCServer implements Closeable {
         new UploadSession(fileFactory.open(), socket, offset);
     }
 
+    public boolean startReverseUpload(String ip, int port) throws IOException {
+        if (socketLimit != -1 && sessions.size() >= socketLimit)
+            return false;
+        System.out.println("Starting reverse DCC upload to: " + ip + ":" + port);
+        SocketChannel socket = SocketChannel.open(new InetSocketAddress(ip, port));
+        if (socket == null)
+            return false;
+        new UploadSession(fileFactory.open(), socket, offset);
+        return true;
+    }
+
 
     class UploadSession implements Closeable {
 

@@ -51,7 +51,7 @@ public class DCCUtils {
 
 
 
-    public static String buildSendMessage(String myIp, String name, int port, long size) {
+    public static String buildSendMessage(String myIp, String name, int port, long size, int reverseId) {
         StringBuilder sendCmd = new StringBuilder();
         sendCmd.append('\001');
         sendCmd.append("DCC SEND ");
@@ -62,8 +62,16 @@ public class DCCUtils {
         sendCmd.append(port);
         sendCmd.append(' ');
         sendCmd.append(size);
+        if (reverseId != -1) {
+            sendCmd.append(' ');
+            sendCmd.append(reverseId);
+        }
         sendCmd.append('\001');
         return sendCmd.toString();
+    }
+
+    public static String buildSendMessage(String myIp, String name, int port, long size) {
+        return buildSendMessage(myIp, name, port, size, -1);
     }
 
 }

@@ -131,14 +131,21 @@ public class MessageCommandHandler implements CommandHandler {
                 int filenameLen = DCCUtils.getFilenameLength(args);
                 String filename = args.substring(0, filenameLen);
                 String[] otherArgs = args.substring(filenameLen + (args.charAt(filenameLen) == ' ' ? 1 : 0)).split(" ");
+                String ip = DCCUtils.convertIPFromCommand(otherArgs[0]);
+                int port = Integer.parseInt(otherArgs[1]);
                 long size = -1;
                 try {
                     size = Long.parseLong(otherArgs[2]);
                 } catch (Exception ignored) { // NumberFormatException or NPE
                 }
+                if (otherArgs.length > 3) { // Reverse DCC
+                    int reverseId = Integer.parseInt(otherArgs[3]);
+                    if (dccServerManager != null) // no need to rate limit, as we limit the count of uploads in that part of code anyways
+                        dccServerManager.handleReverseUploadResponse(sender.getNick(), filename, reverseId, ip, port);
+                    return;
+                }
 
-                dccClientManager.onFileOffered(connection, sender, filename,
-                        DCCUtils.convertIPFromCommand(otherArgs[0]), Integer.parseInt(otherArgs[1]), size);
+                dccClientManager.onFileOffered(connection, sender, filename, ip, port, size);
             }
         }
         // TODO: Implement other CTCP commands
