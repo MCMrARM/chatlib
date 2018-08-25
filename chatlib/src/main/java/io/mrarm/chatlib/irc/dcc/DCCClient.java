@@ -16,13 +16,17 @@ public class DCCClient implements Closeable {
     private FileChannel file;
     private SelectionKey selectionKey;
     private long totalSize;
+    private long expectedSize;
 
-    public DCCClient(SocketChannel socket, FileChannel file, long offset) throws IOException {
+    public DCCClient(SocketChannel socket, FileChannel file, long offset, long size) throws IOException {
         this.socket = socket;
         this.file = file;
         this.socket.configureBlocking(false);
         this.file.position(offset);
+        if (size > 0)
+            this.file.truncate(size);
         this.totalSize = offset;
+        this.expectedSize = size;
         selectionKey = DCCIOHandler.getInstance().register(socket, SelectionKey.OP_READ, (SelectionKey k) -> {
             if (k.isReadable())
                 onRead();
@@ -76,7 +80,20 @@ public class DCCClient implements Closeable {
                 buffer.compact();
             }
         }
+        writeDownloadState();
+        if (expectedSize != 0 && totalSize >= expectedSize)
+            close();
+    }
+
+    private void writeDownloadState() {
+        if (socket == null)
+            return;
+        ackBuffer.clear();
         ackBuffer.putInt((int) totalSize);
-        socket.write(ackBuffer);
+        ackBuffer.flip();
+        try {
+            socket.write(ackBuffer);
+        } catch (IOException e) {
+        }
     }
 }
