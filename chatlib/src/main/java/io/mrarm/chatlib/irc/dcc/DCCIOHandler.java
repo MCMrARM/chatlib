@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.nio.channels.*;
 import java.nio.channels.spi.AbstractSelectableChannel;
 
-public class DCCIOHandler extends Thread {
+public class DCCIOHandler implements Runnable {
 
     private static final DCCIOHandler instanceSingleton = new DCCIOHandler();
 
@@ -13,6 +13,7 @@ public class DCCIOHandler extends Thread {
     }
 
 
+    private Thread thread;
     private Selector selector;
     private final Object selectorLock = new Object();
     private boolean running = false;
@@ -75,13 +76,8 @@ public class DCCIOHandler extends Thread {
                 return;
             running = true;
         }
-        while (isAlive()) { // wait until it stops if it's running
-            try {
-                Thread.sleep(1);
-            } catch (InterruptedException ignored) {
-            }
-        }
-        start();
+        thread = new Thread(this);
+        thread.start();
     }
 
 
