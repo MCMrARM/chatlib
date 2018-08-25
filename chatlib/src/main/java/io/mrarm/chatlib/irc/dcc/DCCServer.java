@@ -222,7 +222,8 @@ public class DCCServer implements Closeable {
             while (readFile(buffer) > 0 || buffer.position() > 0) {
                 buffer.flip();
                 try {
-                    socket.write(buffer);
+                    if (socket.write(buffer) <= 0)
+                        return;
                 } finally {
                     buffer.compact();
                 }
