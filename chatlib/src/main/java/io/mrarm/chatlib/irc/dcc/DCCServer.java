@@ -2,6 +2,7 @@ package io.mrarm.chatlib.irc.dcc;
 
 import java.io.*;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SelectionKey;
@@ -99,6 +100,7 @@ public class DCCServer implements Closeable {
         private AtomicLong ackedSize = new AtomicLong();
         private long totalSize;
         private SocketChannel socket;
+        private SocketAddress remoteAddress;
 
         private DCCIOHandler.SelectHandler selectionKeyHandler = (SelectionKey k) -> {
             if ((k.readyOps() & SelectionKey.OP_READ) != 0)
@@ -121,6 +123,7 @@ public class DCCServer implements Closeable {
                 this.file = file;
                 this.socket = socket;
                 socket.configureBlocking(false);
+                remoteAddress = socket.getRemoteAddress();
                 selectionKey = DCCIOHandler.getInstance().register(socket,
                         SelectionKey.OP_READ | SelectionKey.OP_WRITE, selectionKeyHandler);
             } catch (IOException e) {
@@ -133,6 +136,14 @@ public class DCCServer implements Closeable {
                 for (SessionListener listener : sessionListeners)
                     listener.onSessionCreated(DCCServer.this, this);
             }
+        }
+
+        public SocketAddress getRemoteAddress() {
+            return remoteAddress;
+        }
+
+        public DCCServer getServer() {
+            return DCCServer.this;
         }
 
         public long getTotalSize() {

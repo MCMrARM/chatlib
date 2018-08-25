@@ -5,14 +5,15 @@ import io.mrarm.chatlib.irc.ServerConnectionData;
 import java.io.IOException;
 import java.util.*;
 
-public class DCCServerManager {
+public class DCCServerManager implements DCCServer.SessionListener {
 
     public static final int DEFAULT_SOCKET_LIMIT = 1;
 
     private int socketLimit;
-    private Map<UploadKey, UploadEntry> uploads = new HashMap<>();
-    private Map<UploadKey, UploadEntry> reverseUploads = new HashMap<>();
-    private Set<Integer> reverseUploadIds = new HashSet<>();
+    private final Map<UploadKey, UploadEntry> uploads = new HashMap<>();
+    private final Map<UploadKey, UploadEntry> reverseUploads = new HashMap<>();
+    private final Set<Integer> reverseUploadIds = new HashSet<>();
+    private final List<UploadListener> listeners = new ArrayList<>();
 
     public DCCServerManager(int socketLimit) {
         this.socketLimit = socketLimit;
@@ -22,13 +23,26 @@ public class DCCServerManager {
         this(DEFAULT_SOCKET_LIMIT);
     }
 
-    protected DCCServer createServer(DCCServer.FileChannelFactory fileFactory, int socketLimit) {
+    protected DCCServer createServer(String filename, DCCServer.FileChannelFactory fileFactory, int socketLimit) {
         return new DCCServer(fileFactory, socketLimit);
+    }
+
+    public void addUploadListener(UploadListener listener) {
+        synchronized (listeners) {
+            listeners.add(listener);
+        }
+    }
+
+    public void removeUploadListener(UploadListener listener) {
+        synchronized (listeners) {
+            listeners.remove(listener);
+        }
     }
 
     public UploadEntry startUpload(ServerConnectionData connection, String user, String filename,
                                    DCCServer.FileChannelFactory factory) throws IOException {
-        DCCServer server = createServer(factory, socketLimit);
+        DCCServer server = createServer(filename, factory, socketLimit);
+        server.addSessionListener(this);
         int port;
         try {
             port = server.createServerSocket();
@@ -46,19 +60,28 @@ public class DCCServerManager {
         UploadEntry ent = new UploadEntry(key, server);
         synchronized (this) {
             uploads.put(key, ent);
+            synchronized (listeners) {
+                for (UploadListener listener : listeners)
+                    listener.onUploadCreated(ent);
+            }
         }
         return ent;
     }
 
     public UploadEntry addReverseUpload(ServerConnectionData connection, String user, String filename,
                                         DCCServer.FileChannelFactory factory) {
-        DCCServer server = createServer(factory, socketLimit);
+        DCCServer server = createServer(filename, factory, socketLimit);
+        server.addSessionListener(this);
         synchronized (this) {
             int id = getReverseUploadId();
             UploadKey key = new UploadKey(connection, user.toLowerCase(), filename, id);
             UploadEntry ent = new UploadEntry(key, server, id);
             reverseUploadIds.add(id);
             reverseUploads.put(key, ent);
+            synchronized (listeners) {
+                for (UploadListener listener : listeners)
+                    listener.onUploadCreated(ent);
+            }
             return ent;
         }
     }
@@ -98,6 +121,10 @@ public class DCCServerManager {
             if (upload.reverseId != -1 && reverseUploads.remove(upload.key) != null) {
                 reverseUploadIds.remove(upload.reverseId);
             }
+            synchronized (listeners) {
+                for (UploadListener listener : listeners)
+                    listener.onUploadDestroyed(upload);
+            }
         }
         if (upload.server != null) {
             try {
@@ -115,6 +142,22 @@ public class DCCServerManager {
             if (reverseUploadIds.contains(rand))
                 continue;
             return rand;
+        }
+    }
+
+    @Override
+    public void onSessionCreated(DCCServer server, DCCServer.UploadSession session) {
+        synchronized (listeners) {
+            for (UploadListener listener : listeners)
+                listener.onSessionCreated(server, session);
+        }
+    }
+
+    @Override
+    public void onSessionDestroyed(DCCServer server, DCCServer.UploadSession session) {
+        synchronized (listeners) {
+            for (UploadListener listener : listeners)
+                listener.onSessionDestroyed(server, session);
         }
     }
 
@@ -141,6 +184,17 @@ public class DCCServerManager {
             return server.getPort();
         }
 
+        public String getFileName() {
+            return key.fileName;
+        }
+
+        public String getUser() {
+            return key.user;
+        }
+
+        public DCCServer getServer() {
+            return server;
+        }
     }
 
     private static class UploadKey {
@@ -170,6 +224,14 @@ public class DCCServerManager {
         public int hashCode() {
             return 31 * connection.hashCode() + 11 * user.hashCode() + 7 * fileName.hashCode() + portOrId;
         }
+
+    }
+
+    public interface UploadListener extends DCCServer.SessionListener {
+
+        void onUploadCreated(UploadEntry entry);
+
+        void onUploadDestroyed(UploadEntry entry);
 
     }
 
