@@ -44,7 +44,7 @@ public class DCCClient implements Closeable {
             this.file.truncate(this.expectedSize);
         try {
             selectionKey = DCCIOHandler.getInstance().register(socket, SelectionKey.OP_READ, (SelectionKey k) -> {
-                if (k.isReadable())
+                if ((k.readyOps() & SelectionKey.OP_READ) != 0)
                     onRead();
             });
         } catch (ClosedChannelException ignored) {
