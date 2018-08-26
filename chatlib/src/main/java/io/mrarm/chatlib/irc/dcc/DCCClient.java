@@ -4,6 +4,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
@@ -17,23 +18,37 @@ public class DCCClient implements Closeable {
     private SocketAddress socketRemoteAddress;
     private FileChannel file;
     private SelectionKey selectionKey;
-    private long totalSize;
+    private long offset;
+    private long downloadedSize;
     private long expectedSize;
+    private CloseListener closeListener;
 
-    public DCCClient(SocketChannel socket, FileChannel file, long offset, long size) throws IOException {
+    public DCCClient(FileChannel file, long offset, long size) {
+        this.file = file;
+        this.offset = offset;
+        this.downloadedSize = offset;
+        this.expectedSize = size;
+    }
+
+    public void setCloseListener(CloseListener listener) {
+        closeListener = listener;
+    }
+
+    public void start(SocketChannel socket) throws IOException {
         this.socket = socket;
         this.socketRemoteAddress = socket.getRemoteAddress();
-        this.file = file;
         this.socket.configureBlocking(false);
         this.file.position(offset);
-        if (size > 0)
-            this.file.truncate(size);
-        this.totalSize = offset;
-        this.expectedSize = size;
-        selectionKey = DCCIOHandler.getInstance().register(socket, SelectionKey.OP_READ, (SelectionKey k) -> {
-            if (k.isReadable())
-                onRead();
-        });
+        this.downloadedSize = offset;
+        if (this.expectedSize > 0)
+            this.file.truncate(this.expectedSize);
+        try {
+            selectionKey = DCCIOHandler.getInstance().register(socket, SelectionKey.OP_READ, (SelectionKey k) -> {
+                if (k.isReadable())
+                    onRead();
+            });
+        } catch (ClosedChannelException ignored) {
+        }
     }
 
     @Override
@@ -55,6 +70,9 @@ public class DCCClient implements Closeable {
             e.printStackTrace();
         }
         file = null;
+
+        if (closeListener != null)
+            closeListener.onClosed(this);
     }
 
     public SocketAddress getRemoteAddress() {
@@ -66,7 +84,7 @@ public class DCCClient implements Closeable {
     }
 
     public long getDownloadedSize() {
-        return totalSize;
+        return downloadedSize;
     }
 
     private int readSocket(ByteBuffer buffer) {
@@ -81,7 +99,7 @@ public class DCCClient implements Closeable {
         if (r < 0) {
             close();
         } else {
-            totalSize += r;
+            downloadedSize += r;
         }
         return r;
     }
@@ -96,7 +114,7 @@ public class DCCClient implements Closeable {
             }
         }
         writeDownloadState();
-        if (expectedSize != 0 && totalSize >= expectedSize)
+        if (expectedSize > 0 && downloadedSize >= expectedSize)
             close();
     }
 
@@ -104,11 +122,18 @@ public class DCCClient implements Closeable {
         if (socket == null)
             return;
         ackBuffer.clear();
-        ackBuffer.putInt((int) totalSize);
+        ackBuffer.putInt((int) downloadedSize);
         ackBuffer.flip();
         try {
             socket.write(ackBuffer);
         } catch (IOException e) {
         }
     }
+
+    public interface CloseListener {
+
+        void onClosed(DCCClient client);
+
+    }
+
 }

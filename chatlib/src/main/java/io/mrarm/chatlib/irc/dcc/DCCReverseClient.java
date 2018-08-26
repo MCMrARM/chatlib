@@ -68,7 +68,8 @@ public class DCCReverseClient implements Closeable {
         SocketChannel socket = serverSocket.accept();
         if (socket == null)
             return;
-        client = new DCCClient(socket, file, offset, size);
+        client = new DCCClient(file, offset, size);
+        client.start(socket);
         file = null; // we no longer own it
         try {
             serverSocket.close();
