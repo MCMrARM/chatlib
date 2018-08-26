@@ -12,4 +12,7 @@ public abstract class DCCClientManager {
     public abstract void onFileOffered(ServerConnectionData connection, MessagePrefix sender, String filename,
                                        String address, int port, long fileSize);
 
+    public abstract void onFileOfferedUsingReverse(ServerConnectionData connection, MessagePrefix sender,
+                                                   String filename, long fileSize, int uploadId);
+
 }

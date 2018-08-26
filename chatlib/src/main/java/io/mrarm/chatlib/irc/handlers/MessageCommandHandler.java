@@ -138,7 +138,13 @@ public class MessageCommandHandler implements CommandHandler {
                     size = Long.parseLong(otherArgs[2]);
                 } catch (Exception ignored) { // NumberFormatException or NPE
                 }
-                if (otherArgs.length > 3) { // Reverse DCC
+                if (otherArgs.length > 3 && port == 0) { // Reverse DCC request
+                    int reverseId = Integer.parseInt(otherArgs[3]);
+                    if (dccClientManager != null)
+                        dccClientManager.onFileOfferedUsingReverse(connection, sender, filename, size, reverseId);
+                    return;
+                }
+                if (otherArgs.length > 3) { // Reverse DCC response
                     int reverseId = Integer.parseInt(otherArgs[3]);
                     if (dccServerManager != null) // no need to rate limit, as we limit the count of uploads in that part of code anyways
                         dccServerManager.handleReverseUploadResponse(connection, sender.getNick(), filename, reverseId,
