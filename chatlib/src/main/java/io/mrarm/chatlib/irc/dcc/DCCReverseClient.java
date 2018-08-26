@@ -53,6 +53,12 @@ public class DCCReverseClient implements Closeable {
         } catch (IOException ignored) {
         }
         serverSocket = null;
+        try {
+            if (file != null)
+                file.close();
+        } catch (IOException ignored) {
+        }
+        file = null;
         if (client != null)
             client.close();
         client = null;
@@ -63,6 +69,7 @@ public class DCCReverseClient implements Closeable {
         if (socket == null)
             return;
         client = new DCCClient(socket, file, offset, size);
+        file = null; // we no longer own it
         try {
             serverSocket.close();
         } catch (IOException ignored) {
