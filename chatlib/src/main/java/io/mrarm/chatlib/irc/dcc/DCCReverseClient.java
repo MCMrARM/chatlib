@@ -15,11 +15,16 @@ public class DCCReverseClient implements Closeable {
     private DCCClient client;
     private long offset;
     private long size;
+    private StateListener stateListener;
 
     public DCCReverseClient(FileChannel file, long offset, long size) {
         this.file = file;
         this.offset = offset;
         this.size = size;
+    }
+
+    public void setStateListener(StateListener stateListener) {
+        this.stateListener = stateListener;
     }
 
     public int createServerSocket() throws IOException {
@@ -62,6 +67,9 @@ public class DCCReverseClient implements Closeable {
         if (client != null)
             client.close();
         client = null;
+
+        if (stateListener != null)
+            stateListener.onClosed(this);
     }
 
     private void doAccept() throws IOException {
@@ -69,6 +77,10 @@ public class DCCReverseClient implements Closeable {
         if (socket == null)
             return;
         client = new DCCClient(file, offset, size);
+        client.setCloseListener((DCCClient client) -> {
+            if (stateListener != null)
+                stateListener.onClosed(this);
+        });
         client.start(socket);
         file = null; // we no longer own it
         try {
@@ -76,6 +88,16 @@ public class DCCReverseClient implements Closeable {
         } catch (IOException ignored) {
         }
         serverSocket = null;
+        if (stateListener != null)
+            stateListener.onClientConnected(this, client);
+    }
+
+    public interface StateListener {
+
+        void onClosed(DCCReverseClient reverseClient);
+
+        void onClientConnected(DCCReverseClient reverseClient, DCCClient client);
+
     }
 
 }
