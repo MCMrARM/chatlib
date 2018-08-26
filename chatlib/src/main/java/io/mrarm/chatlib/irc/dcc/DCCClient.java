@@ -2,6 +2,7 @@ package io.mrarm.chatlib.irc.dcc;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SelectionKey;
@@ -13,6 +14,7 @@ public class DCCClient implements Closeable {
     private ByteBuffer ackBuffer = ByteBuffer.allocateDirect(4);
 
     private SocketChannel socket;
+    private SocketAddress socketRemoteAddress;
     private FileChannel file;
     private SelectionKey selectionKey;
     private long totalSize;
@@ -20,6 +22,7 @@ public class DCCClient implements Closeable {
 
     public DCCClient(SocketChannel socket, FileChannel file, long offset, long size) throws IOException {
         this.socket = socket;
+        this.socketRemoteAddress = socket.getRemoteAddress();
         this.file = file;
         this.socket.configureBlocking(false);
         this.file.position(offset);
@@ -52,6 +55,18 @@ public class DCCClient implements Closeable {
             e.printStackTrace();
         }
         file = null;
+    }
+
+    public SocketAddress getRemoteAddress() {
+        return socketRemoteAddress;
+    }
+
+    public long getExpectedSize() {
+        return expectedSize;
+    }
+
+    public long getDownloadedSize() {
+        return totalSize;
     }
 
     private int readSocket(ByteBuffer buffer) {
