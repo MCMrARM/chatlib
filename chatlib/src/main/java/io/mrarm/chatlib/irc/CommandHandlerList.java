@@ -16,7 +16,6 @@ public class CommandHandlerList {
             defaultHandlers.registerHandler(new JoinCommandHandler());
             defaultHandlers.registerHandler(new PartCommandHandler());
             defaultHandlers.registerHandler(new QuitCommandHandler());
-            defaultHandlers.registerHandler(new MessageCommandHandler());
             defaultHandlers.registerHandler(new ModeCommandHandler());
             defaultHandlers.registerHandler(new WelcomeCommandHandler());
             defaultHandlers.registerHandler(new ISupportCommandHandler());
@@ -29,6 +28,7 @@ public class CommandHandlerList {
         handlers.putAll(defaultHandlers.handlers);
 
         // per-connection handlers
+        registerHandler(new MessageCommandHandler());
         registerHandler(new PongCommandHandler(errorCommandHandler));
         registerHandler(new NickCommandHandler(errorCommandHandler));
         registerHandler(new WhoisCommandHandler(errorCommandHandler));
