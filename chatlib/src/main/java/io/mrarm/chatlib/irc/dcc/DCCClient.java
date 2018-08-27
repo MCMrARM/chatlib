@@ -11,16 +11,16 @@ import java.nio.channels.SocketChannel;
 
 public class DCCClient implements Closeable {
 
-    private ByteBuffer buffer = ByteBuffer.allocateDirect(1024 * 1024);
-    private ByteBuffer ackBuffer = ByteBuffer.allocateDirect(4);
+    private final ByteBuffer buffer = ByteBuffer.allocateDirect(1024 * 1024);
+    private final ByteBuffer ackBuffer = ByteBuffer.allocateDirect(4);
 
     private SocketChannel socket;
     private SocketAddress socketRemoteAddress;
-    private FileChannel file;
+    private final FileChannel file;
     private SelectionKey selectionKey;
-    private long offset;
+    private final long offset;
     private long downloadedSize;
-    private long expectedSize;
+    private final long expectedSize;
     private CloseListener closeListener;
 
     public DCCClient(FileChannel file, long offset, long size) {
@@ -53,23 +53,23 @@ public class DCCClient implements Closeable {
 
     @Override
     public void close() {
-        if (selectionKey != null)
-            selectionKey.cancel();
-        selectionKey = null;
+        synchronized (this) {
+            if (selectionKey != null)
+                selectionKey.cancel();
+            selectionKey = null;
+        }
         try {
             if (socket != null)
                 socket.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        socket = null;
         try {
             if (file != null)
                 file.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        file = null;
 
         if (closeListener != null)
             closeListener.onClosed(this);
@@ -88,7 +88,7 @@ public class DCCClient implements Closeable {
     }
 
     private int readSocket(ByteBuffer buffer) {
-        if (socket == null)
+        if (!socket.isOpen())
             return -1;
         int r = -1;
         try {
@@ -105,6 +105,7 @@ public class DCCClient implements Closeable {
     }
 
     private void onRead() throws IOException {
+        FileChannel file = this.file;
         while (readSocket(buffer) > 0 || buffer.position() > 0) {
             buffer.flip();
             try {

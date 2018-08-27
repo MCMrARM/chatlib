@@ -23,11 +23,11 @@ public class DCCReverseClient implements Closeable {
         this.size = size;
     }
 
-    public void setStateListener(StateListener stateListener) {
+    public synchronized void setStateListener(StateListener stateListener) {
         this.stateListener = stateListener;
     }
 
-    public int createServerSocket() throws IOException {
+    public synchronized int createServerSocket() throws IOException {
         if (serverSocket == null) {
             serverSocket = ServerSocketChannel.open();
             serverSocket.socket().bind(new InetSocketAddress(0));
@@ -40,18 +40,18 @@ public class DCCReverseClient implements Closeable {
         return serverSocket.socket().getLocalPort();
     }
 
-    public int getPort() {
+    public synchronized int getPort() {
         if (serverSocket == null)
             return -1;
         return serverSocket.socket().getLocalPort();
     }
 
-    public DCCClient getClient() {
+    public synchronized DCCClient getClient() {
         return client;
     }
 
     @Override
-    public void close() {
+    public synchronized void close() {
         try {
             if (serverSocket != null)
                 serverSocket.close();
@@ -72,7 +72,7 @@ public class DCCReverseClient implements Closeable {
             stateListener.onClosed(this);
     }
 
-    private void doAccept() throws IOException {
+    private synchronized void doAccept() throws IOException {
         SocketChannel socket = serverSocket.accept();
         if (socket == null)
             return;

@@ -65,8 +65,10 @@ public class DCCServer implements Closeable {
     public void close() throws IOException {
         if (serverSocket != null)
             serverSocket.close();
-        for (UploadSession session : sessions)
-            session.close();
+        synchronized (sessions) {
+            for (UploadSession session : sessions)
+                session.close();
+        }
     }
 
     void doAccept() throws IOException {
@@ -93,14 +95,14 @@ public class DCCServer implements Closeable {
 
     public class UploadSession implements Closeable {
 
-        private ByteBuffer buffer = ByteBuffer.allocateDirect(1024 * 1024);
-        private ByteBuffer readBuffer = ByteBuffer.allocateDirect(1024);
-        private FileChannel file;
+        private final ByteBuffer buffer = ByteBuffer.allocateDirect(1024 * 1024);
+        private final ByteBuffer readBuffer = ByteBuffer.allocateDirect(1024);
+        private final FileChannel file;
         private SelectionKey selectionKey;
-        private AtomicLong ackedSize = new AtomicLong();
-        private long totalSize;
-        private SocketChannel socket;
-        private SocketAddress remoteAddress;
+        private final AtomicLong ackedSize = new AtomicLong();
+        private final long totalSize;
+        private final SocketChannel socket;
+        private final SocketAddress remoteAddress;
 
         private DCCIOHandler.SelectHandler selectionKeyHandler = (SelectionKey k) -> {
             if ((k.readyOps() & SelectionKey.OP_READ) != 0)
@@ -131,7 +133,9 @@ public class DCCServer implements Closeable {
                 throw e;
             }
 
-            sessions.add(this);
+            synchronized (sessions) {
+                sessions.add(this);
+            }
             synchronized (sessionListeners) {
                 for (SessionListener listener : sessionListeners)
                     listener.onSessionCreated(DCCServer.this, this);
@@ -157,22 +161,24 @@ public class DCCServer implements Closeable {
         @Override
         public void close() {
             System.out.println("Closed DCC connection");
-            sessions.remove(this);
-            if (selectionKey != null)
-                DCCIOHandler.getInstance().unregister(selectionKey);
-            selectionKey = null;
+            synchronized (sessions) {
+                sessions.remove(this);
+            }
+            synchronized (this) {
+                if (selectionKey != null)
+                    DCCIOHandler.getInstance().unregister(selectionKey);
+                selectionKey = null;
+            }
             try {
                 if (socket != null)
                     socket.close();
             } catch (IOException ignored) {
             }
-            socket = null;
             try {
                 if (file != null)
                     file.close();
             } catch (IOException ignored) {
             }
-            file = null;
 
             synchronized (sessionListeners) {
                 for (SessionListener listener : sessionListeners)
@@ -199,7 +205,7 @@ public class DCCServer implements Closeable {
         }
 
         private int readFile(ByteBuffer buffer) {
-            if (file == null)
+            if (!file.isOpen())
                 return -1;
             int r = -1;
             try {
@@ -209,11 +215,9 @@ public class DCCServer implements Closeable {
             }
             if (r < 0) {
                 try {
-                    if (file != null)
-                        file.close();
+                    file.close();
                 } catch (IOException ignored) {
                 }
-                file = null;
             }
             return r;
         }
