@@ -61,6 +61,7 @@ public class DCCIOHandler implements Runnable {
             for (SelectionKey k : selector.selectedKeys()) {
                 try {
                     ((SelectHandler) k.attachment()).onSelect(k);
+                } catch (CancelledKeyException ignored) {
                 } catch (IOException err) {
                     err.printStackTrace();
                 }
