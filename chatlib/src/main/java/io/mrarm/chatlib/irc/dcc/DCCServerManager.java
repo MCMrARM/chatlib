@@ -116,6 +116,13 @@ public class DCCServerManager implements DCCServer.SessionListener {
     }
 
     public void cancelUpload(UploadEntry upload) {
+        if (upload.server != null) {
+            try {
+                upload.server.close();
+            } catch (IOException ignored) {
+            }
+            upload.server = null;
+        }
         synchronized (this) {
             uploads.remove(upload.key);
             if (upload.reverseId != -1 && reverseUploads.remove(upload.key) != null) {
@@ -125,13 +132,6 @@ public class DCCServerManager implements DCCServer.SessionListener {
                 for (UploadListener listener : listeners)
                     listener.onUploadDestroyed(upload);
             }
-        }
-        if (upload.server != null) {
-            try {
-                upload.server.close();
-            } catch (IOException ignored) {
-            }
-            upload.server = null;
         }
     }
 
@@ -186,6 +186,10 @@ public class DCCServerManager implements DCCServer.SessionListener {
 
         public String getFileName() {
             return key.fileName;
+        }
+
+        public ServerConnectionData getConnection() {
+            return key.connection;
         }
 
         public String getUser() {
