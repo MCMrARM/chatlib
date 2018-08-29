@@ -11,6 +11,7 @@ public class DCCServerManager implements DCCServer.SessionListener {
 
     private int socketLimit;
     private final Map<UploadKey, UploadEntry> uploads = new HashMap<>();
+    private final Map<UploadKey, UploadEntry> portForwardedUploads = new HashMap<>();
     private final Map<UploadKey, UploadEntry> reverseUploads = new HashMap<>();
     private final Set<Integer> reverseUploadIds = new HashSet<>();
     private final List<UploadListener> listeners = new ArrayList<>();
@@ -68,6 +69,18 @@ public class DCCServerManager implements DCCServer.SessionListener {
         return ent;
     }
 
+    public void setUploadPortForwarded(UploadEntry upload, int port) {
+        UploadKey key = new UploadKey(upload.key.connection, upload.key.user, upload.key.fileName, port);
+        synchronized (this) {
+            if (!uploads.containsKey(upload.key))
+                return;
+            if (upload.portForwardKey != null)
+                portForwardedUploads.remove(upload.portForwardKey);
+            upload.portForwardKey = key;
+            portForwardedUploads.put(key, upload);
+        }
+    }
+
     public UploadEntry addReverseUpload(ServerConnectionData connection, String user, String filename,
                                         DCCServer.FileChannelFactory factory) {
         DCCServer server = createServer(filename, factory, socketLimit);
@@ -87,6 +100,9 @@ public class DCCServerManager implements DCCServer.SessionListener {
     }
 
     public synchronized UploadEntry getUploadEntry(UploadKey key) {
+        UploadEntry ret = portForwardedUploads.get(key);
+        if (ret != null)
+            return ret;
         return uploads.get(key);
     }
 
@@ -125,6 +141,8 @@ public class DCCServerManager implements DCCServer.SessionListener {
         }
         synchronized (this) {
             uploads.remove(upload.key);
+            if (upload.portForwardKey != null)
+                uploads.remove(upload.portForwardKey);
             if (upload.reverseId != -1 && reverseUploads.remove(upload.key) != null) {
                 reverseUploadIds.remove(upload.reverseId);
             }
@@ -164,6 +182,7 @@ public class DCCServerManager implements DCCServer.SessionListener {
     public static class UploadEntry {
 
         private UploadKey key;
+        private UploadKey portForwardKey;
         private DCCServer server;
         private int reverseId;
 
@@ -182,6 +201,12 @@ public class DCCServerManager implements DCCServer.SessionListener {
 
         public int getPort() {
             return server.getPort();
+        }
+
+        public int getPortForwardedPort() {
+            if (portForwardKey == null)
+                return -1;
+            return portForwardKey.portOrId;
         }
 
         public String getFileName() {
