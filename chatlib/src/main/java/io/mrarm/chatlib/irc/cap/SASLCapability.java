@@ -61,6 +61,9 @@ public class SASLCapability extends Capability {
         } else if (numeric == ERR_SASLFAIL) {
             if (currentTryOption + 1 < options.length) {
                 startAuthentication(connection, currentTryOption + 1);
+            } else {
+                connection.getCapabilityManager().removeNegotationFinishLock(finishLock);
+                finishLock = -1;
             }
         }
     }
