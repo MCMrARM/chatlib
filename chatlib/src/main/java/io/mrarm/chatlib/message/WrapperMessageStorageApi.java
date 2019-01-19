@@ -3,6 +3,7 @@ package io.mrarm.chatlib.message;
 import io.mrarm.chatlib.ResponseCallback;
 import io.mrarm.chatlib.ResponseErrorCallback;
 import io.mrarm.chatlib.dto.MessageFilterOptions;
+import io.mrarm.chatlib.dto.MessageId;
 import io.mrarm.chatlib.dto.MessageList;
 import io.mrarm.chatlib.dto.MessageListAfterIdentifier;
 
@@ -25,7 +26,10 @@ public class WrapperMessageStorageApi implements MessageStorageApi {
         return wrapped.getMessages(channelName, count, options, after, callback, errorCallback);
     }
 
-    @Override
+    public Future<MessageList> getMessagesNear(String channelName, MessageId messageId, MessageFilterOptions options, ResponseCallback<MessageList> callback, ResponseErrorCallback errorCallback) {
+        return wrapped.getMessagesNear(channelName, messageId, options, callback, errorCallback);
+    }
+
     public Future<Void> subscribeChannelMessages(String channelName, MessageListener listener, ResponseCallback<Void> callback, ResponseErrorCallback errorCallback) {
         return wrapped.subscribeChannelMessages(channelName, listener, callback, errorCallback);
     }
