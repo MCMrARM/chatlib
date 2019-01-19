@@ -182,6 +182,11 @@ public class SimpleMessageStorageApi implements WritableMessageStorageApi {
         }, callback, errorCallback);
     }
 
+    @Override
+    public MessageId.Parser getMessageIdParser() {
+        return SimpleMessageId.PARSER;
+    }
+
     private static class ChannelData {
 
         private final List<MessageInfo> messages = new ArrayList<>();

@@ -11,6 +11,8 @@ import java.util.concurrent.Future;
 
 public interface MessageStorageApi {
 
+    MessageId.Parser getMessageIdParser();
+
     Future<MessageList> getMessages(String channelName, int count, MessageFilterOptions options,
                                     MessageListAfterIdentifier after, ResponseCallback<MessageList> callback,
                                     ResponseErrorCallback errorCallback);

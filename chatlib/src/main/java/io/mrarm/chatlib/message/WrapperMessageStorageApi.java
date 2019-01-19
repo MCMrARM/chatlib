@@ -39,4 +39,8 @@ public class WrapperMessageStorageApi implements MessageStorageApi {
         return wrapped.unsubscribeChannelMessages(channelName, listener, callback, errorCallback);
     }
 
+    @Override
+    public MessageId.Parser getMessageIdParser() {
+        return wrapped.getMessageIdParser();
+    }
 }
