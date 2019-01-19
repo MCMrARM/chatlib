@@ -75,6 +75,8 @@ public class SASLCapability extends Capability {
         String method = null;
         if (options.getAuthMode() == SASLOptions.AuthMode.PLAIN)
             method = "PLAIN";
+        else if (options.getAuthMode() == SASLOptions.AuthMode.EXTERNAL)
+            method = "EXTERNAL";
         if (method == null)
             throw new InvalidParameterException("Invalid auth method");
         try {
@@ -85,13 +87,20 @@ public class SASLCapability extends Capability {
 
     private void continueAuthentication(ServerConnectionData connection) {
         SASLOptions options = getCurrentOptions();
-        StringBuilder data = new StringBuilder();
-        data.append(options.getUsername());
-        data.append((char) 0);
-        data.append(options.getUsername());
-        data.append((char) 0);
-        data.append(options.getPassword());
-        String dataStr = Base64Util.encode(data.toString().getBytes());
+        String dataStr;
+        if (options.getAuthMode() == SASLOptions.AuthMode.PLAIN) {
+            StringBuilder data = new StringBuilder();
+            data.append(options.getUsername());
+            data.append((char) 0);
+            data.append(options.getUsername());
+            data.append((char) 0);
+            data.append(options.getPassword());
+            dataStr = Base64Util.encode(data.toString().getBytes());
+        } else if (options.getAuthMode() == SASLOptions.AuthMode.EXTERNAL) {
+            dataStr = "+";
+        } else {
+            throw new InvalidParameterException("Invalid auth method");
+        }
         try {
             connection.getApi().sendCommand("AUTHENTICATE", false, dataStr);
         } catch (IOException ignored) {

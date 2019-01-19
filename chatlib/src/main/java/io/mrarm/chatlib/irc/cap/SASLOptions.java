@@ -3,7 +3,7 @@ package io.mrarm.chatlib.irc.cap;
 public class SASLOptions {
 
     public enum AuthMode {
-        PLAIN
+        PLAIN, EXTERNAL
     }
 
     private AuthMode authMode;
@@ -39,6 +39,12 @@ public class SASLOptions {
         ret.authMode = AuthMode.PLAIN;
         ret.username = username;
         ret.password = password;
+        return ret;
+    }
+
+    public static SASLOptions createExternal() {
+        SASLOptions ret = new SASLOptions();
+        ret.authMode = AuthMode.EXTERNAL;
         return ret;
     }
 
