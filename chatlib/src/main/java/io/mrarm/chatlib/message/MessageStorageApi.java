@@ -14,10 +14,6 @@ public interface MessageStorageApi {
                                     MessageListAfterIdentifier after, ResponseCallback<MessageList> callback,
                                     ResponseErrorCallback errorCallback);
 
-    MessageListAfterIdentifier getMessageListAfterIdentifier(String channelName, int count,
-                                                             MessageFilterOptions options,
-                                                             MessageListAfterIdentifier after);
-
     Future<Void> subscribeChannelMessages(String channelName, MessageListener listener, ResponseCallback<Void> callback,
                                           ResponseErrorCallback errorCallback);
 

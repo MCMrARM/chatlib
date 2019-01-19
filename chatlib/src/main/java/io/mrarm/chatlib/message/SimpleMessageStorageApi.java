@@ -86,28 +86,6 @@ public class SimpleMessageStorageApi implements WritableMessageStorageApi {
     }
 
     @Override
-    public MessageListAfterIdentifier getMessageListAfterIdentifier(String channelName, int count,
-                                                                    MessageFilterOptions filter,
-                                                                    MessageListAfterIdentifier after) {
-        synchronized (channels) {
-            ChannelData data = getChannelData(channelName);
-            int end = data.messages.size();
-            if (after != null && after instanceof SimpleMessageListAfterIdentifier)
-                end = ((SimpleMessageListAfterIdentifier) after).getIndex();
-            int start = Math.max(end - count, 0);
-            if (filter != null) {
-                for (start = end - 1; start >= 0; --start) {
-                    if (!isMessageIncludedInFilter(data.messages.get(start), filter))
-                        continue;
-                    if (--count == 0)
-                        break;
-                }
-            }
-            return new SimpleMessageListAfterIdentifier(start);
-        }
-    }
-
-    @Override
     public Future<Void> subscribeChannelMessages(String channelName, MessageListener listener,
                                                  ResponseCallback<Void> callback, ResponseErrorCallback errorCallback) {
         return SimpleRequestExecutor.run(() -> {
