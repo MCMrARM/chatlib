@@ -60,6 +60,7 @@ public class SimpleMessageStorageApi implements WritableMessageStorageApi {
             synchronized (channels) {
                 ChannelData data = getChannelData(channelName);
                 List<MessageInfo> ret = new ArrayList<>();
+                List<MessageId> retIds = new ArrayList<>();
                 int start;
                 int end = data.messages.size();
                 if (after != null && after instanceof SimpleMessageListAfterIdentifier) {
@@ -72,8 +73,10 @@ public class SimpleMessageStorageApi implements WritableMessageStorageApi {
                     start = Math.max(end - count, 0);
                 }
                 if (filter == null) {
-                    for (int i = start; i < end; i++)
+                    for (int i = start; i < end; i++) {
                         ret.add(data.messages.get(i));
+                        retIds.add(new SimpleMessageId(i));
+                    }
                 } else if (after instanceof SimpleMessageListBeforeIdentifier) {
                     ret = new ArrayList<>();
                     int n = count;
@@ -83,6 +86,7 @@ public class SimpleMessageStorageApi implements WritableMessageStorageApi {
                         if (!isMessageIncludedInFilter(data.messages.get(end), filter))
                             continue;
                         ret.add(data.messages.get(end));
+                        retIds.add(new SimpleMessageId(end));
                         if (--n == 0) {
                             ++end;
                             break;
@@ -95,12 +99,13 @@ public class SimpleMessageStorageApi implements WritableMessageStorageApi {
                         if (!isMessageIncludedInFilter(data.messages.get(start), filter))
                             continue;
                         ret.add(data.messages.get(start));
+                        retIds.add(new SimpleMessageId(start));
                         if (--n == 0)
                             break;
                     }
                     Collections.reverse(ret);
                 }
-                return new MessageList(ret, new SimpleMessageListBeforeIdentifier(end),
+                return new MessageList(ret, retIds, new SimpleMessageListBeforeIdentifier(end),
                         new SimpleMessageListAfterIdentifier(start));
             }
         }, callback, errorCallback);
@@ -118,11 +123,13 @@ public class SimpleMessageStorageApi implements WritableMessageStorageApi {
                 int i = ((SimpleMessageId) messageId).getIndex();
                 int start, end;
                 List<MessageInfo> ret = new ArrayList<>();
+                List<MessageId> retIds = new ArrayList<>();
                 int n = 50;
                 for (start = i - 1; start >= 0; --start) {
                     if (!isMessageIncludedInFilter(data.messages.get(start), filter))
                         continue;
                     ret.add(data.messages.get(start));
+                    retIds.add(new SimpleMessageId(start));
                     if (--n == 0)
                         break;
                 }
@@ -133,13 +140,14 @@ public class SimpleMessageStorageApi implements WritableMessageStorageApi {
                     if (!isMessageIncludedInFilter(data.messages.get(end), filter))
                         continue;
                     ret.add(data.messages.get(end));
+                    retIds.add(new SimpleMessageId(end));
                     if (--n == 0) {
                         ++end;
                         break;
                     }
                 }
 
-                return new MessageList(ret, new SimpleMessageListBeforeIdentifier(end),
+                return new MessageList(ret, retIds, new SimpleMessageListBeforeIdentifier(end),
                         new SimpleMessageListAfterIdentifier(start));
             }
         }, callback, errorCallback);
