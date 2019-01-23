@@ -7,6 +7,7 @@ import io.mrarm.chatlib.dto.MessageId;
 import io.mrarm.chatlib.dto.MessageList;
 import io.mrarm.chatlib.dto.MessageListAfterIdentifier;
 
+import java.util.List;
 import java.util.concurrent.Future;
 
 public class WrapperMessageStorageApi implements MessageStorageApi {
@@ -28,6 +29,11 @@ public class WrapperMessageStorageApi implements MessageStorageApi {
 
     public Future<MessageList> getMessagesNear(String channelName, MessageId messageId, MessageFilterOptions options, ResponseCallback<MessageList> callback, ResponseErrorCallback errorCallback) {
         return wrapped.getMessagesNear(channelName, messageId, options, callback, errorCallback);
+    }
+
+    @Override
+    public Future<Void> deleteMessages(String channelName, List<MessageId> messages, ResponseCallback<Void> callback, ResponseErrorCallback errorCallback) {
+        return wrapped.deleteMessages(channelName, messages, callback, errorCallback);
     }
 
     public Future<Void> subscribeChannelMessages(String channelName, MessageListener listener, ResponseCallback<Void> callback, ResponseErrorCallback errorCallback) {

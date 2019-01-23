@@ -52,6 +52,38 @@ public class SimpleMessageStorageApi implements WritableMessageStorageApi {
         return true;
     }
 
+    private static int collectMessagesBefore(ChannelData data, int end, int n, MessageFilterOptions filter,
+                                             List<MessageInfo> ret, List<MessageId> retIds) {
+        int msgCnt = data.messages.size();
+        for ( ; end < msgCnt; ++end) {
+            MessageInfo msg = data.messages.get(end);
+            if (msg == null || !isMessageIncludedInFilter(msg, filter))
+                continue;
+            ret.add(msg);
+            retIds.add(new SimpleMessageId(end));
+            if (--n == 0) {
+                ++end;
+                break;
+            }
+        }
+        return end;
+    }
+
+    private static int collectMessagesAfter(ChannelData data, int end, int n, MessageFilterOptions filter,
+                                            List<MessageInfo> ret, List<MessageId> retIds) {
+        int start;
+        for (start = end - 1; start >= 0; --start) {
+            MessageInfo msg = data.messages.get(start);
+            if (msg == null || !isMessageIncludedInFilter(msg, filter))
+                continue;
+            ret.add(msg);
+            retIds.add(new SimpleMessageId(start));
+            if (--n == 0)
+                break;
+        }
+        return start;
+    }
+
     @Override
     public Future<MessageList> getMessages(String channelName, int count, MessageFilterOptions filter,
                                            MessageListAfterIdentifier after, ResponseCallback<MessageList> callback,
@@ -72,37 +104,10 @@ public class SimpleMessageStorageApi implements WritableMessageStorageApi {
                 } else {
                     start = Math.max(end - count, 0);
                 }
-                if (filter == null) {
-                    for (int i = start; i < end; i++) {
-                        ret.add(data.messages.get(i));
-                        retIds.add(new SimpleMessageId(i));
-                    }
-                } else if (after instanceof SimpleMessageListBeforeIdentifier) {
-                    ret = new ArrayList<>();
-                    int n = count;
-                    int msgCnt = data.messages.size();
-                    end = start;
-                    for ( ; end < msgCnt; ++end) {
-                        if (!isMessageIncludedInFilter(data.messages.get(end), filter))
-                            continue;
-                        ret.add(data.messages.get(end));
-                        retIds.add(new SimpleMessageId(end));
-                        if (--n == 0) {
-                            ++end;
-                            break;
-                        }
-                    }
+                if (after instanceof SimpleMessageListBeforeIdentifier) {
+                    end = collectMessagesBefore(data, start, count, filter, ret, retIds);
                 } else {
-                    ret = new ArrayList<>();
-                    int n = count;
-                    for (start = end - 1; start >= 0; --start) {
-                        if (!isMessageIncludedInFilter(data.messages.get(start), filter))
-                            continue;
-                        ret.add(data.messages.get(start));
-                        retIds.add(new SimpleMessageId(start));
-                        if (--n == 0)
-                            break;
-                    }
+                    start = collectMessagesAfter(data, end, count, filter, ret, retIds);
                     Collections.reverse(ret);
                 }
                 return new MessageList(ret, retIds, new SimpleMessageListBeforeIdentifier(end),
@@ -124,32 +129,27 @@ public class SimpleMessageStorageApi implements WritableMessageStorageApi {
                 int start, end;
                 List<MessageInfo> ret = new ArrayList<>();
                 List<MessageId> retIds = new ArrayList<>();
-                int n = 50;
-                for (start = i - 1; start >= 0; --start) {
-                    if (!isMessageIncludedInFilter(data.messages.get(start), filter))
-                        continue;
-                    ret.add(data.messages.get(start));
-                    retIds.add(new SimpleMessageId(start));
-                    if (--n == 0)
-                        break;
-                }
+                start = collectMessagesAfter(data, i, 50, filter, ret, retIds);
                 Collections.reverse(ret);
-                int msgCnt = data.messages.size();
-                n = 50;
-                for (end = i; end < msgCnt; ++end) {
-                    if (!isMessageIncludedInFilter(data.messages.get(end), filter))
-                        continue;
-                    ret.add(data.messages.get(end));
-                    retIds.add(new SimpleMessageId(end));
-                    if (--n == 0) {
-                        ++end;
-                        break;
-                    }
-                }
+                end = collectMessagesBefore(data, start, 50, filter, ret, retIds);
 
                 return new MessageList(ret, retIds, new SimpleMessageListBeforeIdentifier(end),
                         new SimpleMessageListAfterIdentifier(start));
             }
+        }, callback, errorCallback);
+    }
+
+    @Override
+    public Future<Void> deleteMessages(String channelName, List<MessageId> messages,
+                                       ResponseCallback<Void> callback, ResponseErrorCallback errorCallback) {
+        return SimpleRequestExecutor.run(() -> {
+            ChannelData data = getChannelData(channelName);
+            for (MessageId messageId : messages) {
+                if (!(messageId instanceof SimpleMessageId))
+                    throw new RuntimeException("messageId not a SimpleMessageId");
+                data.messages.set(((SimpleMessageId) messageId).getIndex(), null);
+            }
+            return null;
         }, callback, errorCallback);
     }
 
