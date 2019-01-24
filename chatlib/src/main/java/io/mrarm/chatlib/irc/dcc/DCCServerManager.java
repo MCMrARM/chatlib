@@ -137,7 +137,6 @@ public class DCCServerManager implements DCCServer.SessionListener {
                 upload.server.close();
             } catch (IOException ignored) {
             }
-            upload.server = null;
         }
         synchronized (this) {
             uploads.remove(upload.key);
