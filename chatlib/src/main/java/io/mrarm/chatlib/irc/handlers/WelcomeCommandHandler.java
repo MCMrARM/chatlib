@@ -50,7 +50,17 @@ public class WelcomeCommandHandler implements CommandHandler {
                 type = StatusMessageInfo.MessageType.REDIR_TEXT;
                 break;
         }
+        String text = CommandHandler.getParamWithCheck(params, 1);
+        if (params.size() > 1) {
+            StringBuilder s = new StringBuilder();
+            s.append(params.get(1));
+            for (int i = 2; i < params.size(); i++) {
+                s.append(' ');
+                s.append(params.get(i));
+            }
+            text = s.toString();
+        }
         connection.getServerStatusData().addMessage(new StatusMessageInfo(sender != null ?
-                sender.getServerName() : null, new Date(), type, CommandHandler.getParamWithCheck(params, 1)));
+                sender.getServerName() : null, new Date(), type, text));
     }
 }
