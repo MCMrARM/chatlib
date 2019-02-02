@@ -28,7 +28,7 @@ public class JoinCommandHandler implements CommandHandler {
         }
 
         String[] channels = CommandHandler.getParamWithCheck(params, 0).split(",");
-        if (sender.getNick().equals(connection.getUserNick())) {
+        if (sender.getNick().equalsIgnoreCase(connection.getUserNick())) {
             for (String channel : channels)
                 connection.onChannelJoined(channel);
         }

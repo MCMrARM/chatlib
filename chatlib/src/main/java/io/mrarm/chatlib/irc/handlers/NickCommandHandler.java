@@ -39,7 +39,7 @@ public class NickCommandHandler extends RequestResponseCommandHandler<String, St
         }
 
         String newNick = CommandHandler.getParamWithCheck(params, 0);
-        if (sender.getNick().equals(connection.getUserNick())) {
+        if (sender.getNick().equalsIgnoreCase(connection.getUserNick())) {
             connection.setUserNick(newNick);
             onResponse(newNick, newNick);
         }

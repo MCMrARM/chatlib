@@ -40,7 +40,7 @@ public class MessageHandler {
             if (prefixEndI == -1)
                 throw new InvalidMessageException();
             prefix = new MessagePrefix(line.substring(1, prefixEndI));
-            if (prefix.getNick().equals(connection.getUserNick())) {
+            if (prefix.getNick().equalsIgnoreCase(connection.getUserNick())) {
                 connection.setUserExtraInfo(prefix.getUser(), prefix.getHost());
             }
         }

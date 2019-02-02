@@ -81,7 +81,7 @@ public class MessageCommandHandler implements CommandHandler {
                     continue;
                 }
 
-                if (channel.equals(connection.getUserNick()) || channelData == null) {
+                if (channel.equalsIgnoreCase(connection.getUserNick()) || channelData == null) {
                     channelData = getChannelData(connection, sender, channel);
                     if (channelData == null)
                         continue;
@@ -169,7 +169,8 @@ public class MessageCommandHandler implements CommandHandler {
     }
 
     private ChannelData getChannelData(ServerConnectionData connection, MessagePrefix sender, String channel) {
-        boolean isDirectMessage = (channel.equals(connection.getUserNick()) || channel.equals(sender.getNick()));
+        boolean isDirectMessage = (channel.equalsIgnoreCase(connection.getUserNick()) ||
+                channel.equalsIgnoreCase(sender.getNick()));
         if (isDirectMessage)
             channel = sender.getNick();
         try {
