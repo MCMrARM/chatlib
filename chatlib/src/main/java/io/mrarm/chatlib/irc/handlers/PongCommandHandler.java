@@ -25,7 +25,7 @@ public class PongCommandHandler extends RequestResponseCommandHandler<String, Vo
     public void handle(ServerConnectionData connection, MessagePrefix sender, String command, List<String> params,
                        Map<String, String> tags)
             throws InvalidMessageException {
-        onResponse(params.get(1), null);
+        onResponse(CommandHandler.getParamOrNull(params, 1), null);
     }
 
     @Override
