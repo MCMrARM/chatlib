@@ -36,7 +36,7 @@ public class DCCClient implements Closeable {
 
     public void start(SocketChannel socket) throws IOException {
         this.socket = socket;
-        this.socketRemoteAddress = socket.getRemoteAddress();
+        this.socketRemoteAddress = socket.socket().getRemoteSocketAddress();
         this.socket.configureBlocking(false);
         this.file.position(offset);
         this.downloadedSize = offset;

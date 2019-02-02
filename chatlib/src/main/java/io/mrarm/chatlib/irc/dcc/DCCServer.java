@@ -77,7 +77,7 @@ public class DCCServer implements Closeable {
         SocketChannel socket = serverSocket.accept();
         if (socket == null)
             return;
-        System.out.println("Accepted DCC connection from: " + socket.getRemoteAddress().toString());
+        System.out.println("Accepted DCC connection from: " + socket.socket().getRemoteSocketAddress().toString());
         new UploadSession(fileFactory.open(), socket, offset);
     }
 
@@ -125,7 +125,7 @@ public class DCCServer implements Closeable {
                 this.file = file;
                 this.socket = socket;
                 socket.configureBlocking(false);
-                remoteAddress = socket.getRemoteAddress();
+                remoteAddress = socket.socket().getRemoteSocketAddress();
                 selectionKey = DCCIOHandler.getInstance().register(socket,
                         SelectionKey.OP_READ | SelectionKey.OP_WRITE, selectionKeyHandler);
             } catch (IOException e) {
