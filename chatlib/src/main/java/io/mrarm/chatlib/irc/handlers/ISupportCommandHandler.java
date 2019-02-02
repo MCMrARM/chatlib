@@ -55,7 +55,7 @@ public class ISupportCommandHandler implements CommandHandler {
         } else if (param.equals(PARAM_CHANTYPES)) {
             supportList.setSupportedChannelTypes(new ModeList(value));
         } else if (param.equals(PARAM_CHANMODES)) {
-            String[] modes = value.split(",");
+            String[] modes = value.split(",", -1);
             supportList.setSupportedChannelModes(new ModeList(modes[0]), new ModeList(modes[1]), new ModeList(modes[2]),
                     new ModeList(modes[3]));
         }
