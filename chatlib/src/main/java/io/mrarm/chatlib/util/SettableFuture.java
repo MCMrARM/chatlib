@@ -9,7 +9,7 @@ public class SettableFuture<V> implements Future<V> {
 
     private V value;
     private boolean valueSet = false;
-    private Exception exception;
+    private Throwable exception;
 
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
@@ -58,7 +58,7 @@ public class SettableFuture<V> implements Future<V> {
         }
     }
 
-    public void setExecutionException(Exception exception) {
+    public void setExecutionException(Throwable exception) {
         synchronized (this) {
             this.exception = exception;
             valueSet = true;
