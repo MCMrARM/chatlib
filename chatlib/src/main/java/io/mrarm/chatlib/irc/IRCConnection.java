@@ -51,7 +51,7 @@ public class IRCConnection extends ServerConnectionApi {
 
     private void sendCommandRaw(String string, boolean flush) throws IOException {
         synchronized (socketOutputStream) {
-            byte[] data = (string + '\n').getBytes(charset);
+            byte[] data = (string + "\r\n").getBytes(charset);
             if (data.length > 512)
                 throw new IOException("Too long message");
             socketOutputStream.write(data);
