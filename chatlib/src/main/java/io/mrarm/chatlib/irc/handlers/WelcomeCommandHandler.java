@@ -30,6 +30,9 @@ public class WelcomeCommandHandler implements CommandHandler {
         int numeric = CommandHandler.toNumeric(command);
         StatusMessageInfo.MessageType type = StatusMessageInfo.MessageType.WELCOME_TEXT;
         switch (numeric) {
+            case RPL_WELCOME:
+                connection.setUserNick(CommandHandler.getParamWithCheck(params, 0));
+                break;
             case RPL_YOURHOST:
                 type = StatusMessageInfo.MessageType.YOUR_HOST_TEXT;
                 break;
