@@ -7,7 +7,7 @@ public class StatusMessageInfo {
     public enum MessageType {
         NOTICE, MOTD, WELCOME_TEXT, YOUR_HOST_TEXT, SERVER_CREATED_TEXT, HOST_INFO, REDIR_TEXT,
         DISCONNECT_WARNING, UNHANDLED_MESSAGE, CTCP_PING, CTCP_VERSION,
-        WHOIS
+        WHOIS, SASL
     }
 
     private String sender;
