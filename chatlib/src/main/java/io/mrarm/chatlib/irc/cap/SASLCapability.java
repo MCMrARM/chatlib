@@ -56,7 +56,7 @@ public class SASLCapability extends Capability {
             if (params.size() == 1 && CommandHandler.getParamWithCheck(params, 0).equals("+"))
                 continueAuthentication(connection);
         } else if (numeric == RPL_SASLSUCCESS) {
-            String message = CommandHandler.getParamWithCheck(params, 1, "SASL authentication successful");
+            String message = CommandHandler.getParamWithCheck(params, 1, null);
             connection.getServerStatusData().addMessage(new StatusMessageInfo(
                     sender != null ? sender.getServerName() : null, new Date(),
                     StatusMessageInfo.MessageType.SASL, message));
