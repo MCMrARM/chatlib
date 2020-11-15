@@ -1,5 +1,6 @@
 package io.mrarm.chatlib.irc.cap;
 
+import io.mrarm.chatlib.dto.StatusMessageInfo;
 import io.mrarm.chatlib.irc.CommandHandler;
 import io.mrarm.chatlib.irc.InvalidMessageException;
 import io.mrarm.chatlib.irc.MessagePrefix;
@@ -9,6 +10,7 @@ import io.mrarm.chatlib.util.Base64Util;
 import java.io.IOException;
 import java.security.InvalidParameterException;
 import java.util.Base64;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -54,6 +56,11 @@ public class SASLCapability extends Capability {
             if (params.size() == 1 && CommandHandler.getParamWithCheck(params, 0).equals("+"))
                 continueAuthentication(connection);
         } else if (numeric == RPL_SASLSUCCESS) {
+            String message = CommandHandler.getParamWithCheck(params, 1, null);
+            connection.getServerStatusData().addMessage(new StatusMessageInfo(
+                    sender != null ? sender.getServerName() : null, new Date(),
+                    StatusMessageInfo.MessageType.SASL, message));
+
             if (finishLock != -1) {
                 connection.getCapabilityManager().removeNegotationFinishLock(finishLock);
                 finishLock = -1;
