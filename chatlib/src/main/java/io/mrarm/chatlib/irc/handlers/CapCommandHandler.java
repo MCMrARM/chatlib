@@ -25,9 +25,9 @@ public class CapCommandHandler implements CommandDisconnectHandler {
         int baseSubcmdI = 1;
         String subcmd = CommandHandler.getParamWithCheck(params, baseSubcmdI);
         boolean expectMore = false;
-        if (subcmd.equals("*")) {
+        if ("*".equals(CommandHandler.getParamOrNull(params, baseSubcmdI + 1))) {
             expectMore = true;
-            subcmd = CommandHandler.getParamWithCheck(params, ++baseSubcmdI);
+            ++baseSubcmdI;
         }
         if (subcmd.equals("LS")) {
             if (lsEntries == null)
