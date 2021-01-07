@@ -37,7 +37,9 @@ public class ListCommandHandler implements CommandDisconnectHandler {
         if (numeric == RPL_LISTSTART) {
             request.entries = new ArrayList<>();
         } else if (numeric == RPL_LISTEND) {
-            ChannelList resp = new ChannelList(currentRequest.entries);
+            if (request.entries == null)
+                request.entries = new ArrayList<>();
+            ChannelList resp = new ChannelList(request.entries);
             request.retVal.set(resp);
             if (request.callback != null)
                 request.callback.onResponse(resp);
