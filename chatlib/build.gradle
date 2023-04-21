@@ -1,8 +1,4 @@
 apply plugin: "maven-publish"
-
-group 'com.github.mcmrarm'
-version 'master-SNAPSHOT'
-
 apply plugin: 'java'
 
 sourceCompatibility = 1.8
@@ -13,4 +9,16 @@ dependencies {
 
 test {
     useJUnitPlatform()
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = 'com.github.mcmrarm'
+            artifactId = 'chatlib'
+            version = 'master-SNAPSHOT'
+
+            from components.java
+        }
+    }
 }
