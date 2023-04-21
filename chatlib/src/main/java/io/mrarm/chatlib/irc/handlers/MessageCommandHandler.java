@@ -105,8 +105,12 @@ public class MessageCommandHandler implements CommandHandler {
                 channelData.addMessage(new MessageInfo.Builder(sender.toSenderInfo(userUUID, channelData), args, MessageInfo.MessageType.ME), tags);
             }
         } else if (command.equals("PING") && !notice) {
-            if (!rateLimitCtcpCommand() || args.contains("\r") || args.contains("\n") || args.contains("\01") || args.length() > 32)
+            if (!rateLimitCtcpCommand() || args.length() > 32)
                 return;
+            for (int i = 0; i < args.length(); i++) {
+                if (args.charAt(i) < ' ')
+                    return;
+            }
             connection.getServerStatusData().addMessage(new StatusMessageInfo(sender.getNick(), new Date(), StatusMessageInfo.MessageType.CTCP_PING, null));
             connection.getApi().sendNotice(sender.getNick(), "\01PING " + args + "\01", null, null);
         } else if (command.equals("VERSION") && !notice) {

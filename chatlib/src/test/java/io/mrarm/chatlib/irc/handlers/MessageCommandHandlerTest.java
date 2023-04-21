@@ -47,6 +47,14 @@ class MessageCommandHandlerTest {
     }
 
     @Test
+    void handleInvalidCtcpCommand() {
+        testMessageForCrash("\01TEST\01");
+        testMessageForCrash("\01DCC\01");
+        testMessageForCrash("\01TEST \01");
+        testMessageForCrash("\01DCC \01");
+    }
+
+    @Test
     void handleInvalidDccResume() {
         testMessageForCrash("\01DCC RESUME \01");
         testMessageForCrash("\01DCC RESUME test\01");
