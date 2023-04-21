@@ -1,4 +1,4 @@
-apply plugin: "maven"
+apply plugin: "maven-publish"
 
 group 'com.github.mcmrarm'
 version 'master-SNAPSHOT'
@@ -8,5 +8,9 @@ apply plugin: 'java'
 sourceCompatibility = 1.8
 
 dependencies {
-    testCompile 'junit:junit:4.12'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.1'
+}
+
+test {
+    useJUnitPlatform()
 }
