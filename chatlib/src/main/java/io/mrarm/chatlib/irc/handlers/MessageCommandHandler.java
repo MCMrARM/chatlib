@@ -93,7 +93,7 @@ public class MessageCommandHandler implements CommandHandler {
         }
     }
 
-    private void processCtcp(ServerConnectionData connection, MessagePrefix sender, UUID userUUID, String[] targetChannels, String data, boolean notice, Map<String, String> tags) throws InterruptedException, ExecutionException {
+    private void processCtcp(ServerConnectionData connection, MessagePrefix sender, UUID userUUID, String[] targetChannels, String data, boolean notice, Map<String, String> tags) throws InterruptedException, ExecutionException, InvalidMessageException {
         int iof = data.indexOf(' ');
         String command = iof == -1 ? data : data.substring(0, iof);
         String args = data.substring(iof + 1);
@@ -105,7 +105,7 @@ public class MessageCommandHandler implements CommandHandler {
                 channelData.addMessage(new MessageInfo.Builder(sender.toSenderInfo(userUUID, channelData), args, MessageInfo.MessageType.ME), tags);
             }
         } else if (command.equals("PING") && !notice) {
-            if (!rateLimitCtcpCommand() || args.contains("\r") || args.contains("\n") || args.length() > 32)
+            if (!rateLimitCtcpCommand() || args.contains("\r") || args.contains("\n") || args.contains("\01") || args.length() > 32)
                 return;
             connection.getServerStatusData().addMessage(new StatusMessageInfo(sender.getNick(), new Date(), StatusMessageInfo.MessageType.CTCP_PING, null));
             connection.getApi().sendNotice(sender.getNick(), "\01PING " + args + "\01", null, null);
@@ -119,9 +119,19 @@ public class MessageCommandHandler implements CommandHandler {
                 args = args.substring(7);
                 int filenameLen = DCCUtils.getFilenameLength(args);
                 String filename = args.substring(0, filenameLen);
-                String[] otherArgs = args.substring(filenameLen + (args.charAt(filenameLen) == ' ' ? 1 : 0)).split(" ");
-                if (dccServerManager.continueUpload(connection, sender.getNick(), filename,
-                        Integer.parseInt(otherArgs[0]), Long.parseLong(otherArgs[1]))) {
+                String[] otherArgs = args.substring(filenameLen + (filenameLen < args.length() && args.charAt(filenameLen) == ' ' ? 1 : 0)).split(" ");
+                int port = -1;
+                long offset = -1;
+                try {
+                    port = Integer.parseInt(otherArgs[0]);
+                    offset = Long.parseLong(otherArgs[1]);
+                } catch (Exception ignored) { // NumberFormatException or NPE
+                    throw new InvalidMessageException("DCC RESUME: invalid numeric values");
+                }
+                if (offset < 0)
+                    throw new InvalidMessageException("DCC RESUME: offset must be non-negative");
+
+                if (dccServerManager.continueUpload(connection, sender.getNick(), filename, port, offset)) {
                     connection.getApi().sendMessage(sender.getNick(), "\01DCC ACCEPT " + filename + " " +
                             otherArgs[0] + " " + otherArgs[1] + "\01", null, null);
                 }
@@ -130,22 +140,26 @@ public class MessageCommandHandler implements CommandHandler {
                 args = args.substring(5);
                 int filenameLen = DCCUtils.getFilenameLength(args);
                 String filename = args.substring(0, filenameLen);
-                String[] otherArgs = args.substring(filenameLen + (args.charAt(filenameLen) == ' ' ? 1 : 0)).split(" ");
-                String ip = DCCUtils.convertIPFromCommand(otherArgs[0]);
-                int port = Integer.parseInt(otherArgs[1]);
+                String[] otherArgs = args.substring(filenameLen + (filenameLen < args.length() && args.charAt(filenameLen) == ' ' ? 1 : 0)).split(" ");
+                String ip = null;
+                int port = -1;
                 long size = -1;
+                int reverseId = -1;
                 try {
+                    ip = DCCUtils.convertIPFromCommand(otherArgs[0]);
+                    port = Integer.parseInt(otherArgs[1]);
                     size = Long.parseLong(otherArgs[2]);
+                    if (otherArgs.length > 3)
+                        reverseId = Integer.parseInt(otherArgs[3]);
                 } catch (Exception ignored) { // NumberFormatException or NPE
+                    throw new InvalidMessageException("DCC RESUME: invalid numeric values");
                 }
                 if (otherArgs.length > 3 && port == 0) { // Reverse DCC request
-                    int reverseId = Integer.parseInt(otherArgs[3]);
                     if (dccClientManager != null)
                         dccClientManager.onFileOfferedUsingReverse(connection, sender, filename, size, reverseId);
                     return;
                 }
                 if (otherArgs.length > 3) { // Reverse DCC response
-                    int reverseId = Integer.parseInt(otherArgs[3]);
                     if (dccServerManager != null) // no need to rate limit, as we limit the count of uploads in that part of code anyways
                         dccServerManager.handleReverseUploadResponse(connection, sender.getNick(), filename, reverseId,
                                 ip, port);
