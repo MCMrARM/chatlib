@@ -192,10 +192,11 @@ public class MessageCommandHandler implements CommandHandler {
     // http://www.irchelp.org/protocol/ctcpspec.html
 
     private String lowDequote(String text) {
-        StringBuilder outpBuilder = new StringBuilder(text.length());
-        for (int i = 0; i < text.length(); i++) {
+        int len = text.length();
+        StringBuilder outpBuilder = new StringBuilder(len);
+        for (int i = 0; i < len; i++) {
             char c = text.charAt(i);
-            if (c == '\020') {
+            if (c == '\020' && i + 1 < len) {
                 int cc = text.charAt(++i);
                 switch (cc) {
                     case '0':
